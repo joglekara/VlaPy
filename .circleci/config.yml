@@ -1,0 +1,58 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  build:
+    # Run the steps with Docker
+    docker:
+      - image: circleci/python:3.7.3
+
+      # Specify service dependencies here if necessary
+      # CircleCI maintains a library of pre-built images
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+    working_directory: ~/vlapy
+
+    steps:
+      - checkout
+
+      # Setup Python venv
+      - run:
+          name: setup python virtual env
+          command: python3 -m venv venv
+
+      - run:
+          name: install python packages
+          command: |
+            . venv/bin/activate
+            pip3 install -U pip
+            pip3 install . --progress-bar off
+            pip3 install black
+            pip3 install pytest pytest-cov codecov
+
+      # Run python linting checks
+      - run:
+          name: run python linting checks
+          command: |
+            . venv/bin/activate
+            black --check vlapy
+
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            pytest --cov-report=xml --cov=vlapy
+
+      # upload code coverage report
+      - run:
+          name: upload code coverage report
+          command: |
+            . venv/bin/activate
+            export CODECOV_TOKEN="03c475c3-2952-4aae-9627-35fa1c8c3678"
+            codecov
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
