@@ -32,7 +32,8 @@ $$ \hat{f}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f}^n(k_x, v). $$
 The $E \partial f/\partial v$ term is stepped similarly using
 $$ \hat{f}^{n+1}(x, k_v) = \exp(-i k_v ~ F \Delta t) ~~ \hat{f}^n(x, k_v) $$
 
-We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) `@pefrl:2001`.
+We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
+Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
 
 ### Tests
 The implementation of this equation is tested in the integrated tests section below.
