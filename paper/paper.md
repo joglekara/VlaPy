@@ -7,7 +7,7 @@ The implementation here is based on finite-difference and pseudo-spectral method
 
 
 # Statement of Need
-Plenty of software that solves the same equation set exists in academia [@Banks2017, @Joglekar2018], research labs, and industry, but an open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@Murphy:2019] community. ``PlasmaPy`` is a collection of Open-Source plasma physics resources. There has been significant discussion over the past few years regarding the need for an open-source Eulerian Vlasov code. ``VlaPy`` aims to fulfill these voids in the academic and research communities.
+Plenty of software that solves the same equation set exists in academia [@Banks2017, @Joglekar2018], research labs, and industry, but an open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community. ``PlasmaPy`` is a collection of Open-Source plasma physics resources. There has been significant discussion over the past few years regarding the need for an open-source Eulerian Vlasov code. ``VlaPy`` aims to fulfill these voids in the academic and research communities.
 
 In general, ``VlaPy`` is designed to help students and researchers learn about concepts such as fundamental plasma physics and numerical methods as well as software-engineering-related topics such as unit and integrated testing, and extensible and maintainable code. The details of the implementation are provided in the following section. 
 
