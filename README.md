@@ -4,8 +4,8 @@
 # VlaPy
 
 ## Overview
-VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Fokker-Planck code written in Python. 
-The Vlasov-Fokker-Planck is commonly used in the study of plasma physics.
+VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
+The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in plasma physics.
 
 
 ## Implementation
