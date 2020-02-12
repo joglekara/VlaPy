@@ -79,7 +79,7 @@ This operator has unit-tests associated with it. The unit tests ensure that
 1. The operator conserves density.
 
 
-2. The operator reverts to a solution with a temperature $v_0$.
+2. The operator reverts to a solution with a temperature $v_0^2$.
 
 
 3. The operator does nothing when a Maxwell-Boltzmann distribution with $v_{th} = v_0$ is fed to it.

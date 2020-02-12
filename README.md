@@ -7,7 +7,6 @@
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in plasma physics.
 
-
 ## Implementation
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
 
@@ -17,11 +16,15 @@ The spatial advection operator is pushed pseudospectrally. The system is periodi
 This operator is tested in the fully integrated tests to reproduce analytical solutions of the 
 1D-1V Vlasov-Poisson, namely, Landau damping.
 
+This method is accelerated using ``numba.njit``.
+
 ### Vlasov - Velocity Advection
 The spatial advection operator is pushed pseudospectrally. The system is periodic in v.
 
 This operator is tested in the fully integrated tests to reproduce analytical solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
+
+This method is accelerated using ``numba.njit``.
 
  
 ### Poisson Solver
@@ -42,6 +45,5 @@ This solver is tested to
 
 ## Tests
 All tests are performed in CircleCI. There are unit tests as well as integrated tests.
-
 
 
