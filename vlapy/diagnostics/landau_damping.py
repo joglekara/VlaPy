@@ -1,5 +1,4 @@
 import numpy as np
-import mlflow
 
 
 class LandauDamping:
@@ -48,3 +47,15 @@ class LandauDamping:
         wax = np.fft.fftfreq(ek1w.shape[0], d=dt) * 2 * np.pi
 
         return wax[ek1w.argmax()]
+
+    def make_plots(self, storage_manager):
+        pass
+
+    def __plot_e_vs_t(self, w, e, title):
+        pass
+
+    def __plot_e_vs_w(self, w, e, title):
+        pass
+
+    def __plot_f(self, f, x, v, title):
+        pass
