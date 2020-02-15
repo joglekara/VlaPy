@@ -5,6 +5,7 @@ import os
 
 class StorageManager:
     def __init__(self, xax, vax, tax, base_path):
+        self.base_path = base_path
         efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
         self.efield_arr = self.__init_electric_field_storage(
             tax=tax, xax=xax, path=efield_path

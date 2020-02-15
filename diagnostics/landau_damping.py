@@ -1,5 +1,7 @@
 import numpy as np
 import mlflow
+from matplotlib import pyplot as plt
+import os
 
 
 class LandauDamping:
@@ -7,7 +9,9 @@ class LandauDamping:
         pass
 
     def __call__(self, storage_manager):
-        # pass
+        self.plots_dir = os.path.join(storage_manager.base_path, "plots")
+        os.makedirs(self.plots_dir)
+
         damping_rate = self.get_damping_rate(storage_manager)
         frequency = self.get_oscillation_frequency(storage_manager)
 
@@ -17,6 +21,8 @@ class LandauDamping:
         }
 
         mlflow.log_metrics(metrics=metrics)
+
+        self.make_plots(storage_manager)
 
     def get_damping_rate(self, storage_manager):
         efield_arr = storage_manager.efield_arr
@@ -45,13 +51,43 @@ class LandauDamping:
         return wax[ek1w.argmax()]
 
     def make_plots(self, storage_manager):
-        pass
+        efield_arr = storage_manager.efield_arr
+        tax = efield_arr.coords["time"].data
+        dt = tax[1] - tax[0]
+        wax = np.fft.fftfreq(tax.size, d=dt) * 2 * np.pi
 
-    def __plot_e_vs_t(self, w, e, title):
-        pass
+        ek = np.fft.fft(efield_arr.data, axis=1)
+        ek_mag = np.array([np.abs(ek[it, 1]) for it in range(tax.size)])
+        ekw_mag = np.abs(np.fft.fft(np.array([ek[it, 1] for it in range(tax.size)])))
+
+        self.__plot_e_vs_t(tax, ek_mag, "Electric Field Amplitude vs Time")
+        self.__plot_e_vs_w(wax, ekw_mag, "Electric Field Amplitude vs Frequency")
+
+    def __plot_e_vs_t(self, t, e, title):
+        this_fig = plt.figure(figsize=(8, 4))
+        this_plt = this_fig.add_subplot(111)
+        this_plt.plot(t, e)
+        this_plt.set_xlabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
+        this_plt.set_ylabel(r"$\hat{E}_{k=1}$", fontsize=12)
+        this_plt.set_title(title, fontsize=14)
+        this_plt.grid()
+        this_fig.savefig(
+            os.path.join(self.plots_dir, "E_vs_time.png"), bbox_inches="tight"
+        )
 
     def __plot_e_vs_w(self, w, e, title):
-        pass
+        this_fig = plt.figure(figsize=(8, 4))
+        this_plt = this_fig.add_subplot(111)
+        this_plt.semilogy(np.fft.fftshift(w), np.fft.fftshift(e), "-x")
+        this_plt.set_xlabel(r"Frequency ($\omega_p$)", fontsize=12)
+        this_plt.set_ylabel(r"$\hat{\hat{E}}_{k=1}$", fontsize=12)
+        this_plt.set_title(title, fontsize=14)
+        this_plt.set_xlim(1, 1.5)
+        this_plt.grid()
+        this_plt.set_ylim(0.001 * np.amax(e), 1.5 * np.amax(e))
+        this_fig.savefig(
+            os.path.join(self.plots_dir, "E_vs_frequency.png"), bbox_inches="tight"
+        )
 
     def __plot_f(self, f, x, v, title):
         pass

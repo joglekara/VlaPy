@@ -6,6 +6,7 @@ INSTALL_REQUIREMENTS = [
     "mlflow==1.6.0",
     "xarray==0.15.0",
     "scipy==1.4.1",
+    "matplotlib==3.1.3",
 ]
 
 setup(
