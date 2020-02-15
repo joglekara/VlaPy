@@ -6,9 +6,9 @@ import shutil
 
 
 def test_storage_init_files_exist():
-    xax = np.linspace(0, 1, 16)  # np.random.randint(8, 32))
-    vax = np.linspace(0, 1, 24)  # np.random.randint(8, 32))
-    tax = np.linspace(0, 1, 32)  # np.random.randint(8, 32))
+    xax = np.linspace(0, 1, 16)
+    vax = np.linspace(0, 1, 24)
+    tax = np.linspace(0, 1, 32)
 
     dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
     os.makedirs(dirname, exist_ok=True)
@@ -22,9 +22,9 @@ def test_storage_init_files_exist():
 
 
 def test_storage_init_shape():
-    xax = np.linspace(0, 1, 16)  # np.random.randint(8, 32))
-    vax = np.linspace(0, 1, 24)  # np.random.randint(8, 32))
-    tax = np.linspace(0, 1, 32)  # np.random.randint(8, 32))
+    xax = np.linspace(0, 1, 16)
+    vax = np.linspace(0, 1, 24)
+    tax = np.linspace(0, 1, 32)
 
     dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
     os.makedirs(dirname, exist_ok=True)

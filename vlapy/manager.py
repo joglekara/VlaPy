@@ -2,11 +2,11 @@ import shutil
 import mlflow
 import numpy as np
 
-from vlapy.core import step, field
+from vlapy.core import step, field, lenard_bernstein
 from vlapy import storage
 
 
-def start_run(temp_path, nx, nv, nt, tmax, w0, k0, a0, diagnostics, name="test"):
+def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
     """
     End to end mlflow and xarray storage!!
 
@@ -23,7 +23,7 @@ def start_run(temp_path, nx, nv, nt, tmax, w0, k0, a0, diagnostics, name="test")
     :return:
     """
 
-    mlflow_client = __start_client__()
+    mlflow_client = mlflow.tracking.MlflowClient()
 
     with mlflow.start_run(experiment_id=__get_exp_id(name, mlflow_client)):
         # Log initial conditions
@@ -73,11 +73,20 @@ def start_run(temp_path, nx, nv, nt, tmax, w0, k0, a0, diagnostics, name="test")
         it_store = 0
         storage_manager = storage.StorageManager(x, v, t, temp_path)
 
+        # Collisions array
+        A = lenard_bernstein.make_philharmonic_matrix(
+            vax=v, Nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
+        )
+
         # Time Loop
         for it in range(nt):
             e, f = step.full_leapfrog_ps_step(
                 f, x, kx, v, kv, dv, t[it], dt, e, driver_function
             )
+
+            if nu > 0.0:
+                for ix in range(nx):
+                    f[ix,] = lenard_bernstein.take_collision_step(leftside=A, f=f[ix])
 
             # All storage stuff here
             temp_t_store[it_store] = t[it]
@@ -101,11 +110,13 @@ def start_run(temp_path, nx, nv, nt, tmax, w0, k0, a0, diagnostics, name="test")
         shutil.rmtree(temp_path)
 
 
-def __start_client__():
-    return mlflow.tracking.MlflowClient()
-
-
 def __get_exp_id(name, mlflow_client):
+    """
+    Gets MLFlow Experiment ID for use later
+    :param name:
+    :param mlflow_client:
+    :return:
+    """
     experiment = mlflow_client.get_experiment_by_name(name)
 
     if experiment is None:
