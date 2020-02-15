@@ -5,6 +5,7 @@ INSTALL_REQUIREMENTS = [
     "numba==0.48.0",
     "mlflow==1.6.0",
     "xarray==0.15.0",
+    "scipy==1.4.1",
 ]
 
 setup(

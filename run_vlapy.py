@@ -15,6 +15,6 @@ if __name__ == "__main__":
         tmax=100,
         w0=1.1598,
         k0=0.3,
-        a0=1e-2,
+        a0=1e-5,
         diagnostics=landau_damping.LandauDamping(),
     )

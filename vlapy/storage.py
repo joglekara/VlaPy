@@ -5,7 +5,6 @@ import os
 
 class StorageManager:
     def __init__(self, xax, vax, tax, base_path):
-        print("outside", tax.size, xax.size)
         efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
         self.efield_arr = self.__init_electric_field_storage(
             tax=tax, xax=xax, path=efield_path
@@ -26,7 +25,6 @@ class StorageManager:
         :return:
         """
 
-        print(tax.size, xax.size)
         electric_field_store = np.zeros((tax.size, xax.size))
 
         ef_DA = xr.DataArray(
@@ -71,5 +69,7 @@ class StorageManager:
         :param f:
         :return:
         """
-        self.efield_arr.loc[t_range, :] = e
-        self.f_arr.loc[t_range, :] = f
+        t_xr = xr.DataArray(data=t_range, dims=["time"])
+
+        self.efield_arr.loc[t_xr, :] = e
+        self.f_arr.loc[t_xr, :] = f
