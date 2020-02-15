@@ -12,12 +12,9 @@ class LandauDamping:
         self.plots_dir = os.path.join(storage_manager.base_path, "plots")
         os.makedirs(self.plots_dir)
 
-        damping_rate = self.get_damping_rate(storage_manager)
-        frequency = self.get_oscillation_frequency(storage_manager)
-
         metrics = {
-            "damping_rate": damping_rate,
-            "frequency": frequency,
+            "damping_rate": self.get_damping_rate(storage_manager),
+            "frequency": self.get_oscillation_frequency(storage_manager),
         }
 
         mlflow.log_metrics(metrics=metrics)

@@ -6,17 +6,17 @@ import os
 class StorageManager:
     def __init__(self, xax, vax, tax, base_path):
         self.base_path = base_path
-        efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
-        self.efield_arr = self.__init_electric_field_storage(
-            tax=tax, xax=xax, path=efield_path
-        )
+        self.efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
+        self.f_path = os.path.join(base_path, "dist_func_vs_time.nc")
 
-        f_path = os.path.join(base_path, "dist_func_vs_time.nc")
-        self.f_arr = self.__init_dist_func_storage(
-            tax=tax, xax=xax, vax=vax, path=f_path
-        )
+        self.__init_electric_field_storage(tax=tax, xax=xax)
+        self.__init_dist_func_storage(tax=tax, xax=xax, vax=vax)
 
-    def __init_electric_field_storage(self, tax, xax, path):
+    def close(self):
+        self.efield_arr.to_netcdf(self.efield_path)
+        self.f_arr.to_netcdf(self.f_path)
+
+    def __init_electric_field_storage(self, tax, xax):
         """
         Initialize electric field storage DataArray
 
@@ -32,11 +32,11 @@ class StorageManager:
             data=electric_field_store, coords=[("time", tax), ("space", xax)]
         )
 
-        ef_DA.to_netcdf(path)
+        ef_DA.to_netcdf(self.efield_path)
 
-        return xr.open_dataarray(path)
+        self.efield_arr = xr.open_dataarray(self.efield_path)
 
-    def __init_dist_func_storage(self, tax, xax, vax, path):
+    def __init_dist_func_storage(self, tax, xax, vax):
         """
         Initialize distribution function storage
 
@@ -53,9 +53,9 @@ class StorageManager:
             coords=[("time", tax), ("space", xax), ("velocity", vax)],
         )
 
-        f_DA.to_netcdf(path)
+        f_DA.to_netcdf(self.f_path)
 
-        return xr.open_dataarray(path)
+        self.f_arr = xr.open_dataarray(self.f_path)
 
     def batched_write_to_file(self, t_range, e, f):
         """
@@ -74,3 +74,10 @@ class StorageManager:
 
         self.efield_arr.loc[t_xr, :] = e
         self.f_arr.loc[t_xr, :] = f
+
+        # Save and reopen
+        self.efield_arr.to_netcdf(self.efield_path)
+        self.f_arr.to_netcdf(self.f_path)
+
+        self.efield_arr = xr.open_dataarray(self.efield_path)
+        self.f_arr = xr.open_dataarray(self.f_path)

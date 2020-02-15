@@ -40,14 +40,18 @@ def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="te
         mlflow.log_params(params_dict)
 
         # Initialize machinery
+        # Distribution function
         f = step.initialize(nx, nv)
 
+        # Spatial Grid
+        # Fixed to single wavenumber domains
         xmax = 2 * np.pi / k0
         xmin = 0.0
         dx = (xmax - xmin) / nx
         x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
         kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
 
+        # Velocity grid
         vmax = 6.0
         dv = 2 * vmax / nv
         v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
@@ -73,7 +77,7 @@ def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="te
         it_store = 0
         storage_manager = storage.StorageManager(x, v, t, temp_path)
 
-        # Collisions array
+        # Matrix representing collision operator
         A = lenard_bernstein.make_philharmonic_matrix(
             vax=v, Nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
         )
@@ -100,10 +104,11 @@ def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="te
                 )
                 it_store = 0
 
-        # Diagnostics here
+        # Diagnostics
         diagnostics(storage_manager)
 
         # Log
+        storage_manager.close()
         mlflow.log_artifacts(temp_path)
 
         # Cleanup
