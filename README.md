@@ -13,15 +13,15 @@ The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
 ### Vlasov - Spatial Advection
 The spatial advection operator is pushed pseudospectrally. The system is periodic in x. 
 
-This operator is tested in the fully integrated tests to reproduce analytical solutions of the 
-1D-1V Vlasov-Poisson, namely, Landau damping.
+This operator is tested in the fully integrated tests to reproduce solutions of the 
+1D-1V Vlasov-Poisson system, namely, Landau damping.
 
 This method is accelerated using ``numba.njit``.
 
 ### Vlasov - Velocity Advection
-The spatial advection operator is pushed pseudospectrally. The system is periodic in v.
+The velocity advection operator is pushed pseudospectrally. The system is periodic in v.
 
-This operator is tested in the fully integrated tests to reproduce analytical solutions of the 
+This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
 
 This method is accelerated using ``numba.njit``.
