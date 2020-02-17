@@ -42,8 +42,30 @@ This solver is tested to
 2) conserve energy and density
 3) relax to a Maxwellian of the right temperature and without a drift velocity
 
-
 ## Tests
 All tests are performed in CircleCI. There are unit tests as well as integrated tests.
+One of the most fundamental plasma physics phenomenon is that described by Landau damping. 
 
+Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron 
+plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant 
+wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, 
+and the electrons can damp the electric field.
 
+In VlaPy, we verify that the damping rate is reproduced for a few different wave numbers. 
+This is shown in `notebooks/landau_damping.ipynb.`
+
+We include validation against this phenomenon as an integrated test.
+
+## Other practical considerations
+### File Storage
+XArray enables a user-friendly interface to labeling multi-dimensional arrays along with a powerful and performant
+backend. Therefore, we use XArray (http://xarray.pydata.org/en/stable/) for a performant Pythonic storage mechanism 
+that promises lazy loading and incremental writes (through some tricks).
+
+### Simulation Management
+We use MLFlow (https://mlflow.org/) for simulation management. This is typically used for managing machine-learning
+lifecycles but is perfectly suited for managing numerical simulations. We believe UI capability to manage simulations
+significantly eases the physicist's workflow. 
+
+There are more details about how the diagnostics for a particular type of simulation are packaged and provided to
+the run manager object. These will be described in time. One can infer these from the code as well. 
