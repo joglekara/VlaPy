@@ -50,7 +50,7 @@ jobs:
           name: upload code coverage report
           command: |
             . venv/bin/activate
-            export CODECOV_TOKEN="03c475c3-2952-4aae-9627-35fa1c8c3678"
+            export CODECOV_TOKEN="c29f3876-b4ac-4abe-9818-b86ff1b0b6e8"
             codecov
 
       - store_artifacts:

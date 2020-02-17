@@ -1,4 +1,4 @@
-from vlapy import lenard_bernstein
+from vlapy.core import lenard_bernstein
 import numpy as np
 
 

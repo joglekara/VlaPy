@@ -1,4 +1,4 @@
-from vlapy import field
+from vlapy.core import field
 import numpy as np
 
 
