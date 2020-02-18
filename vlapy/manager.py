@@ -1,12 +1,14 @@
 import shutil
 import mlflow
 import numpy as np
+import os
+import uuid
 
 from vlapy.core import step, field, lenard_bernstein
 from vlapy import storage
 
 
-def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
+def start_run(nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
     """
     End to end mlflow and xarray storage!!
 
@@ -67,6 +69,9 @@ def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="te
         e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
 
         # Storage
+        temp_path = os.path.join(os.getcwd(), "temp-" + str(uuid.uuid4())[-6:])
+        os.makedirs(temp_path, exist_ok=True)
+
         if nt // 4 < 100:
             t_store = 100
         else:
@@ -79,7 +84,7 @@ def start_run(temp_path, nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="te
 
         # Matrix representing collision operator
         A = lenard_bernstein.make_philharmonic_matrix(
-            vax=v, Nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
+            vax=v, nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
         )
 
         # Time Loop

@@ -1,14 +1,9 @@
 from vlapy import manager
 from diagnostics import landau_damping
-import os
-import uuid
 
 if __name__ == "__main__":
-    temp_dir = os.path.join(os.getcwd(), "temp-" + str(uuid.uuid4())[-6:])
-    os.makedirs(temp_dir, exist_ok=True)
 
     manager.start_run(
-        temp_dir,
         nx=48,
         nv=512,
         nt=1000,
