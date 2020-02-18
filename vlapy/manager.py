@@ -37,6 +37,7 @@ def start_run(nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
             "nt": nt,
             "tmax": tmax,
             "a0": a0,
+            "nu": nu,
         }
 
         mlflow.log_params(params_dict)
