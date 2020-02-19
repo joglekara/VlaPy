@@ -8,7 +8,7 @@ from vlapy.core import step, field, lenard_bernstein
 from vlapy import storage
 
 
-def start_run(nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
+def start_run(nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test", mlflow_path=None):
     """
     End to end mlflow and xarray storage!!
 
@@ -24,8 +24,10 @@ def start_run(nx, nv, nt, tmax, nu, w0, k0, a0, diagnostics, name="test"):
     :param name:
     :return:
     """
-
-    mlflow_client = mlflow.tracking.MlflowClient()
+    if mlflow_path is None:
+        mlflow_client = mlflow.tracking.MlflowClient()
+    else:
+        mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_path)
 
     with mlflow.start_run(experiment_id=__get_exp_id(name, mlflow_client)):
         # Log initial conditions
