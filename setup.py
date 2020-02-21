@@ -17,7 +17,7 @@ setup(
     license="MIT",
     author="Archis Joglekar",
     author_email="archisj@gmail.com",
-    description="Spectral 1D-1V Vlasov-Fokker-Planck code",
+    description="Pseudo-Spectral, Modular, Pythonic 1D-1V Vlasov-Fokker-Planck code",
     install_requires=INSTALL_REQUIREMENTS,
     include_package_data=True,
 )
