@@ -63,3 +63,22 @@ Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
 
 ### Tests
 The implementation of this equation is tested in the integrated tests section below.
+
+## Poisson Equation
+
+The normalized Poisson equation is
+$$  \nabla^2 \Phi = \rho $$
+
+We choose to reframe the above equation as
+$$ - \nabla E = \rho_{net} = 1 - \rho_e $$ 
+
+because the ions are motionless and form a charge-neutralizing background. This is justifiable on time-scales that are 
+mall relative to the dominant time-scale for ion motion.
+
+In 1 spatial dimension, this turns into
+
+$$ - \frac{d}{dx} E(x) = 1 - \int f(x,v) ~dv $$
+
+and the discretized version that is solved is
+
+$$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
