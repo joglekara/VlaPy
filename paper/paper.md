@@ -41,3 +41,25 @@ In general, ``VlaPy`` is designed to help students and researchers learn about c
 
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The normalized quantities are 
 $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m n_e v_{th}^3$. The Fourier Transform operator is represented by $\mathcal{F}$. The subscript to the operator indicates the dimension of the transform. 
+
+## Vlasov Equation
+
+The normalized Vlasov equation is given by
+$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
+
+We use operator splitting to advance the time-step `@Cheng:1977`. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+
+We first Fourier transform the operator like in 
+$$ \mathcal{F}_x\left[ \frac{d f}{d t} = v \frac{d f}{d x} \right].$$
+Then we solve for the change in the distribution function, discretize, and integrate, as given by
+$$\frac{d\hat{f}}{\hat{f}} = v~ (-i k_x)~ dt, $$
+$$ \hat{f}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f}^n(k_x, v). $$ 
+
+The $E \partial f/\partial v$ term is stepped similarly using
+$$ \hat{f}^{n+1}(x, k_v) = \exp(-i k_v ~ F \Delta t) ~~ \hat{f}^n(x, k_v) $$
+
+We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
+Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
+
+### Tests
+The implementation of this equation is tested in the integrated tests section below.
