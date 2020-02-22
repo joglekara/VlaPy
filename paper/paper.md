@@ -35,3 +35,9 @@ The implementation here is based on finite-difference and pseudo-spectral method
 There is a plethora of software that solves the same equation set in academia [@Banks2017, @Joglekar2018], research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
 
 In general, ``VlaPy`` is designed to help students and researchers learn about concepts such as fundamental plasma physics and numerical methods as well as software-engineering-related topics such as unit and integrated testing, and extensible and maintainable code. The details of the implementation are provided in the following section. 
+
+
+# Equations
+
+The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The normalized quantities are 
+$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m n_e v_{th}^3$. The Fourier Transform operator is represented by $\mathcal{F}$. The subscript to the operator indicates the dimension of the transform. 
