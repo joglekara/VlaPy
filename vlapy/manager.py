@@ -31,7 +31,9 @@ def start_run(
     else:
         mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_path)
 
-    with mlflow.start_run(experiment_id=__get_exp_id(name, mlflow_client)):
+    mlflow.set_experiment(name)
+
+    with mlflow.start_run():
         # Log initial conditions
         params_dict = {
             "nx": nx,
@@ -123,20 +125,3 @@ def start_run(
 
         # Cleanup
         shutil.rmtree(temp_path)
-
-
-def __get_exp_id(name, mlflow_client):
-    """
-    Gets MLFlow Experiment ID for use later
-    :param name:
-    :param mlflow_client:
-    :return:
-    """
-    experiment = mlflow_client.get_experiment_by_name(name)
-
-    if experiment is None:
-        exp_id = mlflow_client.create_experiment(name,)
-    else:
-        exp_id = experiment.experiment_id
-
-    return exp_id
