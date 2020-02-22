@@ -1,5 +1,5 @@
-[![CircleCI](https://circleci.com/gh/joglekara/VlaPy.svg?style=svg&circle-token=52a0c9c0d445766b1a051a0bb7198d2ccf0617f6)](https://circleci.com/gh/joglekara/VlaPy)
-[![codecov](https://codecov.io/gh/joglekara/VlaPy/branch/master/graph/badge.svg?token=xjy3FvcZPJ)](https://codecov.io/gh/joglekara/VlaPy)
+[![CircleCI](https://circleci.com/gh/joglekara/VlaPy.svg?style=shield)](https://circleci.com/gh/joglekara/VlaPy)
+[![codecov](https://codecov.io/gh/joglekara/VlaPy/branch/master/graph/badge.svg)](https://codecov.io/gh/joglekara/VlaPy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # VlaPy
 
