@@ -1,23 +1,48 @@
+---
+title: 'VlaPy: A Python package for Eulerian Vlasov-Poisson-Fokker-Planck Simulations'
+tags:
+  - Python
+  - plasma physics
+  - dynamics
+  - astrophysics
+  - fusion
+authors:
+  - name: Archis S. Joglekar
+    orcid: 0000-0003-3599-5629
+    affiliation: "1" # (Multiple affiliations must be quoted)
+  - name: Matthew C. Levy
+    orcid: 0000-0002-7387-0256
+    affiliation: "1"
+affiliations:
+ - name: Noble AI, San Francisco, CA
+   index: 1
+date: 16 February 2020
+bibliography: paper.bib
+
 # Summary
+
 ``VlaPy`` is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck simulation code written in Python.  The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in studying plasma physics in a variety of settings ranging from space physics to laboratory-created plasmas for fusion applications. 
 
-The Vlasov-Poisson system is used to model collisionless plasmas. Rather than relying on numerical diffusion to smooth small-scale structures that inevitably arise when modeling collisionless plasmas, the Fokker-Planck equation enables a physical smoothing mechanism. 
+The Vlasov-Poisson system is used to model collisionless plasmas. The Fokker-Planck operator is used to represent the effect of collisions. Rather than relying on numerical diffusion to smooth small-scale structures that inevitably arise when modeling collisionless plasmas, the Fokker-Planck equation enables a physical smoothing mechanism. 
 
 The implementation here is based on finite-difference and pseudo-spectral methods. At the lowest level, ``VlaPy`` evolves a 2D grid in time according a set of coupled partial integro-differential equations over time. The dynamics are initialized through initial conditions or through an external force.
 
 
 # Statement of Need
-Plenty of software that solves the same equation set exists in academia [@Banks2017, @Joglekar2018], research labs, and industry, but an open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community. ``PlasmaPy`` is a collection of Open-Source plasma physics resources. There has been significant discussion over the past few years regarding the need for an open-source Eulerian Vlasov code. ``VlaPy`` aims to fulfill these voids in the academic and research communities.
+
+There is a plethora of software that solves the same equation set in academia [@Banks2017, @Joglekar2018], research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
 
 In general, ``VlaPy`` is designed to help students and researchers learn about concepts such as fundamental plasma physics and numerical methods as well as software-engineering-related topics such as unit and integrated testing, and extensible and maintainable code. The details of the implementation are provided in the following section. 
 
 
 # Equations
+
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The normalized quantities are 
 $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m n_e v_{th}^3$. The Fourier Transform operator is represented by $\mathcal{F}$. The subscript to the operator indicates the dimension of the transform. 
 
 
 ## Vlasov Equation
+
 The normalized Vlasov equation is given by
 $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
 
@@ -40,6 +65,7 @@ The implementation of this equation is tested in the integrated tests section be
 
  
 ## Poisson Equation
+
 The normalized Poisson equation is
 $$  \nabla^2 \Phi = \rho $$
 
@@ -63,6 +89,7 @@ This operator has unit-tests associated with it which are simply unit tests agai
 
 
 ## Fokker-Planck Equation
+
 We use a simplified version of the full Fokker-Planck operator [@Lenard1958]. This is given by
 
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
@@ -89,7 +116,10 @@ This operator has unit-tests associated with it. The unit tests ensure that
 
 
 # Integrated test against Plasma Physics - Electron Plasma Waves and Landau Damping
-One of the most fundamental plasma physics phenomenon is that described by Landau damping [@Ryutov1999]. Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the plasma then damps the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa:1973].
+
+One of the most fundamental plasma physics phenomenon is that described by Landau damping. An extensive review is provided in ref. [@Ryutov1999]. 
+
+Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa:1973].
 
 In ``VlaPy``, we verify that the damping rate is reproduced for a few different wave numbers. This is shown in `notebooks/landau_damping.ipynb`. 
 
