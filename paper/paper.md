@@ -21,7 +21,7 @@ bibliography: paper.bib
 
 # Summary
 
-``VlaPy`` is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck simulation code written in Python.  The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in studying plasma physics in a variety of settings ranging from space physics to laboratory-created plasmas for fusion applications. 
+VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck simulation code written in Python.  The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in studying plasma physics in a variety of settings ranging from space physics to laboratory-created plasmas for fusion applications. 
 
 The Vlasov-Poisson system is used to model collisionless plasmas. The Fokker-Planck operator is used to represent the effect of collisions. Rather than relying on numerical diffusion to smooth small-scale structures that inevitably arise when modeling collisionless plasmas, the Fokker-Planck equation enables a physical smoothing mechanism. 
 
