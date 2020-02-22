@@ -83,7 +83,7 @@ and the discretized version that is solved is
 
 $$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
 
-#### Tests
+### Tests
 This operator has unit-tests associated with it which are simply unit tests against analytical solutions of integrals of periodic functions.
 
 
@@ -99,7 +99,7 @@ $$ f^{n} = {\Delta t} \nu \left[\left(-\frac{v_0^2}{\Delta v^2} + \frac{1}{2\Del
 
 This forms a tridiagonal system of equations that can be directly inverted.
 
-#### Tests
+### Tests
 This operator has unit-tests associated with it. The unit tests ensure that
 
 1. The operator conserves density.
@@ -108,7 +108,7 @@ This operator has unit-tests associated with it. The unit tests ensure that
 2. The operator reverts to a solution with a temperature $v_0^2$.
 
 
-3. The operator does nothing when a Maxwell-Boltzmann distribution with $v_{th} = v_0$ is fed to it.
+3. The operator does not act when it encounters a Maxwell-Boltzmann distribution with $v_{th} = v_0$.
 
 
 4. The operator returns the distribution to a mean velocity of 0 if initialized with a drift velocity off-center.
