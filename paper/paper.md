@@ -112,3 +112,17 @@ This operator has unit-tests associated with it. The unit tests ensure that
 
 
 4. The operator returns the distribution to a mean velocity of 0 if initialized with a drift velocity off-center.
+
+# Integrated test against Plasma Physics - Electron Plasma Waves and Landau Damping
+
+One of the most fundamental plasma physics phenomenon is that described by Landau damping. An extensive review is provided in ref. [@Ryutov1999]. 
+
+Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa:1973].
+
+In ``VlaPy``, we verify that the damping rate is reproduced for a few different wave numbers. This is shown in `notebooks/landau_damping.ipynb`. 
+
+We include validation against this phenomenon as an integrated test.
+
+# Acknowledgements
+We acknowledge valuable discussions with Pierre Navarro on the implementation of the Vlasov equation.
+
