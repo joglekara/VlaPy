@@ -1,5 +1,5 @@
 import numpy as np
-from vlapy import vlasov, field
+from vlapy.core import field, vlasov
 
 
 def initialize(nx, nv, vmax=6.0):
