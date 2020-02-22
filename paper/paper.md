@@ -32,7 +32,7 @@ The implementation here is based on finite-difference and pseudo-spectral method
 
 # Statement of Need
 
-There is a plethora of software that solves the same equation set in academia [@Banks2017, @Joglekar2018], research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
+There is a plethora of software that solves the same equation set in academia (see [@Banks2017],[@Joglekar2018]), research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
 
 In general, ``VlaPy`` is designed to help students and researchers learn about concepts such as fundamental plasma physics and numerical methods as well as software-engineering-related topics such as unit and integrated testing, and extensible and maintainable code. The details of the implementation are provided in the following section. 
 
@@ -82,3 +82,33 @@ $$ - \frac{d}{dx} E(x) = 1 - \int f(x,v) ~dv $$
 and the discretized version that is solved is
 
 $$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
+
+#### Tests
+This operator has unit-tests associated with it which are simply unit tests against analytical solutions of integrals of periodic functions.
+
+
+## Fokker-Planck Equation
+
+We use a simplified version of the full Fokker-Planck operator [@Lenard1958]. This is given by
+
+$$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
+where $v_0$ is the thermal velocity of the Maxwell-Boltzmann distribution that is the solution to this equation.
+
+We discretize this backward-in-time, centered-in-space, that results in the time-step scheme given by
+$$ f^{n} = {\Delta t} \nu \left[\left(-\frac{v_0^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) v_{j+1}f^{n+1}_{j+1} + \left(1+2\frac{v_0^2}{\Delta v^2}\right) f^{n+1}_j + \left(-\frac{v_0^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) v_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+
+This forms a tridiagonal system of equations that can be directly inverted.
+
+#### Tests
+This operator has unit-tests associated with it. The unit tests ensure that
+
+1. The operator conserves density.
+
+
+2. The operator reverts to a solution with a temperature $v_0^2$.
+
+
+3. The operator does nothing when a Maxwell-Boltzmann distribution with $v_{th} = v_0$ is fed to it.
+
+
+4. The operator returns the distribution to a mean velocity of 0 if initialized with a drift velocity off-center.
