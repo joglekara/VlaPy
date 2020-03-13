@@ -31,7 +31,7 @@ The implementation here is based on finite-difference and pseudo-spectral method
 
 # Statement of Need
 
-There is a plethora of software that solves the same equation set in academia (see [@Banks2017],[@Joglekar2018]), research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
+There is a plethora of software that solves the same equation set in academia (see @Banks2017; @Joglekar2018), research labs, and industry, but a simple-to-read, open-source Python implementation is still lacking. This lack of simulation capability is echoed by the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of Open-Source plasma physics resources). ``VlaPy`` aims to fulfill these voids in the academic and research communities.
 
 In general, ``VlaPy`` is designed to help students and researchers learn about concepts such as fundamental plasma physics and numerical methods as well as software-engineering-related topics such as unit and integrated testing, and extensible and maintainable code. The details of the implementation are provided in the following section. 
 
@@ -125,3 +125,4 @@ We include validation against this phenomenon as an integrated test.
 # Acknowledgements
 We acknowledge valuable discussions with Pierre Navarro on the implementation of the Vlasov equation.
 
+# References
