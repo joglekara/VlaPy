@@ -1,5 +1,5 @@
-Electric Field
---------------
+Solving for the Electric Field
+--------------------------------
 
 The Poisson equation is solved pseudospectrally.
 

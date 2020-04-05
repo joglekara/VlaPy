@@ -1,5 +1,5 @@
-Fokker-Planck Equation
--------------------------
+Solving the Fokker-Planck Equation
+----------------------------------------
 
 The Fokker-Planck equation is solved using an implicit finite-difference scheme because of the need to perform a
 diffusion time-step.

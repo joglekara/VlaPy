@@ -1,5 +1,5 @@
-Vlasov Equation
----------------
+Solving the Vlasov Equation
+------------------------------
 
 The 1-spatial-dimension, 1-velocity-dimension (1D-1V) Vlasov equation describing the conservation of phase space is given by
 
