@@ -10,7 +10,7 @@ The evolution of the phase space in time can be
 calculated by evolving the phase space in configuration space (i.e. in :math:`\hat{x}`) as well as evolving the phase space
 in velocity space (i.e. :math:`\hat{v}_x`). For information on the definitions, please refer to the Glossary.
 
-We split the equation into two separate steps ala Strang, or Cheng-Knorr, Splitting. This enables treating each
+We split the equation into two separate steps ala Strang :cite:`Strang1968`, or Cheng-Knorr :cite:`Cheng1976`, Splitting. This enables treating each
 component as an Ordinary Differential Equation (ODE).
 
 Time Integration
@@ -28,8 +28,8 @@ The first method is a simple `Verlet`, or Leapfrog, scheme given by
 
 This is a second order method i.e. the truncation error scales as :math:`\mathcal{O}(\Delta t^2)`
 
-The fourth order implementation is based on the `Position-Extended Forest-Ruth-Like` (PEFRL) algorithm. Details on this
-implementation will be added soon.
+The fourth order implementation is based on the `Position-Extended Forest-Ruth-Like` (PEFRL) :cite:`Omelyan2002`
+algorithm. Details on this implementation will be added soon.
 
 Spatial Advection
 ******************
@@ -96,4 +96,19 @@ This method is inspired by conversation and notes from Pierre Navaro (https://gi
 it's simplicity as well as accuracy.
 
 
+Tests
+******
+
+One of the most fundamental plasma physics phenomenon is that described by Landau damping :cite:`Ryutov1999`.
+
+Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron
+plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant
+wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field,
+and the electrons can damp the electric field.
+
+In VlaPy, we verify that the damping rate is reproduced for a few different wave numbers.
+This is shown in `notebooks/landau_damping.ipynb.`
+
 ...this page is in development...
+
+.. bibliography:: bibs/vlasov.bib
