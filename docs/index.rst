@@ -12,11 +12,16 @@ VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Plan
 The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in plasma physics.
 
 
-How to use
+Quick Usage
 -----------
+The file `run_vlapy.py` can be executed to run a simulation of Landau damping.
 
 
-The implementation details are given in the following pages
+
+Implementation
+------------------
+
+Details on the implementation are given in the following pages
 
 .. toctree::
    :maxdepth: 2
@@ -26,6 +31,7 @@ The implementation details are given in the following pages
    electricfield
    definitions
    other
+   usage_details
 
 Contribution
 ---------------

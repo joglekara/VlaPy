@@ -70,7 +70,7 @@ The velocity advection operator is
 
 In VlaPy, the domain is assumed to be periodic in velocity. While this constraint is not fulfilled at the boundaries,
 i.e. the first derivative is not continuous across the boundary, the value of the distribution function, and it's
-derivatives can be very small if  :math:`\text{(|v_{min}|, v_{max}) > 6 v_{th}`.
+derivatives can be very small if  :math:`(|v_{min}|, v_{max}) > 6 v_{th}`.
 
 This constraint enables the use of Fourier decomposition methods such that the operator can be integrated
 pseudo-spectrally in velocity-space. Computing a Fourier Transform of the above equation gives the following ODE
@@ -112,3 +112,4 @@ This is shown in `notebooks/landau_damping.ipynb.`
 ...this page is in development...
 
 .. bibliography:: bibs/vlasov.bib
+    :style: unsrtalpha
