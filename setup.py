@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 INSTALL_REQUIREMENTS = [
-    "numpy==1.18.1",
-    "numba==0.48.0",
-    "mlflow==1.6.0",
-    "xarray==0.15.0",
-    "scipy==1.4.1",
-    "matplotlib==3.1.3",
+    "numpy",
+    "numba",
+    "mlflow",
+    "xarray",
+    "scipy",
+    "matplotlib",
 ]
 
 setup(

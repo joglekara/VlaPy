@@ -23,7 +23,7 @@ def update_spatial_adv_spectral(f, kx, v, dt):
     :return:
     """
 
-    return np.fft.ifft(__vdfdx__(np.fft.fft(f, axis=0), v, kx, dt), axis=0)
+    return np.real(np.fft.ifft(__vdfdx__(np.fft.fft(f, axis=0), v, kx, dt), axis=0))
 
 
 def update_velocity_adv_spectral(f, kv, e, dt):
@@ -37,7 +37,7 @@ def update_velocity_adv_spectral(f, kv, e, dt):
     :return:
     """
 
-    return np.fft.ifft(__edfdv__(np.fft.fft(f, axis=1), e, kv, dt), axis=1)
+    return np.real(np.fft.ifft(__edfdv__(np.fft.fft(f, axis=1), e, kv, dt), axis=1))
 
 
 @njit
