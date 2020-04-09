@@ -147,7 +147,9 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
                 envelope = get_pulse_coefficient(
                     pulse_profile_dictionary=pulse_dictionary[this_pulse], tt=tt
                 )
-                total_field += envelope * np.cos(kk * x + ww * tt)
+
+                if np.abs(envelope) > 0.0:
+                    total_field += envelope * np.cos(kk * x + ww * tt)
 
             return total_field
 
