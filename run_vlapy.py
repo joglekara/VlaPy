@@ -13,5 +13,5 @@ if __name__ == "__main__":
         k0=0.3,
         a0=1e-5,
         diagnostics=landau_damping.LandauDamping(),
-        name="Landau Damping",
+        name="Landau Damping - test",
     )
