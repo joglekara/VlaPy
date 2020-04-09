@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     url="",
     license="MIT",
-    author="Archis Joglekar",
+    author="A. S. Joglekar, M. C. Levy",
     author_email="archisj@gmail.com",
     description="Pseudo-Spectral, Modular, Pythonic 1D-1V Vlasov-Fokker-Planck code",
     install_requires=INSTALL_REQUIREMENTS,
