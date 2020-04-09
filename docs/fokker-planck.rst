@@ -16,7 +16,7 @@ where :math:`\nu_{ee}` and :math:`v_0` are the electron-electron collision frequ
 Differencing Scheme
 ====================
 
-This Lenard-Bernstein is differenced backwards in time, and center differenced in velocity space, which gives
+This operator is differenced backwards in time, and center differenced in velocity space, which gives
 
 .. math::
     \frac{f^{n+1}_{\alpha} - f^{n}_{\alpha}}{\Delta t} = \nu_{ee} \frac{f^{n+1}_\alpha + v_\alpha \Delta_v(f^{n+1}_{\alpha}) + v_0^2 \Delta^2_v(f^{n+1}_{\alpha})}{2\Delta v}
