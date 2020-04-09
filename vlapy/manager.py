@@ -83,7 +83,9 @@ def start_run(
             t_store = 100
         else:
             t_store = nt // 4
+
         temp_field_store = np.zeros([t_store, nx])
+        temp_driver_store = np.zeros([t_store, nx])
         temp_dist_store = np.zeros([t_store, nx, nv])
         temp_t_store = np.zeros(t_store)
         it_store = 0
@@ -108,11 +110,13 @@ def start_run(
             temp_t_store[it_store] = t[it]
             temp_dist_store[it_store] = f
             temp_field_store[it_store] = e
+            temp_driver_store[it_store] = driver_function(x=x, t=t[it])
+
             it_store += 1
 
             if it_store == t_store:
                 storage_manager.batched_write_to_file(
-                    temp_t_store, temp_field_store, temp_dist_store
+                    temp_t_store, temp_field_store, temp_driver_store, temp_dist_store
                 )
                 it_store = 0
 
