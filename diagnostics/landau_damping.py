@@ -6,7 +6,11 @@ import os
 
 class LandauDamping:
     def __init__(self):
-        pass
+        self.params_to_log = [
+            "k0",
+            "w0",
+            "a0",
+        ]
 
     def __call__(self, storage_manager):
         self.plots_dir = os.path.join(storage_manager.base_path, "plots")

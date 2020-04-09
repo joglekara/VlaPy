@@ -1,6 +1,8 @@
+import os
+import json
+
 import xarray as xr
 import numpy as np
-import os
 
 
 class StorageManager:
@@ -99,3 +101,7 @@ class StorageManager:
         self.efield_arr = xr.open_dataarray(self.efield_path)
         self.driver_efield_arr = xr.open_dataarray(self.driver_efield_path)
         self.f_arr = xr.open_dataarray(self.f_path)
+
+    def write_parameters_to_file(self, param_dict, filename):
+        with open(os.path.join(self.base_path, filename + ".txt"), "w") as fi:
+            json.dump(param_dict, fi)
