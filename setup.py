@@ -2,7 +2,6 @@ from setuptools import setup, find_packages
 
 INSTALL_REQUIREMENTS = [
     "numpy",
-    "numba",
     "mlflow",
     "xarray",
     "scipy",
