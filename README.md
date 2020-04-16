@@ -4,7 +4,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # VlaPy
 
-The latest documentation can be found at https://vlapy.readthedocs.io/en/latest/
+Usage details and the latest documentation can be found at https://vlapy.readthedocs.io/en/latest/
+
+## Quick Usage
+To install dependencies, run ``python3 setup.py install`` from the base directory of the repository.
+
+After this step, ``python3 run_vlapy.py`` can be executed to run a simulation of Landau damping with collisions.
+
+This will create a temporary directory for the simulation files. Once completed, MLFlow will move the simulation folder into a centralized datastore. This datastore can be accessed through a web-browser based UI provided by leveraging MLFlow.
+
+To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then navigate to localhost:5000 in your web browser. The page will look like the following
 
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
@@ -19,15 +28,11 @@ The spatial advection operator is pushed pseudospectrally. The system is periodi
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
 
-This method is accelerated using ``numba.njit``.
-
 ### Vlasov - Velocity Advection
 The velocity advection operator is pushed pseudospectrally. The system is periodic in v.
 
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
-
-This method is accelerated using ``numba.njit``.
 
  
 ### Poisson Solver
