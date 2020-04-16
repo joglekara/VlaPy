@@ -1,3 +1,12 @@
+"""
+These values are from
+
+Canosa, J. (1973). Numerical solution of Landau’s dispersion equation.
+Journal of Computational Physics, 13(1), 158–160.
+https://doi.org/10.1016/0021-9991(73)90131-9
+
+"""
+
 k0 = [
     0.25,
     0.3,
