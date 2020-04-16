@@ -23,7 +23,7 @@
 import numpy as np
 
 from vlapy import manager
-from diagnostics import landau_damping
+from diagnostics import landau_damping, z_function
 
 if __name__ == "__main__":
 
@@ -46,9 +46,14 @@ if __name__ == "__main__":
             "fall_time": 5,
             "a0": 1e-6,
             "k0": 0.3,
-            "w0": 1.1598,
         }
     }
+
+    pulse_dictionary["first pulse"]["w0"] = np.real(
+        z_function.get_roots_to_electrostatic_dispersion(
+            wp_e=1.0, vth_e=1.0, k0=pulse_dictionary["first pulse"]["k0"]
+        )
+    )
 
     manager.start_run(
         all_params=all_params_dict,

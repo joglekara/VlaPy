@@ -23,6 +23,7 @@
 import numpy as np
 
 from vlapy.core import step, field
+from diagnostics.z_function import get_roots_to_electrostatic_dispersion
 
 
 def test_full_leapfrog_ps_step_landau_damping():
@@ -32,15 +33,10 @@ def test_full_leapfrog_ps_step_landau_damping():
 
     f = step.initialize(nx, nv)
 
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
     k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
+    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
+    w0 = np.real(w_complex)
+    actual_decay_rate = np.imag(w_complex)
 
     xmax = 2 * np.pi / k0
     xmin = 0.0
@@ -95,7 +91,7 @@ def test_full_leapfrog_ps_step_landau_damping():
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
     decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
 
-    np.testing.assert_almost_equal(decay_rate, -0.012623, decimal=2)
+    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
 
     ekw = np.fft.fft2(field_store[nt // 2 :,])
     ek1w = np.abs(ekw[:, 1])
@@ -180,15 +176,10 @@ def test_full_PEFRL_ps_step_landau_damping():
 
     f = step.initialize(nx, nv)
 
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
     k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
+    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
+    w0 = np.real(w_complex)
+    actual_decay_rate = np.imag(w_complex)
 
     xmax = 2 * np.pi / k0
     xmin = 0.0
@@ -243,7 +234,7 @@ def test_full_PEFRL_ps_step_landau_damping():
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
     decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
 
-    np.testing.assert_almost_equal(decay_rate, -0.012623, decimal=2)
+    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
 
     ekw = np.fft.fft2(field_store[nt // 2 :,])
     ek1w = np.abs(ekw[:, 1])
