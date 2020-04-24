@@ -49,6 +49,8 @@ if __name__ == "__main__":
         }
     }
 
+    params_to_log = ["w0", "k0", "a0"]
+
     pulse_dictionary["first pulse"]["w0"] = np.real(
         z_function.get_roots_to_electrostatic_dispersion(
             wp_e=1.0, vth_e=1.0, k0=pulse_dictionary["first pulse"]["k0"]
@@ -58,6 +60,6 @@ if __name__ == "__main__":
     manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=landau_damping.LandauDamping(),
+        diagnostics=landau_damping.LandauDamping(params_to_log),
         name="Landau Damping-test",
     )

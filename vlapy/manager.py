@@ -100,25 +100,22 @@ def get_pulse_coefficient(pulse_profile_dictionary, tt):
 
 def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_path=None):
     """
-    End to end mlflow and xarray storage!!
+    This is the highest level function that calls the time integration loop
 
+    MLFlow is initialized here.
+    Domain configuration is also performed here.
+    All file storage is initialized here.
 
-    :param temp_path:
-    :param nx:
-    :param nv:
-    :param nt:
-    :param tmax:
-    :param nu:
+    :param all_params:
     :param pulse_dictionary:
     :param diagnostics:
     :param name:
     :param mlflow_path:
     :return:
     """
-    if mlflow_path is None:
-        mlflow_client = mlflow.tracking.MlflowClient()
-    else:
-        mlflow_client = mlflow.tracking.MlflowClient(tracking_uri=mlflow_path)
+
+    if mlflow_path is not None:
+        mlflow.set_tracking_uri(mlflow_path)
 
     mlflow.set_experiment(name)
 
@@ -172,7 +169,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
                 )
 
                 if np.abs(envelope) > 0.0:
-                    total_field += envelope * np.cos(kk * x + ww * tt)
+                    total_field += envelope * np.cos(kk * x - ww * tt)
 
             return total_field
 
@@ -183,49 +180,30 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
         # Storage
         temp_path = os.path.join(os.getcwd(), "temp-" + str(uuid.uuid4())[-6:])
         os.makedirs(temp_path, exist_ok=True)
-
-        if nt // 4 < 100:
-            t_store = 100
-        else:
-            t_store = nt // 4
-
-        temp_field_store = np.zeros([t_store, nx])
-        temp_driver_store = np.zeros([t_store, nx])
-        temp_dist_store = np.zeros([t_store, nx, nv])
-        temp_t_store = np.zeros(t_store)
-        it_store = 0
-        storage_manager = storage.StorageManager(x, v, t, temp_path)
+        storage_manager = storage.StorageManager(
+            x, v, t, temp_path, store_f=diagnostics.f_rules
+        )
         storage_manager.write_parameters_to_file(all_params, "all_parameters")
         storage_manager.write_parameters_to_file(pulse_dictionary, "pulses")
 
         # Matrix representing collision operator
-        A = lenard_bernstein.make_philharmonic_matrix(
+        leftside = lenard_bernstein.make_philharmonic_matrix(
             vax=v, nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
         )
 
         # Time Loop
         for it in range(nt):
-            e, f = step.full_leapfrog_ps_step(
+            e, f = step.full_PEFRL_ps_step(
                 f, x, kx, v, kv, dv, t[it], dt, e, driver_function
             )
 
             if nu > 0.0:
-                for ix in range(nx):
-                    f[ix,] = lenard_bernstein.take_collision_step(leftside=A, f=f[ix])
+                f = lenard_bernstein.take_collision_step(leftside=leftside, f=f,)
 
             # All storage stuff here
-            temp_t_store[it_store] = t[it]
-            temp_dist_store[it_store] = f
-            temp_field_store[it_store] = e
-            temp_driver_store[it_store] = driver_function(x=x, tt=t[it])
-
-            it_store += 1
-
-            if it_store == t_store:
-                storage_manager.batched_write_to_file(
-                    temp_t_store, temp_field_store, temp_driver_store, temp_dist_store
-                )
-                it_store = 0
+            storage_manager.temp_update(
+                tt=t[it], f=f, e=e, driver=driver_function(x=x, tt=t[it])
+            )
 
         # Diagnostics
         diagnostics(storage_manager)

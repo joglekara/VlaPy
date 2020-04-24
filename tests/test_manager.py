@@ -54,10 +54,12 @@ def test_manager_folder():
         }
     }
 
+    params_to_log = ["k0"]
+
     manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=landau_damping.LandauDamping(),
+        diagnostics=landau_damping.LandauDamping(params_to_log),
         name="Landau Damping",
         mlflow_path=test_folder,
     )
