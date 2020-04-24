@@ -19,10 +19,10 @@ jobs:
 
       # Load pip cache
       - restore_cache:
-      keys:
-        - pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
-        - pip-packages-v1-{{ .Branch }}
-        - pip-packages-v1
+          keys:
+            - pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
+            - pip-packages-v1-{{ .Branch }}
+            - pip-packages-v1
 
       # Setup Python venv
       - run:
