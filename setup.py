@@ -25,6 +25,7 @@ from setuptools import setup, find_packages
 INSTALL_REQUIREMENTS = [
     "numpy",
     "mlflow",
+    "h5netcdf",
     "xarray",
     "scipy",
     "matplotlib",
