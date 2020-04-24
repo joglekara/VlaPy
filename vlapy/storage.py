@@ -44,7 +44,6 @@ class StorageManager:
         :param base_path:
         :param store_f:
         """
-        self.initialize_temporary_storage(xax, vax, tax, store_f)
 
         self.base_path = base_path
         self.efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
@@ -53,6 +52,7 @@ class StorageManager:
         )
         self.f_path = os.path.join(base_path, "dist_func_vs_time.nc")
 
+        self.initialize_temporary_storage(xax, vax, tax, store_f)
         self.__init_electric_field_storage(tax=tax, xax=xax)
 
         self.store_f = store_f
