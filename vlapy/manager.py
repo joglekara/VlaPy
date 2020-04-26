@@ -98,7 +98,7 @@ def get_pulse_coefficient(pulse_profile_dictionary, tt):
     return this_pulse
 
 
-def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_path=None):
+def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
     """
     This is the highest level function that calls the time integration loop
 
@@ -113,9 +113,6 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
     :param mlflow_path:
     :return:
     """
-
-    if mlflow_path is not None:
-        mlflow.set_tracking_uri(mlflow_path)
 
     mlflow.set_experiment(name)
 
