@@ -22,4 +22,4 @@ python:
   install:
     - method: setuptools
       path: vlapy
-    system_packages: true
+  system_packages: true
