@@ -68,6 +68,8 @@ if __name__ == "__main__":
     print("mlruns folder located at " + os.getcwd())
     print("Run parameters: ")
     print(all_params_dict)
+    print("Driver parameters: ")
+    print(pulse_dictionary)
     print()
     print(
         "run `mlflow ui` at the command line, and go "
