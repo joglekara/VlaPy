@@ -18,11 +18,11 @@ jobs:
       - checkout
 
       # Load pip cache
-      - restore_cache:
-          keys:
-            - pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
-            - pip-packages-v1-{{ .Branch }}
-            - pip-packages-v1
+#      - restore_cache:
+#          keys:
+#            - pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
+#            - pip-packages-v1-{{ .Branch }}
+#            - pip-packages-v1
 
       # Setup Python venv
       - run:
@@ -39,10 +39,10 @@ jobs:
             pip3 install pytest pytest-cov codecov
 
       # save pip cache
-      - save_cache:
-          paths:
-            - venv
-          key: pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
+#      - save_cache:
+#          paths:
+#            - venv
+#          key: pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
 
       # Run python linting checks
       - run:
