@@ -26,13 +26,13 @@ import numpy as np
 def compute_charges(f, dv):
     """
     Computes a simple moment of the distribution function along
-    the velocity axis
+    the velocity axis using the trapezoidal rule
 
     :param f:
     :param dv:
     :return:
     """
-    return np.sum(f, axis=1) * dv
+    return np.trapz(f, dx=dv, axis=1)
 
 
 def __fft_solve__(net_charge_density, kx):
