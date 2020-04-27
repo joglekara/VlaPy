@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-import uuid
+import tempfile
 
-import shutil
 from tqdm import tqdm
 import mlflow
 import numpy as np
@@ -118,97 +116,92 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
     mlflow.set_experiment(name)
 
     with mlflow.start_run():
-        # Log desired parameters
-        params_to_log_dict = {}
-        for param in diagnostics.params_to_log:
-            if param in ["a0", "k0", "w0"]:
-                params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
-            else:
-                params_to_log_dict[param] = all_params[param]
+        with tempfile.TemporaryDirectory() as temp_path:
+            # Log desired parameters
+            params_to_log_dict = {}
+            for param in diagnostics.params_to_log:
+                if param in ["a0", "k0", "w0"]:
+                    params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
+                else:
+                    params_to_log_dict[param] = all_params[param]
 
-        mlflow.log_params(params_to_log_dict)
+            mlflow.log_params(params_to_log_dict)
 
-        # Initialize machinery
-        nx = all_params["nx"]
-        nv = all_params["nv"]
-        nu = all_params["nu"]
-        tmax = all_params["tmax"]
-        nt = all_params["nt"]
+            # Initialize machinery
+            nx = all_params["nx"]
+            nv = all_params["nv"]
+            nu = all_params["nu"]
+            tmax = all_params["tmax"]
+            nt = all_params["nt"]
 
-        # Distribution function
-        f = step.initialize(nx, nv)
+            # Distribution function
+            f = step.initialize(nx, nv)
 
-        # Spatial Grid
-        # Fixed to single wavenumber domains
-        xmax = all_params["xmax"]
-        xmin = all_params["xmin"]
-        dx = (xmax - xmin) / nx
-        x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-        kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+            # Spatial Grid
+            xmax = all_params["xmax"]
+            xmin = all_params["xmin"]
+            dx = (xmax - xmin) / nx
+            x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
+            kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
 
-        # Velocity grid
-        vmax = all_params["vmax"]
-        dv = 2 * vmax / nv
-        v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-        kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
+            # Velocity grid
+            vmax = all_params["vmax"]
+            dv = 2 * vmax / nv
+            v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
+            kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
 
-        t = np.linspace(0, tmax, nt)
-        dt = t[1] - t[0]
+            t = np.linspace(0, tmax, nt)
+            dt = t[1] - t[0]
 
-        def driver_function(x, tt):
-            total_field = np.zeros_like(x)
+            def driver_function(x, tt):
+                total_field = np.zeros_like(x)
 
-            for this_pulse in list(pulse_dictionary.keys()):
-                kk = pulse_dictionary[this_pulse]["k0"]
-                ww = pulse_dictionary[this_pulse]["w0"]
+                for this_pulse in list(pulse_dictionary.keys()):
+                    kk = pulse_dictionary[this_pulse]["k0"]
+                    ww = pulse_dictionary[this_pulse]["w0"]
 
-                envelope = get_pulse_coefficient(
-                    pulse_profile_dictionary=pulse_dictionary[this_pulse], tt=tt
+                    envelope = get_pulse_coefficient(
+                        pulse_profile_dictionary=pulse_dictionary[this_pulse], tt=tt
+                    )
+
+                    if np.abs(envelope) > 0.0:
+                        total_field += envelope * np.cos(kk * x - ww * tt)
+
+                return total_field
+
+            e = field.get_total_electric_field(
+                driver_function(x=x, tt=t[0]), f=f, dv=dv, kx=kx
+            )
+
+            # Storage
+            storage_manager = storage.StorageManager(
+                x, v, t, temp_path, store_f=diagnostics.f_rules
+            )
+            storage_manager.write_parameters_to_file(all_params, "all_parameters")
+            storage_manager.write_parameters_to_file(pulse_dictionary, "pulses")
+
+            # Matrix representing collision operator
+            leftside = lenard_bernstein.make_philharmonic_matrix(
+                v=v, nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
+            )
+
+            # Time Loop
+            for it in tqdm(range(nt)):
+                e, f = step.full_PEFRL_ps_step(
+                    f, x, kx, v, kv, dv, t[it], dt, e, driver_function
                 )
 
-                if np.abs(envelope) > 0.0:
-                    total_field += envelope * np.cos(kk * x - ww * tt)
+                if nu > 0.0:
+                    f = lenard_bernstein.take_collision_step(leftside=leftside, f=f,)
 
-            return total_field
+                # All storage stuff here
+                storage_manager.temp_update(
+                    current_time=t[it], f=f, e=e, driver=driver_function(x=x, tt=t[it])
+                )
 
-        e = field.get_total_electric_field(
-            driver_function(x=x, tt=t[0]), f=f, dv=dv, kx=kx
-        )
+            # Diagnostics
+            diagnostics(storage_manager)
 
-        # Storage
-        temp_path = os.path.join(os.getcwd(), "temp-" + str(uuid.uuid4())[-6:])
-        os.makedirs(temp_path, exist_ok=True)
-        storage_manager = storage.StorageManager(
-            x, v, t, temp_path, store_f=diagnostics.f_rules
-        )
-        storage_manager.write_parameters_to_file(all_params, "all_parameters")
-        storage_manager.write_parameters_to_file(pulse_dictionary, "pulses")
-
-        # Matrix representing collision operator
-        leftside = lenard_bernstein.make_philharmonic_matrix(
-            vax=v, nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
-        )
-
-        # Time Loop
-        for it in tqdm(range(nt)):
-            e, f = step.full_PEFRL_ps_step(
-                f, x, kx, v, kv, dv, t[it], dt, e, driver_function
-            )
-
-            if nu > 0.0:
-                f = lenard_bernstein.take_collision_step(leftside=leftside, f=f,)
-
-            # All storage stuff here
-            storage_manager.temp_update(
-                tt=t[it], f=f, e=e, driver=driver_function(x=x, tt=t[it])
-            )
-
-        # Diagnostics
-        diagnostics(storage_manager)
-
-        # Log
-        storage_manager.close()
-        mlflow.log_artifacts(temp_path)
-
-        # Cleanup
-        shutil.rmtree(temp_path)
+            # Log
+            storage_manager.close()
+            mlflow.log_artifacts(temp_path)

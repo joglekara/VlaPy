@@ -28,7 +28,7 @@ import numpy as np
 
 
 class StorageManager:
-    def __init__(self, xax, vax, tax, base_path, store_f=None):
+    def __init__(self, x, v, t, base_path, store_f=None):
         """
         This is the initialization for the storage class.
         The paths are set
@@ -38,11 +38,14 @@ class StorageManager:
         and we have the choice of storing the distribution function at every time-step
         but since it's typically too large, we can store a few choice Fourier modes
 
-        :param xax:
-        :param vax:
-        :param tax:
-        :param base_path:
-        :param store_f:
+        e.g. if `store_f = ["k0","k1","k2"]`, VlaPy will store the 0th and first 2 real-space Fourier modes
+        of the system
+
+        :param x: real-space axis (numpy array of shape (nx,))
+        :param v: velocity axis (numpy array of shape (nv,))
+        :param t: time axis (numpy array of shape (nt,))
+        :param base_path: path to run folder (string)
+        :param store_f: list of Fourier modes to store (len = 0+`num_fourier_modes`)
         """
 
         self.base_path = base_path
@@ -52,15 +55,13 @@ class StorageManager:
         )
         self.f_path = os.path.join(base_path, "dist_func_vs_time.nc")
 
-        self.initialize_temporary_storage(xax, vax, tax, store_f)
-        self.__init_electric_field_storage(tax=tax, xax=xax)
+        self.initialize_temporary_storage(x, v, t, store_f)
+        self.__init_electric_field_storage(t=t, x=x)
 
         self.store_f = store_f
 
         if store_f is not None:
-            self.__init_dist_func_storage(
-                tax=tax, xax=xax, vax=vax, f_storage_rules=store_f
-            )
+            self.__init_dist_func_storage(t=t, x=x, v=v, f_storage_rules=store_f)
 
     def close(self):
         """
@@ -77,19 +78,19 @@ class StorageManager:
         if self.store_f:
             self.f_arr.to_netcdf(self.f_path, engine="h5netcdf", invalid_netcdf=True)
 
-    def initialize_temporary_storage(self, xax, vax, tax, store_f):
+    def initialize_temporary_storage(self, x, v, t, store_f):
         """
         This method initializes storage
 
-        :param xax:
-        :param vax:
-        :param tax:
-        :param store_f:
+        :param x: real-space axis (numpy array of shape (nx,))
+        :param v: velocity axis (numpy array of shape (nv,))
+        :param t: time axis (numpy array of shape (nt,))
+        :param store_f: list of Fourier modes to store (len = 0+`num_fourier_modes`)
         :return:
         """
-        nt = tax.size
-        nx = xax.size
-        nv = vax.size
+        nt = t.size
+        nx = x.size
+        nv = v.size
 
         if nt // 4 < 100:
             self.t_store = 100
@@ -109,30 +110,29 @@ class StorageManager:
                 (self.t_store, kax.size, nv), dtype=np.complex
             )
 
-    def __init_electric_field_storage(self, tax, xax):
+    def __init_electric_field_storage(self, t, x):
         """
         Initialize electric field storage DataArray
 
-        :param tax:
-        :param xax:
-        :param path:
+        :param t: time axis (numpy array of shape (nt,))
+        :param x: real-space axis (numpy array of shape (nx,))
         :return:
         """
 
-        electric_field_store = np.zeros((tax.size, xax.size))
+        electric_field_store = np.zeros((t.size, x.size))
 
         ef_DA = xr.DataArray(
-            data=electric_field_store, coords=[("time", tax), ("space", xax)]
+            data=electric_field_store, coords=[("time", t), ("space", x)]
         )
 
         ef_DA.to_netcdf(self.efield_path, engine="h5netcdf", invalid_netcdf=True)
 
         self.efield_arr = xr.load_dataarray(self.efield_path, engine="h5netcdf")
 
-        driver_electric_field_store = np.zeros((tax.size, xax.size))
+        driver_electric_field_store = np.zeros((t.size, x.size))
 
         driver_ef_DA = xr.DataArray(
-            data=driver_electric_field_store, coords=[("time", tax), ("space", xax)]
+            data=driver_electric_field_store, coords=[("time", t), ("space", x)]
         )
 
         driver_ef_DA.to_netcdf(
@@ -143,46 +143,45 @@ class StorageManager:
             self.driver_efield_path, engine="h5netcdf"
         )
 
-    def __init_dist_func_storage(self, tax, xax, vax, f_storage_rules):
+    def __init_dist_func_storage(self, t, x, v, f_storage_rules):
         """
         Initialize distribution function storage
 
-        :param tax:
-        :param xax:
-        :param vax:
-        :param path:
+        :param t: time axis (numpy array of shape (nt,))
+        :param x: real-space axis (numpy array of shape (nx,))
+        :param v: velocity axis (numpy array of shape (nv,))
         :return:
         """
 
         if f_storage_rules == "all-x":
-            dist_func_store = np.zeros((tax.size, xax.size, vax.size))
+            dist_func_store = np.zeros((t.size, x.size, v.size))
             f_DA = xr.DataArray(
                 data=dist_func_store,
-                coords=[("time", tax), ("space", xax), ("velocity", vax)],
+                coords=[("time", t), ("space", x), ("velocity", v)],
             )
         else:
             kax = np.linspace(0, 1, 2)
-            dist_func_store = np.zeros((tax.size, kax.size, vax.size), dtype=np.complex)
+            dist_func_store = np.zeros((t.size, kax.size, v.size), dtype=np.complex)
             f_DA = xr.DataArray(
                 data=dist_func_store,
-                coords=[("time", tax), ("fourier_mode", kax), ("velocity", vax)],
+                coords=[("time", t), ("fourier_mode", kax), ("velocity", v)],
             )
 
         f_DA.to_netcdf(self.f_path, engine="h5netcdf", invalid_netcdf=True)
 
         self.f_arr = xr.load_dataarray(self.f_path, engine="h5netcdf")
 
-    def temp_update(self, tt, f, e, driver):
+    def temp_update(self, current_time, f, e, driver):
         """
         This is the method that performs an update at the end of every time step
 
-        :param tt:
-        :param f:
-        :param e:
-        :param driver:
+        :param current_time: current_time (float)
+        :param f: distribution function at current time (numpy array of shape (nx, nv))
+        :param e: electric field at current time (numpy array of shape (nx, ))
+        :param driver: driver electric field at current time (numpy array of shape (nx, ))
         :return:
         """
-        self.temp_t_store[self.it_store] = tt
+        self.temp_t_store[self.it_store] = current_time
         self.temp_field_store[self.it_store] = e
         self.temp_driver_store[self.it_store] = driver
 
@@ -218,14 +217,9 @@ class StorageManager:
         """
         Write batched to file
 
-        This is to save time by keeping some of the history on
-        accelerator rather than passing it back every time step
+        This is to save time by waiting to fill some of the history
+        rather than writing to file every time step
 
-
-        :param t_range:
-        :param e:
-        :param e_driver:
-        :param f:
         :return:
         """
         t_xr = xr.DataArray(data=self.temp_t_store, dims=["time"])
