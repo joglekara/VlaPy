@@ -28,8 +28,8 @@ def compute_charges(f, dv):
     Computes a simple moment of the distribution function along
     the velocity axis
 
-    :param f:
-    :param dv:
+    :param f: distribution function. (numpy array of shape (nx, nv))
+    :param dv: velocity-axis spacing (float)
     :return:
     """
     return np.sum(f, axis=1) * dv
@@ -40,8 +40,8 @@ def __fft_solve__(net_charge_density, kx):
     del^2 phi = -rho
     del e = - integral[rho] = - integral[fdv]
 
-    :param net_charge_density:
-    :param kx:
+    :param net_charge_density: charge-density (numpy array of shape (nx,))
+    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
     rhok = np.fft.fft(net_charge_density)
@@ -55,8 +55,8 @@ def solve_for_field(charge_density, kx):
     """
     Solves for the net electric field after subtracting ion charge
 
-    :param charge_density:
-    :param kx:
+    :param charge_density: charge-density (numpy array of shape (nx,))
+    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
 
     :return:
     """
@@ -67,10 +67,10 @@ def get_total_electric_field(driver_field, f, dv, kx):
     """
     Allows adding a driver field
 
-    :param driver_field:
-    :param f:
-    :param dv:
-    :param kx:
+    :param driver_field: an electric field (numpy array of shape (nx,))
+    :param f: distribution function. (numpy array of shape (nx, nv))
+    :param dv: velocity-axis spacing (float)
+    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
     return driver_field + solve_for_field(charge_density=compute_charges(f, dv), kx=kx)
