@@ -29,6 +29,7 @@ INSTALL_REQUIREMENTS = [
     "xarray",
     "scipy",
     "matplotlib",
+    "tqdm",
 ]
 
 setup(
