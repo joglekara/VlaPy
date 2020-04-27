@@ -20,6 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
+from datetime import datetime
+import pprint
+
 import numpy as np
 
 from vlapy import manager
@@ -57,9 +61,25 @@ if __name__ == "__main__":
         )
     )
 
+    mlflow_exp_name = "Landau Damping-test"
+
+    print("Starting VlaPy at " + datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+    print("MLFlow experiment name: " + mlflow_exp_name)
+    print("mlruns folder located at " + os.getcwd())
+    print("Run parameters: ")
+    pprint.pprint(all_params_dict)
+    print("Driver parameters: ")
+    pprint.pprint(pulse_dictionary)
+    print()
+    print(
+        "run `mlflow ui` at the command line, and go "
+        "to `http://localhost:5000` in your browser to "
+        "view the results"
+    )
+
     manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(params_to_log),
-        name="Landau Damping-test",
+        name=mlflow_exp_name,
     )

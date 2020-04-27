@@ -24,6 +24,7 @@ import os
 import uuid
 
 import shutil
+from tqdm import tqdm
 import mlflow
 import numpy as np
 
@@ -98,7 +99,7 @@ def get_pulse_coefficient(pulse_profile_dictionary, tt):
     return this_pulse
 
 
-def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_path=None):
+def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
     """
     This is the highest level function that calls the time integration loop
 
@@ -113,9 +114,6 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
     :param mlflow_path:
     :return:
     """
-
-    if mlflow_path is not None:
-        mlflow.set_tracking_uri(mlflow_path)
 
     mlflow.set_experiment(name)
 
@@ -192,7 +190,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test", mlflow_pat
         )
 
         # Time Loop
-        for it in range(nt):
+        for it in tqdm(range(nt)):
             e, f = step.full_PEFRL_ps_step(
                 f, x, kx, v, kv, dv, t[it], dt, e, driver_function
             )

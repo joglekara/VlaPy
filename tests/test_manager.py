@@ -60,9 +60,5 @@ def test_manager_folder():
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(params_to_log),
-        name="Landau Damping",
-        mlflow_path=test_folder,
+        name="unit-test",
     )
-
-    assert os.path.exists(test_folder)
-    shutil.rmtree(test_folder)
