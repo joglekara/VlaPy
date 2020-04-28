@@ -31,9 +31,9 @@ def initialize(nx, nv, vmax=6.0):
 
     TODO: temperature and density pertubations
 
-    :param nx:
-    :param nv:
-    :param vmax:
+    :param nx: size of grid in x (single int)
+    :param nv: size of grid in v (single int)
+    :param vmax: maximum absolute value of v (single float)
     :return:
     """
 
@@ -62,16 +62,16 @@ def full_leapfrog_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
 
     3 - spatial advection for 0.5 dt
 
-    :param f:
-    :param x:
-    :param kx:
-    :param v:
-    :param kv:
-    :param dv:
-    :param t:
-    :param dt:
-    :param e:
-    :param driver_function:
+    :param f: distribution function. (numpy array of shape (nx, nv))
+    :param x: real-space axis (numpy array of shape (nx,))
+    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+    :param v: velocity axis (numpy array of shape (nv,))
+    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
+    :param dv: velocity-axis spacing (single float value)
+    :param t: current time (single float value)
+    :param dt: timestep (single float value)
+    :param e: electric field (numpy array of shape (nx,))
+    :param driver_function: function that returns an electric field (numpy array of shape (nx,))
     :return:
     """
     f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
@@ -90,20 +90,19 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     This is a 4th order symplectic integrator.
     http://physics.ucsc.edu/~peter/242/leapfrog.pdf
 
-    :param f:
+    :param f: distribution function. (numpy array of shape (nx, nv))
 
-    :param x:
-    :param kx:
-    :param dx:
+    :param x: real-space axis (numpy array of shape (nx,))
+    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
 
-    :param v:
-    :param kv:
-    :param dv:
+    :param v: velocity axis (numpy array of shape (nv,))
+    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
+    :param dv: velocity-axis spacing (single float value)
 
-    :param t:
-    :param dt:
+    :param t: current time (single float value)
+    :param dt: timestep (single float value)
 
-    :param e:
+    :param e: electric field (numpy array of shape (nv,))
 
     :param driver_function:
     :return:
