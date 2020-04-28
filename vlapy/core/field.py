@@ -28,8 +28,8 @@ def compute_charges(f, dv):
     Computes a simple moment of the distribution function along
     the velocity axis using the trapezoidal rule
 
-    :param f:
-    :param dv:
+    :param f: distribution function. (numpy array of shape (nx, nv))
+    :param dv: velocity-axis spacing (float)
     :return:
     """
     return np.trapz(f, dx=dv, axis=1)
@@ -40,8 +40,8 @@ def __fft_solve__(net_charge_density, one_over_kx):
     del^2 phi = -rho
     del e = - integral[rho] = - integral[fdv]
 
-    :param net_charge_density:
-    :param one_over_kx:
+    :param net_charge_density: charge-density (numpy array of shape (nx,))
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
 
@@ -52,8 +52,8 @@ def solve_for_field(charge_density, one_over_kx):
     """
     Solves for the net electric field after subtracting ion charge
 
-    :param charge_density:
-    :param one_over_kx:
+    :param charge_density: charge-density (numpy array of shape (nx,))
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
 
     :return:
     """
@@ -66,10 +66,10 @@ def get_total_electric_field(driver_field, f, dv, one_over_kx):
     """
     Allows adding a driver field
 
-    :param driver_field:
-    :param f:
-    :param dv:
-    :param one_over_kx:
+    :param driver_field: an electric field (numpy array of shape (nx,))
+    :param f: distribution function. (numpy array of shape (nx, nv))
+    :param dv: velocity-axis spacing (float)
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
     return driver_field + solve_for_field(

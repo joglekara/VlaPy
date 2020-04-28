@@ -37,9 +37,7 @@ def test_storage_init_files_exist():
     dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
     os.makedirs(dirname, exist_ok=True)
 
-    st = storage.StorageManager(
-        xax=xax, vax=vax, tax=tax, base_path=dirname, store_f="all-x"
-    )
+    st = storage.StorageManager(x=xax, v=vax, t=tax, base_path=dirname, store_f="all-x")
 
     assert os.path.exists(os.path.join(dirname, "electric_field_vs_time.nc"))
     assert os.path.exists(os.path.join(dirname, "dist_func_vs_time.nc"))
@@ -55,9 +53,7 @@ def test_storage_init_shape():
     dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
     os.makedirs(dirname, exist_ok=True)
 
-    st = storage.StorageManager(
-        xax=xax, vax=vax, tax=tax, base_path=dirname, store_f="all-x"
-    )
+    st = storage.StorageManager(x=xax, v=vax, t=tax, base_path=dirname, store_f="all-x")
 
     np.testing.assert_equal(st.efield_arr.coords["space"].size, xax.size)
     np.testing.assert_equal(st.efield_arr.coords["time"].size, tax.size)
@@ -78,7 +74,7 @@ def test_storage_init_shape_fourier():
     os.makedirs(dirname, exist_ok=True)
 
     st = storage.StorageManager(
-        xax=xax, vax=vax, tax=tax, base_path=dirname, store_f="k0k1"
+        x=xax, v=vax, t=tax, base_path=dirname, store_f=["k0", "k1"]
     )
 
     np.testing.assert_equal(st.efield_arr.coords["space"].size, xax.size)
