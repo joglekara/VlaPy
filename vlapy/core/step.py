@@ -50,7 +50,7 @@ def initialize(nx, nv, vmax=6.0):
     return f
 
 
-def full_leapfrog_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
+def full_leapfrog_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_function):
     """
     Takes a step forward in time for f and e
 
@@ -76,13 +76,15 @@ def full_leapfrog_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     """
     f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt)
-    e = field.get_total_electric_field(driver_function(x, t + dt), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
+    )
     f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
 
     return e, f
 
 
-def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
+def full_PEFRL_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_function):
     """
     Takes a step forward in time for f and e using the
     Performance-Extended Forest-Ruth-Like algorithm
@@ -120,7 +122,9 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
 
     # x1
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt1)
-    e = field.get_total_electric_field(driver_function(x, t + dt1), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t + dt1), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     # v1
     f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * (1.0 - 2.0 * lambd) * dt)
@@ -128,7 +132,7 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     # x2
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt2)
     e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2), f=f, dv=dv, kx=kx
+        driver_function(x, t + dt1 + dt2), f=f, dv=dv, one_over_kx=one_over_kx
     )
 
     # v2
@@ -137,7 +141,7 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     # x3
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt3)
     e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3), f=f, dv=dv, kx=kx
+        driver_function(x, t + dt1 + dt2 + dt3), f=f, dv=dv, one_over_kx=one_over_kx
     )
 
     # v3
@@ -146,7 +150,10 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     # x4
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt4)
     e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3 + dt4), f=f, dv=dv, kx=kx
+        driver_function(x, t + dt1 + dt2 + dt3 + dt4),
+        f=f,
+        dv=dv,
+        one_over_kx=one_over_kx,
     )
 
     # v4
@@ -155,7 +162,10 @@ def full_PEFRL_ps_step(f, x, kx, v, kv, dv, t, dt, e, driver_function):
     # x5
     f = vlasov.update_spatial_adv_spectral(f, kx, v, dt5)
     e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3 + dt4 + dt5), f=f, dv=dv, kx=kx
+        driver_function(x, t + dt1 + dt2 + dt3 + dt4 + dt5),
+        f=f,
+        dv=dv,
+        one_over_kx=one_over_kx,
     )
 
     return e, f

@@ -145,6 +145,8 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
         dx = (xmax - xmin) / nx
         x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
         kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+        one_over_kx = np.zeros_like(kx)
+        one_over_kx[1:] = 1.0 / kx[1:]
 
         # Velocity grid
         vmax = all_params["vmax"]
@@ -172,7 +174,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
             return total_field
 
         e = field.get_total_electric_field(
-            driver_function(x=x, tt=t[0]), f=f, dv=dv, kx=kx
+            driver_function(x=x, tt=t[0]), f=f, dv=dv, one_over_kx=one_over_kx
         )
 
         # Storage
@@ -192,7 +194,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
         # Time Loop
         for it in tqdm(range(nt)):
             e, f = step.full_PEFRL_ps_step(
-                f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+                f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
             )
 
             if nu > 0.0:
