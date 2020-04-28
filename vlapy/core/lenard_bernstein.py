@@ -34,7 +34,7 @@ def make_philharmonic_matrix(v, nv, nu, dt, dv, v0):
     :param dt: timestep (float)
     :param dv: velocity-axis spacing (float)
     :param v0: thermal temperature (float)
-    :return:
+    :return leftside: matrix for the linear operator
     """
 
     a = nu * dt * np.ones(nv - 1) * (-(v0 ** 2.0) / dv ** 2.0 + v[:-1] / 2 / dv)
@@ -50,7 +50,7 @@ def take_collision_step(leftside, f):
     Just solves a tridiagonal system here.
 
     :param leftside: matrix containing system of equations (numpy array of shape (nv, nv))
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :return:
+    :param f: distribution function at a single point in space. (numpy array of shape (nv, ))
+    :return solution to leftside x = f:
     """
     return np.linalg.solve(leftside, f)
