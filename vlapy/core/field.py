@@ -35,42 +35,43 @@ def compute_charges(f, dv):
     return np.trapz(f, dx=dv, axis=1)
 
 
-def __fft_solve__(net_charge_density, kx):
+def __fft_solve__(net_charge_density, one_over_kx):
     """
     del^2 phi = -rho
     del e = - integral[rho] = - integral[fdv]
 
     :param net_charge_density: charge-density (numpy array of shape (nx,))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
-    rhok = np.fft.fft(net_charge_density)
-    rhok[0] = 0
-    rhok[1:] = rhok[1:] / (-1j * kx[1:])
 
-    return np.real(np.fft.ifft(rhok))
+    return np.real(np.fft.ifft(1j * one_over_kx * np.fft.fft(net_charge_density)))
 
 
-def solve_for_field(charge_density, kx):
+def solve_for_field(charge_density, one_over_kx):
     """
     Solves for the net electric field after subtracting ion charge
 
     :param charge_density: charge-density (numpy array of shape (nx,))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
 
     :return:
     """
-    return __fft_solve__(net_charge_density=1.0 - charge_density, kx=kx)
+    return __fft_solve__(
+        net_charge_density=1.0 - charge_density, one_over_kx=one_over_kx
+    )
 
 
-def get_total_electric_field(driver_field, f, dv, kx):
+def get_total_electric_field(driver_field, f, dv, one_over_kx):
     """
     Allows adding a driver field
 
     :param driver_field: an electric field (numpy array of shape (nx,))
     :param f: distribution function. (numpy array of shape (nx, nv))
     :param dv: velocity-axis spacing (float)
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
     :return:
     """
-    return driver_field + solve_for_field(charge_density=compute_charges(f, dv), kx=kx)
+    return driver_field + solve_for_field(
+        charge_density=compute_charges(f, dv), one_over_kx=one_over_kx
+    )

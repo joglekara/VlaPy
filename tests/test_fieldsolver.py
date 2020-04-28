@@ -31,6 +31,8 @@ def test_field_solver():
     dx = xmax / nx
     axis = np.linspace(dx / 2, xmax - dx / 2, nx)
     kx = np.fft.fftfreq(axis.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     charge_densities = [
         1.0 + np.sin(kx_pert * axis),
@@ -46,5 +48,7 @@ def test_field_solver():
     ]
 
     for actual_field, charge_density in zip(electric_fields, charge_densities):
-        test_field = field.solve_for_field(charge_density=1.0 - charge_density, kx=kx)
+        test_field = field.solve_for_field(
+            charge_density=1.0 - charge_density, one_over_kx=one_over_kx
+        )
         np.testing.assert_almost_equal(actual_field, test_field, decimal=4)

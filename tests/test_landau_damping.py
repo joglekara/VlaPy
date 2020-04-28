@@ -44,6 +44,8 @@ def test_full_leapfrog_ps_step_landau_damping():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -70,7 +72,9 @@ def test_full_leapfrog_ps_step_landau_damping():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -79,7 +83,7 @@ def test_full_leapfrog_ps_step_landau_damping():
 
     for it in range(1, nt):
         e, f = step.full_leapfrog_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -123,6 +127,8 @@ def test_full_leapfrog_ps_step_zero():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -149,7 +155,9 @@ def test_full_leapfrog_ps_step_zero():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -158,7 +166,7 @@ def test_full_leapfrog_ps_step_zero():
 
     for it in range(1, nt):
         e, f = step.full_leapfrog_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -187,6 +195,8 @@ def test_full_PEFRL_ps_step_landau_damping():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -213,7 +223,9 @@ def test_full_PEFRL_ps_step_landau_damping():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -222,7 +234,7 @@ def test_full_PEFRL_ps_step_landau_damping():
 
     for it in range(1, nt):
         e, f = step.full_PEFRL_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -266,6 +278,8 @@ def test_full_pefrl_ps_step_zero():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -292,7 +306,9 @@ def test_full_pefrl_ps_step_zero():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -301,7 +317,7 @@ def test_full_pefrl_ps_step_zero():
 
     for it in range(1, nt):
         e, f = step.full_PEFRL_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
