@@ -19,7 +19,7 @@ Differencing Scheme
 This operator is differenced backwards in time, and center differenced in velocity space, which gives
 
 .. math::
-    \frac{f^{n+1}_{\alpha} - f^{n}_{\alpha}}{\Delta t} = \nu_{ee} \frac{f^{n+1}_\alpha + v_\alpha \Delta_v(f^{n+1}_{\alpha}) + v_0^2 \Delta^2_v(f^{n+1}_{\alpha})}{2\Delta v}
+    \frac{f^{n+1}_{\alpha} - f^{n}_{\alpha}}{\Delta t} = \nu_{ee} \left[f^{n+1}_\alpha + v_\alpha \Delta_v(f^{n+1}_{\alpha}) + v_0^2 \Delta^2_v(f^{n+1}_{\alpha})\right]
 
 where
 
