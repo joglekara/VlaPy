@@ -74,12 +74,19 @@ def full_leapfrog_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_fun
     :param driver_function: function that returns an electric field (numpy array of shape (nx,))
     :return:
     """
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt)
+    # f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
+    # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt)
+    # e = field.get_total_electric_field(
+    #     driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
+    # )
+    # f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
+
+    f = vlasov.update_velocity_adv_sl(f, x, v, e, 0.5 * dt)
+    f = vlasov.update_spatial_adv_sl(f, x, v, dt)
     e = field.get_total_electric_field(
         driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
     )
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
+    f = vlasov.update_velocity_adv_sl(f, x, v, e, 0.5 * dt)
 
     return e, f
 

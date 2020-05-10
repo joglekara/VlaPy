@@ -33,7 +33,7 @@ def test_full_leapfrog_ps_step_landau_damping():
 
     f = step.initialize(nx, nv)
 
-    k0 = 0.3
+    k0 = 0.2 * np.random.rand() + 0.2
     w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
     w0 = np.real(w_complex)
     actual_decay_rate = np.imag(w_complex)
