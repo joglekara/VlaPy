@@ -81,12 +81,16 @@ def full_leapfrog_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_fun
     # )
     # f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
 
-    f = vlasov.update_velocity_adv_sl(f, x, v, e, 0.5 * dt)
-    f = vlasov.update_spatial_adv_sl(f, x, v, dt)
+    # f = vlasov.update_velocity_adv_sl(f, x, v, e, 0.5 * dt)
+    f = vlasov.update_spatial_adv_sl(f, x, v, 0.5 * dt)
     e = field.get_total_electric_field(
-        driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
+        driver_function(x, t + 0.5 * dt), f=f, dv=dv, one_over_kx=one_over_kx
     )
-    f = vlasov.update_velocity_adv_sl(f, x, v, e, 0.5 * dt)
+    f = vlasov.update_velocity_adv_sl(f, x, v, e, dt)
+    f = vlasov.update_spatial_adv_sl(f, x, v, 0.5 * dt)
+    e = field.get_total_electric_field(
+        driver_function(x, t + 0.5 * dt), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     return e, f
 

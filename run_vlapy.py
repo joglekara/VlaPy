@@ -32,13 +32,13 @@ from diagnostics import landau_damping, z_function
 if __name__ == "__main__":
 
     all_params_dict = {
-        "nx": 48,
+        "nx": 128,
         "xmin": 0.0,
         "xmax": 2.0 * np.pi / 0.3,
-        "nv": 512,
+        "nv": 2048,
         "vmax": 6.0,
-        "nt": 1000,
-        "tmax": 100,
+        "nt": 4000,
+        "tmax": 500,
         "nu": 0.0,
     }
 
@@ -46,9 +46,9 @@ if __name__ == "__main__":
         "first pulse": {
             "start_time": 0,
             "rise_time": 5,
-            "flat_time": 10,
+            "flat_time": 20,
             "fall_time": 5,
-            "a0": 1e-6,
+            "a0": 1e-3,
             "k0": 0.3,
         }
     }
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         )
     )
 
-    mlflow_exp_name = "Landau Damping-test"
+    mlflow_exp_name = "NLEPW-test"
 
     print("Starting VlaPy at " + datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
     print("MLFlow experiment name: " + mlflow_exp_name)

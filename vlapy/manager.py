@@ -115,7 +115,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
 
     mlflow.set_experiment(name)
 
-    with mlflow.start_run():
+    with mlflow.start_run(run_name="leapfrog-vdfdx*2"):
         with tempfile.TemporaryDirectory() as temp_path:
             # Log desired parameters
             params_to_log_dict = {}
@@ -189,7 +189,11 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
 
             # Time Loop
             for it in tqdm(range(nt)):
-                e, f = step.full_PEFRL_ps_step(
+                # e, f = step.full_PEFRL_ps_step(
+                #     f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
+                # )
+
+                e, f = step.full_leapfrog_ps_step(
                     f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
                 )
 
