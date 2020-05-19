@@ -8,7 +8,7 @@
 Usage details and the latest documentation can be found [here](https://vlapy.readthedocs.io/en/latest/)
 
 ## Code of Conduct
-Please adhere to the guidelines from the Contributor Covenant listed in CODE_OF_CONDUCT.md.
+Please adhere to the guidelines from the Contributor Covenant listed in the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Quick Usage
 To install dependencies, run ``python3 setup.py install`` from the base directory of the repository.
@@ -84,4 +84,4 @@ the run manager object. These will be described in time. One can infer these fro
 
 
 ## Contributing to VlaPy
-Please see the guide in CONTRIBUTORS.md
+Please see the guide in [contribution guidelines for this project](CONTRIBUTING.md)
