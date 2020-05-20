@@ -21,7 +21,17 @@ To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then nav
 
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
-The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in plasma physics.
+
+# Statement of Need
+There are many software libraries that solve the same equation set which are available in academic settings, 
+research laboratories, and industry, but the community has yet to benefit from a simple-to-read, open-source Python 
+implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` community 
+(``PlasmaPy`` is a collection of open-source plasma physics resources). 
+Our aim with ``VlaPy`` is to take a step towards filling this need in the open-source community.
+
+``VlaPy`` is intended to help students and researchers learn about and explore concepts in fundamental plasma and fluid 
+physics and numerical methods.  It is also designed to provide a science-accessible introduction to industry and 
+software engineering best-practices, including unit and integrated testing, and extensible and maintainable code.
 
 ## Implementation
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
@@ -81,7 +91,6 @@ significantly eases the physicist's workflow.
 
 There are more details about how the diagnostics for a particular type of simulation are packaged and provided to
 the run manager object. These will be described in time. One can infer these from the code as well. 
-
 
 ## Contributing to VlaPy
 Please see the guide in [contribution guidelines for this project](CONTRIBUTING.md)
