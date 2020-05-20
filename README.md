@@ -22,7 +22,7 @@ To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then nav
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 
-# Statement of Need
+## Statement of Need
 There are many software libraries that solve the same equation set which are available in academic settings, 
 research laboratories, and industry, but the community has yet to benefit from a simple-to-read, open-source Python 
 implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` community 
