@@ -2,9 +2,13 @@
 [![codecov](https://codecov.io/gh/joglekara/VlaPy/branch/master/graph/badge.svg)](https://codecov.io/gh/joglekara/VlaPy)
 [![Documentation Status](https://readthedocs.org/projects/vlapy/badge/?version=latest)](https://vlapy.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 # VlaPy
 
-Usage details and the latest documentation can be found at https://vlapy.readthedocs.io/en/latest/
+Usage details and the latest documentation can be found [here](https://vlapy.readthedocs.io/en/latest/)
+
+## Code of Conduct
+Please adhere to the guidelines from the Contributor Covenant listed in the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Quick Usage
 To install dependencies, run ``python3 setup.py install`` from the base directory of the repository.
@@ -77,3 +81,7 @@ significantly eases the physicist's workflow.
 
 There are more details about how the diagnostics for a particular type of simulation are packaged and provided to
 the run manager object. These will be described in time. One can infer these from the code as well. 
+
+
+## Contributing to VlaPy
+Please see the guide in [contribution guidelines for this project](CONTRIBUTING.md)
