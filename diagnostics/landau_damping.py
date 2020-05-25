@@ -42,9 +42,9 @@ class LandauDamping:
 
         metrics = {
             "damping_rate": llh.get_damping_rate(efield_arr=storage_manager.efield_arr),
-            "frequency": llh.get_oscillation_frequency(
-                efield_arr=storage_manager.efield_arr
-            ),
+            # "frequency": llh.get_oscillation_frequency(
+            #     efield_arr=storage_manager.efield_arr
+            # ),
             "E_max": llh.get_e_max(efield_arr=storage_manager.efield_arr),
         }
 
