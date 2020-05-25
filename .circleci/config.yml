@@ -7,7 +7,7 @@ jobs:
   build:
     # Run the steps with Docker
     docker:
-      - image: circleci/python:3.7.3
+      - image: cimg/python:3.7
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -16,6 +16,13 @@ jobs:
 
     steps:
       - checkout
+
+      # Load pip cache
+#      - restore_cache:
+#          keys:
+#            - pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
+#            - pip-packages-v1-{{ .Branch }}
+#            - pip-packages-v1
 
       # Setup Python venv
       - run:
@@ -30,6 +37,12 @@ jobs:
             pip3 install . --progress-bar off
             pip3 install black
             pip3 install pytest pytest-cov codecov
+
+      # save pip cache
+#      - save_cache:
+#          paths:
+#            - venv
+#          key: pip-packages-v1-{{ .Branch }}-{{ checksum "setup.py" }}
 
       # Run python linting checks
       - run:
@@ -50,9 +63,13 @@ jobs:
           name: upload code coverage report
           command: |
             . venv/bin/activate
-            export CODECOV_TOKEN="c29f3876-b4ac-4abe-9818-b86ff1b0b6e8"
             codecov
 
+      # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
+      - store_test_results:
+          path: test-results
+
+      # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
       - store_artifacts:
-          path: test-reports
-          destination: test-reports
+          path: test-results
+          destination: tr1

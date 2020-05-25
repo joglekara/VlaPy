@@ -1,3 +1,25 @@
+# MIT License
+#
+# Copyright (c) 2020 Archis Joglekar
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from vlapy.core import lenard_bernstein
 import numpy as np
 
@@ -88,7 +110,7 @@ def test_lenard_bernstein_density_conservation():
 
 def test_lenard_bernstein_velocity_zero():
     """
-    tests if the 1st moment of f is 0
+    tests if the 1st moment of f is (approximately) 0
 
     :return:
     """
@@ -103,13 +125,13 @@ def test_lenard_bernstein_velocity_zero():
 
     leftside = lenard_bernstein.make_philharmonic_matrix(v, nv, nu, dt, dv, v0)
 
-    f = np.exp(-((v - 0.5) ** 2.0) / 2.0 / v0)
+    f = np.exp(-((v - 0.25) ** 2.0) / 2.0 / v0)
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
-    for it in range(1000):
+    for it in range(500):
         f_out = lenard_bernstein.take_collision_step(leftside, f_out)
 
     temp_in = np.sum(f * v) * dv
     temp_out = np.sum(f_out * v) * dv
-    np.testing.assert_almost_equal(temp_out, 0., decimal=2)
+    np.testing.assert_almost_equal(temp_out, 0.0, decimal=1)

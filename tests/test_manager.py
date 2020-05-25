@@ -20,39 +20,45 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from vlapy.core import step
+import os
+import uuid
+import shutil
 import numpy as np
 
-
-def test_initial_density():
-    nx = 64
-    nv = 1024
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    f = step.initialize(nx, nv)
-
-    np.testing.assert_almost_equal(f[0,].sum() * dv, np.ones(nx), decimal=3)
+from vlapy import manager
+from diagnostics import landau_damping
 
 
-def test_initial_temperature():
-    nx = 64
-    nv = 1024
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    f = step.initialize(nx, nv)
+def test_manager_folder():
+    test_folder = os.path.join(os.getcwd(), str(uuid.uuid4())[-6:])
+    all_params_dict = {
+        "nx": 48,
+        "xmin": 0.0,
+        "xmax": 2.0 * np.pi / 0.3,
+        "nv": 512,
+        "vmax": 6.0,
+        "nt": 1000,
+        "tmax": 100,
+        "nu": 0.0,
+    }
 
-    np.testing.assert_almost_equal(
-        np.array(
-            [
-                (
-                    (f[ix, 1:-1] * v[1:-1] ** 2.0).sum()
-                    + 0.5 * (f[ix, 0] * v[0] + f[ix, -1]) * v[-1]
-                )
-                * dv
-                for ix in range(nx)
-            ]
-        ),
-        np.ones(nx),
-        decimal=3,
+    pulse_dictionary = {
+        "first pulse": {
+            "start_time": 0,
+            "rise_time": 5,
+            "flat_time": 10,
+            "fall_time": 5,
+            "a0": 1e-6,
+            "k0": 0.3,
+            "w0": 1.1598,
+        }
+    }
+
+    params_to_log = ["k0"]
+
+    manager.start_run(
+        all_params=all_params_dict,
+        pulse_dictionary=pulse_dictionary,
+        diagnostics=landau_damping.LandauDamping(params_to_log),
+        name="unit-test",
     )

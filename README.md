@@ -1,11 +1,37 @@
-[![CircleCI](https://circleci.com/gh/joglekara/VlaPy.svg?style=svg&circle-token=52a0c9c0d445766b1a051a0bb7198d2ccf0617f6)](https://circleci.com/gh/joglekara/VlaPy)
-[![codecov](https://codecov.io/gh/joglekara/VlaPy/branch/master/graph/badge.svg?token=xjy3FvcZPJ)](https://codecov.io/gh/joglekara/VlaPy)
+[![CircleCI](https://circleci.com/gh/joglekara/VlaPy.svg?style=shield)](https://circleci.com/gh/joglekara/VlaPy)
+[![codecov](https://codecov.io/gh/joglekara/VlaPy/branch/master/graph/badge.svg)](https://codecov.io/gh/joglekara/VlaPy)
+[![Documentation Status](https://readthedocs.org/projects/vlapy/badge/?version=latest)](https://vlapy.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 # VlaPy
+
+Usage details and the latest documentation can be found [here](https://vlapy.readthedocs.io/en/latest/)
+
+## Code of Conduct
+Please adhere to the guidelines from the Contributor Covenant listed in the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Quick Usage
+To install dependencies, run ``python3 setup.py install`` from the base directory of the repository.
+
+After this step, ``python3 run_vlapy.py`` can be executed to run a simulation of Landau damping with collisions.
+
+This will create a temporary directory for the simulation files. Once completed, MLFlow will move the simulation folder into a centralized datastore. This datastore can be accessed through a web-browser based UI provided by leveraging MLFlow.
+
+To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then navigate to localhost:5000 in your web browser. The page will look like the following
 
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
-The Vlasov-Poisson-Fokker-Planck system of equations is commonly used in plasma physics.
+
+## Statement of Need
+There are many software libraries that solve the same equation set which are available in academic settings, 
+research laboratories, and industry, but the community has yet to benefit from a simple-to-read, open-source Python 
+implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` community 
+(``PlasmaPy`` is a collection of open-source plasma physics resources). 
+Our aim with ``VlaPy`` is to take a step towards filling this need in the open-source community.
+
+``VlaPy`` is intended to help students and researchers learn about and explore concepts in fundamental plasma and fluid 
+physics and numerical methods.  It is also designed to provide a science-accessible introduction to industry and 
+software engineering best-practices, including unit and integrated testing, and extensible and maintainable code.
 
 ## Implementation
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
@@ -16,15 +42,11 @@ The spatial advection operator is pushed pseudospectrally. The system is periodi
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
 
-This method is accelerated using ``numba.njit``.
-
 ### Vlasov - Velocity Advection
 The velocity advection operator is pushed pseudospectrally. The system is periodic in v.
 
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
-
-This method is accelerated using ``numba.njit``.
 
  
 ### Poisson Solver
@@ -69,3 +91,6 @@ significantly eases the physicist's workflow.
 
 There are more details about how the diagnostics for a particular type of simulation are packaged and provided to
 the run manager object. These will be described in time. One can infer these from the code as well. 
+
+## Contributing to VlaPy
+Please see the guide in [contribution guidelines for this project](CONTRIBUTING.md)
