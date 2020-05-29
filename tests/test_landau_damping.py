@@ -1,5 +1,29 @@
-from vlapy.core import step, field
+# MIT License
+#
+# Copyright (c) 2020 Archis Joglekar
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import numpy as np
+
+from vlapy.core import step, field
+from diagnostics.z_function import get_roots_to_electrostatic_dispersion
 
 
 def test_full_leapfrog_ps_step_landau_damping():
@@ -9,15 +33,10 @@ def test_full_leapfrog_ps_step_landau_damping():
 
     f = step.initialize(nx, nv)
 
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
     k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
+    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
+    w0 = np.real(w_complex)
+    actual_decay_rate = np.imag(w_complex)
 
     xmax = 2 * np.pi / k0
     xmin = 0.0
@@ -25,6 +44,8 @@ def test_full_leapfrog_ps_step_landau_damping():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -51,7 +72,9 @@ def test_full_leapfrog_ps_step_landau_damping():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -60,7 +83,7 @@ def test_full_leapfrog_ps_step_landau_damping():
 
     for it in range(1, nt):
         e, f = step.full_leapfrog_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -72,7 +95,7 @@ def test_full_leapfrog_ps_step_landau_damping():
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
     decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
 
-    np.testing.assert_almost_equal(decay_rate, -0.012623, decimal=2)
+    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
 
     ekw = np.fft.fft2(field_store[nt // 2 :,])
     ek1w = np.abs(ekw[:, 1])
@@ -104,6 +127,8 @@ def test_full_leapfrog_ps_step_zero():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -130,7 +155,9 @@ def test_full_leapfrog_ps_step_zero():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -139,7 +166,7 @@ def test_full_leapfrog_ps_step_zero():
 
     for it in range(1, nt):
         e, f = step.full_leapfrog_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -157,15 +184,10 @@ def test_full_PEFRL_ps_step_landau_damping():
 
     f = step.initialize(nx, nv)
 
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
     k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
+    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
+    w0 = np.real(w_complex)
+    actual_decay_rate = np.imag(w_complex)
 
     xmax = 2 * np.pi / k0
     xmin = 0.0
@@ -173,6 +195,8 @@ def test_full_PEFRL_ps_step_landau_damping():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -199,7 +223,9 @@ def test_full_PEFRL_ps_step_landau_damping():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -208,7 +234,7 @@ def test_full_PEFRL_ps_step_landau_damping():
 
     for it in range(1, nt):
         e, f = step.full_PEFRL_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
@@ -220,7 +246,7 @@ def test_full_PEFRL_ps_step_landau_damping():
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
     decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
 
-    np.testing.assert_almost_equal(decay_rate, -0.012623, decimal=2)
+    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
 
     ekw = np.fft.fft2(field_store[nt // 2 :,])
     ek1w = np.abs(ekw[:, 1])
@@ -252,6 +278,8 @@ def test_full_pefrl_ps_step_zero():
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
     kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
+    one_over_kx = np.zeros_like(kx)
+    one_over_kx[1:] = 1.0 / kx[1:]
 
     vmax = 6.0
     dv = 2 * vmax / nv
@@ -278,7 +306,9 @@ def test_full_pefrl_ps_step_zero():
     dist_store = np.zeros([nt, nx, nv])
     t_store = np.zeros(nt)
 
-    e = field.get_total_electric_field(driver_function(x, t[0]), f=f, dv=dv, kx=kx)
+    e = field.get_total_electric_field(
+        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    )
 
     it = 0
     t_store[it] = t[it]
@@ -287,7 +317,7 @@ def test_full_pefrl_ps_step_zero():
 
     for it in range(1, nt):
         e, f = step.full_PEFRL_ps_step(
-            f, x, kx, v, kv, dv, t[it], dt, e, driver_function
+            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
         )
 
         t_store[it] = t[it]
