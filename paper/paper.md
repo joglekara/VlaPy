@@ -23,7 +23,7 @@ bibliography: paper.bib
 
 # Summary
 
-Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension, Eulerian Vlasov-Poisson-Fokker-Planck simulation code written in Python.  
+Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension (1D-1V), Eulerian Vlasov-Poisson-Fokker-Planck (VPFP) simulation code written in Python.  
 
 The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications (see refs. [@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
 
@@ -31,9 +31,9 @@ Our implementation is based on finite-difference and pseudo-spectral methods. At
 
 # Statement of Need
 
-There are many software libraries that solve the same equation set which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), but the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need in the open-source community.
+The 1D-1V VPFP equation set solved here is has been applied in research of laser-plasma interactions in the context of inertial fusion [@Fahlen2009, @Banks2016], of plasma-based accelerators [@Thomas2016], of space physics [@Chen2019], and of fundamental plasma physics [@Pezzi2016, @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
 
-``VlaPy`` is intended to help students and researchers learn about and explore concepts in fundamental plasma and fluid physics and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
+``VlaPy`` is intended to help students learn fundamental concepts and help researchers discover novel physics and applications in plasma physics, fluid physics, computational physics, and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
 
 The details of the ``VlaPy`` implementation are provided in the following sections. 
 
