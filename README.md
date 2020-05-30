@@ -3,6 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/vlapy/badge/?version=latest)](https://vlapy.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+[![status](https://joss.theoj.org/papers/c2b3924d7868d7bd8472c6deb011cfcc/status.svg)](https://joss.theoj.org/papers/c2b3924d7868d7bd8472c6deb011cfcc)
 # VlaPy
 
 Usage details and the latest documentation can be found [here](https://vlapy.readthedocs.io/en/latest/)
