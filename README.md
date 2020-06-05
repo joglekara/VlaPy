@@ -3,6 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/vlapy/badge/?version=latest)](https://vlapy.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+[![status](https://joss.theoj.org/papers/c2b3924d7868d7bd8472c6deb011cfcc/status.svg)](https://joss.theoj.org/papers/c2b3924d7868d7bd8472c6deb011cfcc)
 # VlaPy
 
 Usage details and the latest documentation can be found [here](https://vlapy.readthedocs.io/en/latest/)
@@ -23,15 +24,20 @@ To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then nav
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 
 ## Statement of Need
-There are many software libraries that solve the same equation set which are available in academic settings, 
-research laboratories, and industry, but the community has yet to benefit from a simple-to-read, open-source Python 
+The 1D-1V VPFP equation set solved here has been applied in research of laser-plasma interactions in the context of 
+inertial fusion, of plasma-based accelerators, of space physics, and of fundamental plasma physics (references 
+can be found in the manuscript).  While there are VPFP software libraries which are available in academic settings, 
+research laboratories, and industry, the community has yet to benefit from a simple-to-read, open-source Python 
 implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` community 
-(``PlasmaPy`` is a collection of open-source plasma physics resources). 
-Our aim with ``VlaPy`` is to take a step towards filling this need in the open-source community.
+(``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step 
+towards filling this need for a research and educational tool in the open-source community.
 
-``VlaPy`` is intended to help students and researchers learn about and explore concepts in fundamental plasma and fluid 
-physics and numerical methods.  It is also designed to provide a science-accessible introduction to industry and 
-software engineering best-practices, including unit and integrated testing, and extensible and maintainable code.
+``VlaPy`` is intended to help students learn fundamental concepts and help researchers discover novel physics and 
+applications in plasma physics, fluid physics, computational physics, and numerical methods.  It is also designed to 
+provide a science-accessible introduction to industry and software engineering best-practices, including unit and 
+integrated testing, and extensible and maintainable code. 
+
+The details of the ``VlaPy`` implementation are provided in the following sections. 
 
 ## Implementation
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
