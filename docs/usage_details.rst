@@ -74,6 +74,3 @@ For example, please refer to the Landau damping diagnostics in `diagnostics/land
 damping rate and oscillation frequency are calculated, and plots are made of the time-evolution of the electric field
 to be eventually stored by the run manager object in a location of its choosing.
 
-
-
-...this page is in development...

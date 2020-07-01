@@ -51,8 +51,6 @@ If you would like to contribute, please raise an issue in the GitHub repository 
 is located at https://github.com/joglekara/vlapy.
 
 
-...this page is in development...
-
 
 Indices and tables
 ==================

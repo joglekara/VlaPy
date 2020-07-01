@@ -50,8 +50,5 @@ This solver is tested to
 3) relax to a Maxwellian of the right temperature and without a drift velocity
 
 
-...this page is in development...
-
-
 
 .. bibliography:: bibs/fokkerplanck.bib

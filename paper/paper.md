@@ -123,9 +123,16 @@ One of the most fundamental plasma physics phenomenon is known as Landau Damping
 
 Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa1973].
 
-In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. This is shown in `notebooks/landau_damping.ipynb`. 
+In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. 
 
-We include validation against this phenomenon as an integrated test.
+
+## Usage
+
+For example, the following screenshot is from `notebooks/landau_damping.ipynb`. In it, there is a plot of the electric field amplitude over time. By calculating the rate of decay of this electric field, we confirm that the Landau damping rate is reproduced by VlaPy as prescribed in [@Canosa1973].
+
+![screenshot of Landau damping example \label{LDexample}](../notebooks/screenshots_for_example/damping.png)
+
+We include validation against this physical, analytic result as an integrated test as well.
 
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experiment management.
