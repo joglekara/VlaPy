@@ -42,7 +42,7 @@ def test_dg_maxwellian_solution():
     f = f / np.sum(f * dv)
     f_out = f.copy()
 
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
         )
@@ -68,7 +68,7 @@ def test_dg_energy_conservation():
     f = f / np.sum(f * dv)
     f_out = f.copy()
 
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
         )
@@ -96,7 +96,7 @@ def test_dg_density_conservation():
     f = f / np.sum(f * dv)
     f_out = f.copy()
 
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
         )
