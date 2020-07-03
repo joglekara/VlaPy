@@ -26,7 +26,7 @@ from tqdm import tqdm
 import mlflow
 import numpy as np
 
-from vlapy.core import step, field, lenard_bernstein
+from vlapy.core import step, field, collisions
 from vlapy import storage
 
 
@@ -182,10 +182,10 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
             storage_manager.write_parameters_to_file(all_params, "all_parameters")
             storage_manager.write_parameters_to_file(pulse_dictionary, "pulses")
 
-            # Matrix representing collision operator
-            leftside = lenard_bernstein.make_philharmonic_matrix(
-                v=v, nv=nv, nu=nu, dt=dt, dv=dv, v0=1.0
-            )
+            if all_params["collision operator"] == "lb":
+                collision_operator = collisions.make_philharmonic_matrix
+            elif all_params["collision operator"] == "dg":
+                collision_operator = collisions.make_daugherty_matrix
 
             # Time Loop
             for it in tqdm(range(nt)):
@@ -194,7 +194,17 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
                 )
 
                 if nu > 0.0:
-                    f = lenard_bernstein.take_collision_step(leftside=leftside, f=f,)
+                    # Matrix representing collision operator
+
+                    f = collisions.take_collision_step(
+                        operator_method=collision_operator,
+                        f=f,
+                        v=v,
+                        nv=nv,
+                        nu=nu,
+                        dt=dt,
+                        dv=dv,
+                    )
 
                 # All storage stuff here
                 storage_manager.temp_update(
