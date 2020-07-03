@@ -78,4 +78,4 @@ def take_collision_step(operator_method, f, v, nv, nu, dt, dv):
     :param f: distribution function at a single point in space. (numpy array of shape (nv, ))
     :return solution to leftside x = f:
     """
-    return np.linalg.solve(operator_method(f=f, v=v, nv=nv, nu=nu, dt=dt, dv=dv), f)
+    return np.linalg.solve(operator_method(f_v=f, v=v, nv=nv, nu=nu, dt=dt, dv=dv), f)

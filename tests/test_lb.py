@@ -39,13 +39,13 @@ def test_lenard_bernstein_maxwellian_solution():
     dt = 0.1
     v0 = 1.0
 
-    leftside = collisions.make_philharmonic_matrix(v, nv, nu, dt, dv, v0)
-
     f = np.exp(-(v ** 2.0) / 2.0 / v0) / np.sum(np.exp(-(v ** 2.0) / 2.0 / v0) * dv)
     f_out = f.copy()
 
     for it in range(32):
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     np.testing.assert_almost_equal(f, f_out, decimal=4)
 
@@ -65,14 +65,14 @@ def test_lenard_bernstein_energy_conservation():
     dt = 0.01
     v0 = 1.0
 
-    leftside = collisions.make_philharmonic_matrix(v, nv, nu, dt, dv, v0)
-
     f = np.exp(-((v - 0.5) ** 2.0) / 2.0 / v0)
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
     for it in range(32):
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     temp_in = np.sum(f * v ** 2.0) * dv
     temp_out = np.sum(f_out * v ** 2.0) * dv
@@ -94,14 +94,14 @@ def test_lenard_bernstein_density_conservation():
     dt = 0.1
     v0 = 1.0
 
-    leftside = collisions.make_philharmonic_matrix(v, nv, nu, dt, dv, v0)
-
     f = np.exp(-((v - 0.5) ** 2.0) / 2.0 / v0)
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
     for it in range(32):
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     temp_in = np.sum(f) * dv
     temp_out = np.sum(f_out) * dv
@@ -123,14 +123,14 @@ def test_lenard_bernstein_velocity_zero():
     dt = 0.1
     v0 = 1.0
 
-    leftside = collisions.make_philharmonic_matrix(v, nv, nu, dt, dv, v0)
-
     f = np.exp(-((v - 0.25) ** 2.0) / 2.0 / v0)
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
     for it in range(500):
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     temp_in = np.sum(f * v) * dv
     temp_out = np.sum(f_out * v) * dv

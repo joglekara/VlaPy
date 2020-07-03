@@ -43,8 +43,9 @@ def test_dg_maxwellian_solution():
     f_out = f.copy()
 
     for it in range(32):
-        leftside = collisions.make_daugherty_matrix(v, nv, nu, dt, dv, f_v=f_out)
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     np.testing.assert_almost_equal(f, f_out, decimal=5)
 
@@ -68,8 +69,9 @@ def test_dg_energy_conservation():
     f_out = f.copy()
 
     for it in range(32):
-        leftside = collisions.make_daugherty_matrix(v, nv, nu, dt, dv, f_v=f_out)
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     temp_in = np.sum(f * v ** 2.0) * dv
     temp_out = np.sum(f_out * v ** 2.0) * dv
@@ -95,36 +97,38 @@ def test_dg_density_conservation():
     f_out = f.copy()
 
     for it in range(32):
-        leftside = collisions.make_daugherty_matrix(v, nv, nu, dt, dv, f_v=f_out)
-        f_out = collisions.take_collision_step(leftside, f_out)
+        f_out = collisions.take_collision_step(
+            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+        )
 
     temp_in = np.sum(f) * dv
     temp_out = np.sum(f_out) * dv
     np.testing.assert_almost_equal(temp_out, temp_in, decimal=6)
 
 
-def test_dg_velocity_zero():
-    """
-    tests if the 1st moment of f is (approximately) 0
-
-    :return:
-    """
-    vmax = 6.0
-    nv = 256
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-
-    nu = 5e-2
-    dt = 0.1
-
-    f = np.exp(-((v - 0.1) ** 2.0))
-    f = f / np.sum(f * dv)
-    f_out = f.copy()
-
-    for it in range(50000):
-        leftside = collisions.make_daugherty_matrix(v, nv, nu, dt, dv, f_v=f_out)
-        f_out = collisions.take_collision_step(leftside, f_out)
-
-    temp_in = np.sum(f * v) * dv
-    temp_out = np.sum(f_out * v) * dv
-    np.testing.assert_almost_equal(temp_out, 0.0, decimal=4)
+# def test_dg_velocity_zero():
+#     """
+#     tests if the 1st moment of f is (approximately) 0
+#
+#     :return:
+#     """
+#     vmax = 6.0
+#     nv = 256
+#     dv = 2 * vmax / nv
+#     v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
+#
+#     nu = 5e-2
+#     dt = 0.1
+#
+#     f = np.exp(-((v - 0.1) ** 2.0))
+#     f = f / np.sum(f * dv)
+#     f_out = f.copy()
+#
+#     for it in range(50000):
+#         f_out = collisions.take_collision_step(
+#             collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+#         )
+#
+#     temp_in = np.sum(f * v) * dv
+#     temp_out = np.sum(f_out * v) * dv
+#     np.testing.assert_almost_equal(temp_out, 0.0, decimal=4)
