@@ -23,7 +23,7 @@
 import numpy as np
 
 
-def make_philharmonic_matrix(v, nv, nu, dt, dv, v0):
+def make_philharmonic_matrix(v, nv, nu, dt, dv, f_v):
     """
     This matrix is composed of the linear operator that must be inverted with respect
     to the right side, which'll be the distribution function
@@ -36,16 +36,41 @@ def make_philharmonic_matrix(v, nv, nu, dt, dv, v0):
     :param v0: thermal temperature (float)
     :return leftside: matrix for the linear operator
     """
+    v0t_sq = np.trapz(f_v * v ** 2.0, dx=dv, axis=0)
 
-    a = nu * dt * np.ones(nv - 1) * (-(v0 ** 2.0) / dv ** 2.0 + v[:-1] / 2 / dv)
-    b = nu * dt * np.ones(nv) * (2 * v0 ** 2.0 / dv ** 2.0 + 0.0 / 2 / dv)
-    c = nu * dt * np.ones(nv - 1) * (-(v0 ** 2.0) / dv ** 2.0 - v[1:] / 2 / dv)
+    a = nu * dt * np.ones(nv - 1) * (-v0t_sq / dv ** 2.0 + v[:-1] / 2 / dv)
+    b = nu * dt * np.ones(nv) * (2 * v0t_sq / dv ** 2.0 + 0.0 / 2 / dv)
+    c = nu * dt * np.ones(nv - 1) * (-v0t_sq / dv ** 2.0 - v[1:] / 2 / dv)
     leftside = np.diag(a, -1) + np.diag(1 + b, 0) + np.diag(c, 1)
 
     return leftside
 
 
-def take_collision_step(leftside, f):
+def make_daugherty_matrix(v, nv, nu, dt, dv, f_v):
+    """
+    This matrix is composed of the linear operator that must be inverted with respect
+    to the right side, which'll be the distribution function
+
+    :param v: velocity axis (numpy array of shape (nv,))
+    :param nv: size of velocity axis (int)
+    :param nu: collision frequency (float)
+    :param dt: timestep (float)
+    :param dv: velocity-axis spacing (float)
+    :param v0: thermal temperature (float)
+    :return leftside: matrix for the linear operator
+    """
+    vbar = np.trapz(f_v * v, dx=dv, axis=0)
+    v0t_sq = np.trapz(f_v * (v - vbar) ** 2.0, dx=dv, axis=0)
+
+    a = nu * dt * np.ones(nv - 1) * (-v0t_sq / dv ** 2.0 + (v[:-1] - vbar) / 2.0 / dv)
+    b = nu * dt * np.ones(nv) * (2.0 * v0t_sq / dv ** 2.0)
+    c = nu * dt * np.ones(nv - 1) * (-v0t_sq / dv ** 2.0 - (v[1:] - vbar) / 2.0 / dv)
+    leftside = np.diag(a, -1) + np.diag(1 + b, 0) + np.diag(c, 1)
+
+    return leftside
+
+
+def take_collision_step(operator_method, f, v, nv, nu, dt, dv):
     """
     Just solves a tridiagonal system here.
 
@@ -53,4 +78,4 @@ def take_collision_step(leftside, f):
     :param f: distribution function at a single point in space. (numpy array of shape (nv, ))
     :return solution to leftside x = f:
     """
-    return np.linalg.solve(leftside, f)
+    return np.linalg.solve(operator_method(f=f, v=v, nv=nv, nu=nu, dt=dt, dv=dv), f)
