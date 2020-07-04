@@ -153,6 +153,7 @@ Below, we also illustrate a manual validation of this phenomenon through the ful
 <img src="../notebooks/screenshots_for_example/ui.png" width="820">
 <img src="../notebooks/screenshots_for_example/damping.png" width="820">
 
+To run the entire testing suite, make sure `pytest` is installed, and call `pytest` from the root folder for the repository. Individual files can also be run by calling `pytest tests/<test_filename>.py`.
 
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experiment management.
