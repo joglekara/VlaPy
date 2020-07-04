@@ -30,7 +30,6 @@ from diagnostics import landau_damping
 
 
 def test_manager_folder():
-    test_folder = os.path.join(os.getcwd(), str(uuid.uuid4())[-6:])
     all_params_dict = {
         "nx": 48,
         "xmin": 0.0,
@@ -40,6 +39,7 @@ def test_manager_folder():
         "nt": 1000,
         "tmax": 100,
         "nu": 0.0,
+        "collision operator": "lb",
     }
 
     pulse_dictionary = {

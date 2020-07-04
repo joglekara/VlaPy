@@ -88,8 +88,12 @@ and the discretized version that is solved is
 $$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
 
 ### Integrated Code Testing
-Unit tests are provided for this operator to validate its performance and operation under the above assumptions.  These are simply unit tests against analytical solutions of integrals of periodic functions.
+Unit tests are provided for this operator to validate its performance and operation under the above assumptions.  
+These are simply unit tests against analytical solutions of integrals of periodic functions. They can be found in 
+`tests/test_fieldsolver.py`.
 
+Below, we provide an illustration of a manual validation of the Poisson equation solver. These are also provided in 
+`notebooks/test_poisson.ipynb`
 
 ## Fokker-Planck Equation
 
@@ -104,18 +108,15 @@ $$ f^{n} = {\Delta t} \nu \left[\left(-\frac{v_0^2}{\Delta v^2} + \frac{1}{2\Del
 This forms a tridiagonal system of equations that can be directly inverted.
 
 ### Integrated Code Testing
-Unit tests are provided for this operator. The unit tests ensure that
+Unit tests are provided for this operator. They can be found in `tests/test_lb.py` The unit tests ensure that
 
-1. The operator conserves number density.
+1. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
 
+2. The operator conserves number density, momentum, and energy when initialized with a zero net velocity.
 
-2. The operator reverts to a solution with a temperature proportional to $v_0^2$.
-
-
-3. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
-
-
-4. The operator acts to evolve the distribution to a mean velocity of $0$ if initialized with an off-center drift velocity.
+The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show 
+how the implementation relaxes a distribution with a small but visible sinusoidal perturbation. This particular 
+example recovers the number density, momentum, and energy to $10^{-6}$ accuracy over 10000 evaluations.
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
@@ -123,16 +124,14 @@ One of the most fundamental plasma physics phenomenon is known as Landau Damping
 
 Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa1973].
 
-In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. 
+In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. This is shown in `notebooks/landau_damping.ipynb`. 
 
+We include validation against this phenomenon as an automated integrated test. The tests can be found in 
+`tests/test_landau_damping.py`
 
-## Usage
-
-For example, the following screenshot is from `notebooks/landau_damping.ipynb`. In it, there is a plot of the electric field amplitude over time. By calculating the rate of decay of this electric field, we confirm that the Landau damping rate is reproduced by VlaPy as prescribed in [@Canosa1973].
-
-![screenshot of Landau damping example \label{LDexample}](../notebooks/screenshots_for_example/damping.png)
-
-We include validation against this physical, analytic result as an integrated test as well.
+Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a 
+properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced 
+accurately. 
 
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experiment management.
