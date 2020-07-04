@@ -185,7 +185,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
             if all_params["collision operator"] == "lb":
                 collision_operator = collisions.make_philharmonic_matrix
             elif all_params["collision operator"] == "dg":
-                collision_operator = collisions.make_daugherty_matrix
+                collision_operator = collisions.make_dougherty_matrix
 
             # Time Loop
             for it in tqdm(range(nt)):

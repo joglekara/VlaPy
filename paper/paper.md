@@ -100,7 +100,7 @@ Below, we provide an illustration of a manual validation of the Poisson equation
 
 ## Fokker-Planck Equation
 
-We have implemented two simplified versions of the full Fokker-Planck operator [@Lenard1958, @Daugherty1964]. 
+We have implemented two simplified versions of the full Fokker-Planck operator [@Lenard1958, @Dougherty1964]. 
 
 The first of these implementations has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$

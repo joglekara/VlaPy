@@ -46,7 +46,7 @@ def make_philharmonic_matrix(v, nv, nu, dt, dv, f_v):
     return leftside
 
 
-def make_daugherty_matrix(v, nv, nu, dt, dv, f_v):
+def make_dougherty_matrix(v, nv, nu, dt, dv, f_v):
     """
     This matrix is composed of the linear operator that must be inverted with respect
     to the right side, which'll be the distribution function
