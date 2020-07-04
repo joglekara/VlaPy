@@ -137,12 +137,13 @@ def test_lenard_bernstein_momentum_conservation_if_initialized_at_zero():
     np.testing.assert_almost_equal(temp_out, temp_in, decimal=3)
 
 
-# def test_lenard_bernstein_velocity_zero():
-#     """
-#     tests if the 1st moment of f is (approximately) 0
-#
-#     :return:
-#     """
+def test_lenard_bernstein_velocity_zero():
+    """
+    tests if the 1st moment of f is (approximately) 0
+
+    :return:
+    """
+    pass
 #     vmax = 6.0
 #     nv = 256
 #     dv = 2 * vmax / nv
