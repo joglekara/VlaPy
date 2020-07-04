@@ -150,7 +150,8 @@ We include validation against this phenomenon as an automated integrated test. T
 
 Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
 
-![](../notebooks/screenshots_for_example/damping.png =250x250)
+<img src="../notebooks/screenshots_for_example/ui.png" width="820">
+<img src="../notebooks/screenshots_for_example/damping.png" width="820">
 
 
 # Acknowledgements
