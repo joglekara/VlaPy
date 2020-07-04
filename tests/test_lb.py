@@ -42,7 +42,7 @@ def test_lenard_bernstein_maxwellian_solution():
     f = np.exp(-(v ** 2.0) / 2.0 / v0) / np.sum(np.exp(-(v ** 2.0) / 2.0 / v0) * dv)
     f_out = f.copy()
 
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
         )
@@ -69,7 +69,7 @@ def test_lenard_bernstein_energy_conservation():
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
         )
@@ -98,7 +98,7 @@ def test_lenard_bernstein_density_conservation():
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
         )
@@ -127,7 +127,7 @@ def test_lenard_bernstein_momentum_conservation_if_initialized_at_zero():
     f = f / np.sum(f * dv)
 
     f_out = f.copy()
-    for it in range(32):
+    for it in range(8):
         f_out = collisions.take_collision_step(
             collisions.make_philharmonic_matrix, f_out, v, nv, nu, dt, dv
         )
