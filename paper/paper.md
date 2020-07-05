@@ -102,11 +102,11 @@ Below, we provide an illustration of a manual validation of the Poisson equation
 
 We have implemented two simplified versions of the full Fokker-Planck operator [@Lenard1958, @Dougherty1964]. 
 
-The first of these implementations has the governing equation given by
+The first of these implementations (LB) has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
 where $v_0 = \int v^2 f(x,v) dv, $ is the thermal velocity of the distribution. 
 
-The second of these implementations has a governing equation given by
+The second of these implementations (DG) has a governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( (v-\underline{v}) f + v_{t}^2 \frac{\partial f}{\partial v}\right), $$
 where $\underline{v} = \int v f(x,v) dv,$ is the mean velocity of the distribution and $v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $ is the thermal velocity of the shifted distribution.
 
@@ -119,11 +119,14 @@ where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementa
 This forms a tridiagonal system of equations that can be directly inverted.
 
 ### Integrated Code Testing
-Unit tests are provided for this operator. They can be found in `tests/test_lb.py` The unit tests ensure that
+Unit tests are provided for this operator. They can be found in `tests/test_lb.py` and `tests/test_dg.py`. 
+The unit tests ensure that
 
 1. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
 
-2. The operator conserves number density, momentum, and energy when initialized with a zero net velocity.
+2. The LB operator conserves number density, momentum, and energy when initialized with a zero mean velocity.
+
+3. The DG operator conserves number density, momentum, and energy when initialized with a non-zero mean velocity.
 
 The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show results from some of the tests for illustrative purposes. 
 
