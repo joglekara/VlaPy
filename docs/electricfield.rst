@@ -21,5 +21,3 @@ given by
 This solver is tested to reproduce analytical solutions to a periodic Poisson system.
 
 
-
-...this page is under development...

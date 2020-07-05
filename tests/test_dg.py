@@ -45,7 +45,7 @@ def test_dg_maxwellian_solution():
 
     for it in range(nt):
         f_out = collisions.take_collision_step(
-            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+            collisions.make_dougherty_matrix, f_out, v, nv, nu, dt, dv
         )
 
     np.testing.assert_almost_equal(f, f_out, decimal=3)
@@ -72,7 +72,7 @@ def test_dg_energy_conservation():
 
     for it in range(nt):
         f_out = collisions.take_collision_step(
-            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+            collisions.make_dougherty_matrix, f_out, v, nv, nu, dt, dv
         )
 
     temp_in = np.sum(f * v ** 2.0) * dv
@@ -101,7 +101,7 @@ def test_dg_density_conservation():
 
     for it in range(nt):
         f_out = collisions.take_collision_step(
-            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+            collisions.make_dougherty_matrix, f_out, v, nv, nu, dt, dv
         )
 
     temp_in = np.sum(f) * dv
@@ -130,7 +130,7 @@ def test_dg_momentum_conservation():
 
     for it in range(nt):
         f_out = collisions.take_collision_step(
-            collisions.make_daugherty_matrix, f_out, v, nv, nu, dt, dv
+            collisions.make_dougherty_matrix, f_out, v, nv, nu, dt, dv
         )
 
     temp_in = np.sum(f * v) * dv

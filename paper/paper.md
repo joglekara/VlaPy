@@ -95,32 +95,54 @@ These are simply unit tests against analytical solutions of integrals of periodi
 Below, we provide an illustration of a manual validation of the Poisson equation solver. These are also provided in 
 `notebooks/test_poisson.ipynb`
 
+![](../notebooks/screenshots_for_example/poisson_solver.png)
+
+
 ## Fokker-Planck Equation
 
-We use a simplified version of the full Fokker-Planck operator [@Lenard1958]. This is given by
+We have implemented two simplified versions of the full Fokker-Planck operator [@Lenard1958, @Dougherty1964]. 
 
+The first of these implementations (LB) has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
-where $v_0$ is the thermal velocity associated with the Maxwell-Boltzmann distribution that is a solution to this equation.
+where $v_0 = \int v^2 f(x,v) dv, $ is the thermal velocity of the distribution. 
+
+The second of these implementations (DG) has a governing equation given by
+$$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( (v-\underline{v}) f + v_{t}^2 \frac{\partial f}{\partial v}\right), $$
+where $\underline{v} = \int v f(x,v) dv,$ is the mean velocity of the distribution and $v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $ is the thermal velocity of the shifted distribution.
+
+The second implementation is an extension of the first, and extends momentum conservation for distributions that have a non-zero mean velocity. 
 
 We discretize this backward-in-time, centered-in-space. This procedure results in the time-step scheme given by
-$$ f^{n} = {\Delta t} \nu \left[\left(-\frac{v_0^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) v_{j+1}f^{n+1}_{j+1} + \left(1+2\frac{v_0^2}{\Delta v^2}\right) f^{n+1}_j + \left(-\frac{v_0^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) v_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+$$ f^{n} = \left[{\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) \bar{v}_{j+1}f^{n+1}_{j+1} + \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) f^{n+1}_j + {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementation. 
 
 This forms a tridiagonal system of equations that can be directly inverted.
 
 ### Integrated Code Testing
-Unit tests are provided for this operator. They can be found in `tests/test_lb.py` The unit tests ensure that
+Unit tests are provided for this operator. They can be found in `tests/test_lb.py` and `tests/test_dg.py`. 
+The unit tests ensure that
 
 1. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
 
-2. The operator conserves number density, momentum, and energy when initialized with a zero net velocity.
+2. The LB operator conserves number density, momentum, and energy when initialized with a zero mean velocity.
 
-The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show 
-how the implementation relaxes a distribution with a small but visible sinusoidal perturbation. This particular 
-example recovers the number density, momentum, and energy to $10^{-6}$ accuracy over 10000 evaluations.
+3. The DG operator conserves number density, momentum, and energy when initialized with a non-zero mean velocity.
+
+The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show results from some of the tests for illustrative purposes. 
+
+![](../notebooks/collision_tests_plots/Maxwell_Solution.png)
+
+![](../notebooks/collision_tests_plots/LB_conservation.png)
+
+![](../notebooks/collision_tests_plots/LB_no_conservation.png)
+
+![](../notebooks/collision_tests_plots/DG_conservation.png)
+
+We see from the above figures that the distribution relaxes to a Maxwellian. Depending on the implementation, certain characteristics of momentum conservation are enforced or avoided.
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
-One of the most fundamental plasma physics phenomenon is known as Landau Damping. An extensive review is provided in ref. [@Ryutov1999].  
+Landau Damping is one of the most fundamental plasma physics phenomenon. An extensive review is provided in ref. [@Ryutov1999].  
 
 Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa1973].
 
@@ -129,9 +151,12 @@ In the ``VlaPy`` simulation code, we have verified that the known damping rates 
 We include validation against this phenomenon as an automated integrated test. The tests can be found in 
 `tests/test_landau_damping.py`
 
-Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a 
-properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced 
-accurately. 
+Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
+
+<img src="../notebooks/screenshots_for_example/ui.png" width="820">
+<img src="../notebooks/screenshots_for_example/damping.png" width="820">
+
+To run the entire testing suite, make sure `pytest` is installed, and call `pytest` from the root folder for the repository. Individual files can also be run by calling `pytest tests/<test_filename>.py`.
 
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experiment management.
