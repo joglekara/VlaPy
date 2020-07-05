@@ -1,10 +1,6 @@
 Solving the Fokker-Planck Equation
 ----------------------------------------
 
-There are many approximations to the Fokker-Planck equation as applied to a distribution function of electrons.
-
-Lenard-Bernstein Form
-****************************
 VlaPy implements the Lenard-Bernstein :cite:`Lenard1958` (LB) approximation and the Dougherty :cite:`Dougherty1964` (DG)
 approximation of the Fokker-Planck equation. The LB approximation is given by
 
