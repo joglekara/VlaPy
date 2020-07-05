@@ -54,7 +54,19 @@ This solver is tested to
 2) conserve density, energy, and depending on the operator, velocity.
 3) relax to an operator-dependent Maxwellian of the right temperature and drift velocity
 
-These tests are illustrated in `notebooks/test_fokker_planck.ipynb`.
+These tests are illustrated in `notebooks/test_fokker_planck.ipynb` and below:
+
+.. image:: images/Maxwell_Solution.png
+   :width: 900
+
+.. image:: images/LB_conservation.png
+   :width: 900
+
+.. image:: images/LB_no_conservation.png
+   :width: 900
+
+.. image:: images/DG_conservation.png
+   :width: 900
 
 
 .. bibliography:: bibs/fokkerplanck.bib
