@@ -26,7 +26,7 @@ This operator is differenced backwards in time, and center differenced in veloci
 .. math::
     \frac{f^{n+1}_{\alpha} - f^{n}_{\alpha}}{\Delta t} = \nu_{ee} \left[f^{n+1}_\alpha + \bar{v}_\alpha \Delta_v(f^{n+1}_{\alpha}) + v_{rms}^2 \Delta^2_v(f^{n+1}_{\alpha})\right]
 
-where :math:`\bar{v} = v, v_{rms}^2 = \int f v^2 dv` for the LB operator and :math:`\bar{v} = v - \underline{v}, v_{rms}^2 = \int f \bar{v}^2 dv`
+where :math:`\bar{v} = v, v_{rms}^2 = \int f v^2 dv` for the LB operator and :math:`\bar{v} = v - \underline{v}, v_{rms}^2 = \int f \bar{v}^2 dv` for the DG operator.
 
 .. math::
     \Delta_v(f^{n+1}_{\alpha})= \frac{f^{n+1}_{\alpha+1} - f^{n+1}_{\alpha-1}}{2\Delta v}
