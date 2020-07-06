@@ -163,4 +163,6 @@ We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experi
 
 We acknowledge valuable discussions with Pierre Navarro on the implementation of the Vlasov equation.
 
+We are grateful for the editors' and reviewers' thorough feedback that improved the software as well as manuscript.
+
 # References
