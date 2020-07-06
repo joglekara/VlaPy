@@ -20,5 +20,8 @@ given by
 
 This solver is tested to reproduce analytical solutions to a periodic Poisson system.
 
+The Poisson Solver is tested in `tests/test_fieldsolver.py` and the tests are illustrated in
+`notebooks/test_poisson.ipynb`. Below, we show a sample test result.
+
 .. image:: images/poisson_solver.png
    :width: 900
