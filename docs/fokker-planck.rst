@@ -52,7 +52,7 @@ Tests
 This solver is tested to
 1) return df/dt = 0 if a Maxwell-Boltzmann distribution is provided as input
 2) conserve density, energy, and depending on the operator, velocity.
-3) relax to an operator-dependent Maxwellian of the right temperature and drift velocity
+3) relax to an operator-dependent Maxwellian of the right temperature and drift velocity.
 
 These tests are illustrated in `notebooks/test_fokker_planck.ipynb` and below:
 

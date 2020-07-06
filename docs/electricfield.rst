@@ -20,4 +20,5 @@ given by
 
 This solver is tested to reproduce analytical solutions to a periodic Poisson system.
 
-
+.. image:: images/poisson_solver.png
+   :width: 900
