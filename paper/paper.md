@@ -51,7 +51,7 @@ $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \
 The normalized Vlasov equation is given by
 $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
 
-We use operator splitting to advance the time-step `@Cheng:1976`. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+We use operator splitting to advance the time-step [@Cheng:1976]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We first Fourier transform the operator, as given by 
 $$ \mathcal{F}_x\left[ \frac{d f}{d t} = v \frac{d f}{d x} \right].$$
@@ -105,21 +105,24 @@ We have implemented two simplified versions of the full Fokker-Planck operator [
 The first of these implementations (LB) has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
 where 
-$$v_0 = \int v^2 f(x,v) dv, $$ 
+$$v_0^2 = \int v^2 f(x,v) ~ dv, $$ 
 is the thermal velocity of the distribution. 
 
 The second of these implementations (DG) has a governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( (v-\underline{v}) f + v_{t}^2 \frac{\partial f}{\partial v}\right), $$
 where 
-$$\underline{v} = \int v f(x,v) dv,$$ 
+$$\underline{v} = \int v f(x,v) ~ dv,$$ 
 is the mean velocity of the distribution and 
-$$v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $$ 
+$$v_{t}^2 = \int (v-\bar{v})^2 f(x,v) ~ dv, $$ 
 is the thermal velocity of the shifted distribution.
 
 The second implementation is an extension of the first, and extends momentum conservation for distributions that have a non-zero mean velocity. 
 
 We discretize this backward-in-time, centered-in-space. This procedure results in the time-step scheme given by
-$$ f^{n} = \left[{\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) \bar{v}_{j+1}f^{n+1}_{j+1} + \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) f^{n+1}_j + {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+$$ f^{n} = \left[LD \bar{v}_{j+1}f^{n+1}_{j+1} + DI f^{n+1}_j + UD \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$
+$$ LD = {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
+$$ DI =  -\left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
+$$ UD =  \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
 where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementation. 
 
 This forms a tridiagonal system of equations that can be directly inverted.
@@ -136,13 +139,13 @@ The unit tests ensure that
 
 The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show results from some of the tests for illustrative purposes. 
 
-![](../notebooks/collision_tests_plots/Maxwell_Solution.png)
+![](../notebooks/collision_tests_plots/Maxwell_Solution.pdf)
 
-![](../notebooks/collision_tests_plots/LB_conservation.png)
+![](../notebooks/collision_tests_plots/LB_conservation.pdf)
 
-![](../notebooks/collision_tests_plots/LB_no_conservation.png)
+![](../notebooks/collision_tests_plots/LB_no_conservation.pdf)
 
-![](../notebooks/collision_tests_plots/DG_conservation.png)
+![](../notebooks/collision_tests_plots/DG_conservation.pdf)
 
 We see from the above figures that the distribution relaxes to a Maxwellian. Depending on the implementation, certain characteristics of momentum conservation are enforced or avoided.
 
