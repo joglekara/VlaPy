@@ -104,11 +104,17 @@ We have implemented two simplified versions of the full Fokker-Planck operator [
 
 The first of these implementations (LB) has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
-where $v_0 = v^2 f(x,v) dv, $ is the thermal velocity of the distribution. 
+where 
+$$v_0 = \int v^2 f(x,v) dv, $$ 
+is the thermal velocity of the distribution. 
 
 The second of these implementations (DG) has a governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( (v-\underline{v}) f + v_{t}^2 \frac{\partial f}{\partial v}\right), $$
-where $\underline{v} = \int v f(x,v) dv,$ is the mean velocity of the distribution and $v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $ is the thermal velocity of the shifted distribution.
+where 
+$$\underline{v} = \int v f(x,v) dv,$$ 
+is the mean velocity of the distribution and 
+$$v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $$ 
+is the thermal velocity of the shifted distribution.
 
 The second implementation is an extension of the first, and extends momentum conservation for distributions that have a non-zero mean velocity. 
 
