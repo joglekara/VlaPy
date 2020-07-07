@@ -113,16 +113,16 @@ $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\pa
 where 
 $$\underline{v} = \int v f(x,v) ~ dv,$$ 
 is the mean velocity of the distribution and 
-$$v_{t}^2 = \int (v-\bar{v})^2 f(x,v) ~ dv, $$ 
+$$v_{t}^2 = \int (v-\underline{v})^2 f(x,v) ~ dv, $$ 
 is the thermal velocity of the shifted distribution.
 
 The second implementation is an extension of the first, and extends momentum conservation for distributions that have a non-zero mean velocity. 
 
 We discretize this backward-in-time, centered-in-space. This procedure results in the time-step scheme given by
-$$ f^{n} = \left[LD \bar{v}_{j+1}f^{n+1}_{j+1} + DI f^{n+1}_j + UD \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$
+$$ f^{n} = \left[LD \times \bar{v}_{j+1}f^{n+1}_{j+1} + DI \times f^{n+1}_j + UD \times \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$
 $$ LD = {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
 $$ DI =  -\left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
-$$ UD =  \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
+$$ UD = {\Delta t} \nu \left(\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
 where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementation. 
 
 This forms a tridiagonal system of equations that can be directly inverted.
