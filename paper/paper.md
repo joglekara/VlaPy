@@ -95,7 +95,7 @@ These are simply unit tests against analytical solutions of integrals of periodi
 Below, we provide an illustration of a manual validation of the Poisson equation solver. These are also provided in 
 `notebooks/test_poisson.ipynb`
 
-![](../notebooks/screenshots_for_example/poisson_solver.png)
+![](../notebooks/screenshots_for_example/poisson_solver.pdf)
 
 
 ## Fokker-Planck Equation
