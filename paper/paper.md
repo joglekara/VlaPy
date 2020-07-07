@@ -51,7 +51,7 @@ $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \
 The normalized Vlasov equation is given by
 $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
 
-We use operator splitting to advance the time-step [@Cheng:1976]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+We use operator splitting to advance the time-step [@Cheng1976]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We first Fourier transform the operator, as given by 
 $$ \mathcal{F}_x\left[ \frac{d f}{d t} = v \frac{d f}{d x} \right].$$
