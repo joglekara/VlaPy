@@ -41,23 +41,25 @@ The details of the ``VlaPy`` implementation are provided in the following sectio
 # Equations
 
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. These components, represented using normalized units, are 
-$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m n_e v_{th}^3$. The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. 
-
-The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The normalized quantities are 
-$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m n_e v_{th}^3$. The Fourier Transform operator is represented by $\mathcal{F}$. The subscript to the operator indicates the dimension of the transform. 
+$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
+where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, and $e$ is the electron charge. 
+The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. 
+$$\mathcal{F}_x (f(x,v)) = \hat{f}(k_x, v) \exp(i k_x x)$$
+$$\mathcal{F}_v (f(x,v)) = \hat{f}(x, k_v) \exp(- i k_v v)$$
+ 
 
 ## Vlasov Equation
 
-The normalized Vlasov equation is given by
-$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
+The normalized, non-relativistic ($\gamma=1$) Vlasov equation is given by
+$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0 $$.
 
 We use operator splitting to advance the time-step [@Cheng1976]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
-We first Fourier transform the operator, as given by 
-$$ \mathcal{F}_x\left[ \frac{d f}{d t} = v \frac{d f}{d x} \right].$$
+We first Fourier transform the advection operator in $\hat{x}$, as given by 
+$$ \mathcal{F}_x\left[ \frac{\partial f}{\partial t} = - v \frac{\partial f}{\partial x} \right].$$
 
-Next, we solve for the change in the plasma distribution function, discretize, and integrate, as given by
-$$\frac{d\hat{f}}{\hat{f}} = v~ (-i k_x)~ dt, $$
+This process enables decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for each point in $\hat{v}$. Next, we solve for the change in the plasma distribution function, discretize, and integrate, as given by
+$$\frac{d\hat{f}}{\hat{f}} = -v~ (i k_x)~ dt, $$
 $$ \hat{f}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f}^n(k_x, v). $$ 
 
 The $E \partial f/\partial v$ term is evolved similarly using
@@ -72,16 +74,16 @@ The implementation of this equation is tested in the integrated tests section be
 ## Poisson Equation
 
 The normalized Poisson equation is simply
-$$  \nabla^2 \Phi = \rho $$
+$$  \nabla^2 \Phi = - \rho $$
 
 Because the ion species are effectively static and form a charge-neutralizing background to the electron dynamics, we can express the Poisson equation as
-$$ - \nabla E = \rho_{net} = 1 - \rho_e $$ 
+$$ - \nabla E = - \rho_{net} = -(1 - \rho_e) $$ 
 
 This is justifed by the assumption that the relevant time-scales are short compared to the time-scale associated to ion motion.
 
 In 1 spatial dimension, this can be expressed as
 
-$$ - \frac{d}{dx} E(x) = 1 - \int f(x,v) ~dv $$
+$$ \frac{\partial}{\partial x} E(x) = 1 - \int f(x,v) ~dv $$
 
 and the discretized version that is solved is
 
@@ -147,7 +149,7 @@ The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and exa
 
 ![](../notebooks/collision_tests_plots/DG_conservation.pdf)
 
-We see from the above figures that the distribution relaxes to a Maxwellian. Depending on the implementation, certain characteristics of momentum conservation are enforced or avoided.
+We see from the above figures that the distribution relaxes to a Maxwellian. Depending on the implementation, certain characteristics of momentum conservation are enforced or avoided. 
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
