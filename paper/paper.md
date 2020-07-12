@@ -44,8 +44,6 @@ The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The
 $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
 where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, and $e$ is the electron charge. 
 The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. 
-$$\mathcal{F}_x (f(x,v)) = \hat{f}(k_x, v) \exp(i k_x x)$$
-$$\mathcal{F}_v (f(x,v)) = \hat{f}(x, k_v) \exp(- i k_v v)$$
  
 
 ## Vlasov Equation
@@ -53,17 +51,30 @@ $$\mathcal{F}_v (f(x,v)) = \hat{f}(x, k_v) \exp(- i k_v v)$$
 The normalized, non-relativistic ($\gamma=1$) Vlasov equation is given by
 $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0 $$.
 
-We use operator splitting to advance the time-step [@Cheng1976]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+We use operator splitting to advance the time-step [@Crouseilles2015]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
-We first Fourier transform the advection operator in $\hat{x}$, as given by 
+We use the Fourier expansions of the distribution function, which are given by
+$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v)$$
+
+We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion for each grid value of $v$. 
+
+This gives
+
+$$ f^n(x_l, v_j) = \sum f_k(v_j) \exp(i k_x x) $$
+
+This is substituted into the fourier transform of the advection operator in $\hat{x}$, as given by 
 $$ \mathcal{F}_x\left[ \frac{\partial f}{\partial t} = - v \frac{\partial f}{\partial x} \right].$$
 
-This process enables decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for each point in $\hat{v}$. Next, we solve for the change in the plasma distribution function, discretize, and integrate, as given by
-$$\frac{d\hat{f}}{\hat{f}} = -v~ (i k_x)~ dt, $$
-$$ \hat{f}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f}^n(k_x, v). $$ 
+This process enables decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for each point in $\hat{v}$.
+
+$$\frac{d \left[\hat{f_x}^n (x_l) \right]}{\hat{f_x}^n (x_l)} = -v~ (i k_x)~ dt, $$
+
+Next, we solve for the change in the plasma distribution function, discretize, and integrate, which gives
+
+$$ \hat{f_x}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f_x}^n(k_x, v). $$ 
 
 The $E \partial f/\partial v$ term is evolved similarly using
-$$ \hat{f}^{n+1}(x, k_v) = \exp(-i k_v ~ F \Delta t) ~~ \hat{f}^n(x, k_v) $$
+$$ \hat{f_v}^{n+1}(x, k_v) = \exp(-i k_v ~ F \Delta t) ~~ \hat{f_v}^n(x, k_v) $$
 
 We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
 Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
