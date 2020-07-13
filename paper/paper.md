@@ -49,32 +49,32 @@ The Fourier transform operator is represented by $\mathcal{F}$ and the subscript
 ## Vlasov Equation
 
 The normalized, non-relativistic ($\gamma=1$) Vlasov equation is given by
-$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0 $$.
+$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0. $$
 
 We use operator splitting to advance the time-step [@Crouseilles2015]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We use the Fourier expansions of the distribution function, which are given by
-$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v)$$
+$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j)$$
 
 We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion for each grid value of $v$. 
 
 This gives
 
-$$ f^n(x_l, v_j) = \sum f_k(v_j) \exp(i k_x x) $$
+$$ f^n(x_l, v_j) = \sum \hat{f}_x(k_x, v_j) \exp(i k_x x_j) $$
 
-This is substituted into the fourier transform of the advection operator in $\hat{x}$, as given by 
+which is substituted into the Fourier transform of the advection operator in $\hat{x}$, as given by 
 $$ \mathcal{F}_x\left[ \frac{\partial f}{\partial t} = - v \frac{\partial f}{\partial x} \right].$$
 
-This process enables decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for each point in $\hat{v}$.
+This process enables the decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for each point in $\hat{v}$.
 
-$$\frac{d \left[\hat{f_x}^n (x_l) \right]}{\hat{f_x}^n (x_l)} = -v~ (i k_x)~ dt, $$
+$$\frac{d \left[\hat{f_x}^n (k_x, v_j) \right]}{\hat{f_x}^n (k_x, v_j)} = -v_j~ (i k_x)~ dt, $$
 
 Next, we solve for the change in the plasma distribution function, discretize, and integrate, which gives
 
-$$ \hat{f_x}^{n+1}(k_x, v) = \exp(-i k_x ~ v \Delta t) ~~ \hat{f_x}^n(k_x, v). $$ 
+$$ \hat{f_x}^{n+1}(k_x, v_j) = \exp(-i k_x ~ v_j \Delta t) ~~ \hat{f_x}^n(k_x, v_j). $$ 
 
 The $E \partial f/\partial v$ term is evolved similarly using
-$$ \hat{f_v}^{n+1}(x, k_v) = \exp(-i k_v ~ F \Delta t) ~~ \hat{f_v}^n(x, k_v) $$
+$$ \hat{f_v}^{n+1}(x_l, k_v) = \exp(-i k_v ~ F_l \Delta t) ~~ \hat{f_v}^n(x_l, k_v) $$
 
 We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
 Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
