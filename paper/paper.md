@@ -49,7 +49,9 @@ The Fourier transform operator is represented by $\mathcal{F}$ and the subscript
 ## Vlasov Equation
 
 The normalized, non-relativistic ($\gamma=1$) Vlasov equation is given by
-$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0. $$
+$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0, $$
+
+where $f = f(x,v,t)$ is the electron velocity distribution function.
 
 We use operator splitting to advance the time-step [@Crouseilles2015]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
