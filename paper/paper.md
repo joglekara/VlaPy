@@ -54,7 +54,7 @@ $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac
 We use operator splitting to advance the time-step [@Crouseilles2015]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We use the Fourier expansions of the distribution function, which are given by
-$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j)$$
+$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j).$$
 
 We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion for each grid value of $v$. 
 
@@ -65,16 +65,16 @@ $$ f^n(x_l, v_j) = \sum \hat{f}_x(k_x, v_j) \exp(i k_x x_j) $$
 which is substituted into the Fourier transform of the advection operator in $\hat{x}$, as given by 
 $$ \mathcal{F}_x\left[ \frac{\partial f}{\partial t} = - v \frac{\partial f}{\partial x} \right].$$
 
-This process enables the decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write the following as an Ordinary Differential Equation in time for the discretized distribution function $\hat{f_x}^n(k_x, v_j)$ .
+This process enables the decoupling of $\hat{x}$ and $\hat{v}$ grids from the time dimension and allows us to write an Ordinary Differential Equation in time for the discretized distribution function $\hat{f_x}^n(k_x, v_j)$. This is given by 
 
-$$\frac{d \left[\hat{f_x}^n (k_x, v_j) \right]}{\hat{f_x}^n (k_x, v_j)} = -v_j~ (i k_x)~ dt, $$
+$$\frac{d \left[\hat{f_x}^n (k_x, v_j) \right]}{\hat{f_x}^n (k_x, v_j)} = -v_j~ (i k_x)~ dt. $$
 
 Next, we solve for the change in the plasma distribution function, integrate in time, and evaluate the integral at $\hat{f_x}^n$ and $\hat{f_x}^{n+1}$ which gives
 
 $$ \hat{f_x}^{n+1}(k_x, v_j) = \exp(-i k_x ~ v_j \Delta t) ~~ \hat{f_x}^n(k_x, v_j). $$ 
 
 The $E \partial f/\partial v$ term is evolved similarly using
-$$ \hat{f_v}^{n+1}(x_l, k_v) = \exp(-i k_v ~ F_l \Delta t) ~~ \hat{f_v}^n(x_l, k_v) $$
+$$ \hat{f_v}^{n+1}(x_l, k_v) = \exp(-i k_v ~ F_l \Delta t) ~~ \hat{f_v}^n(x_l, k_v). $$
 
 We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
 Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
