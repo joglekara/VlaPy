@@ -25,7 +25,7 @@ bibliography: paper.bib
 
 Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension (1D-1V), Eulerian Vlasov-Poisson-Fokker-Planck (VPFP) simulation code written in Python.  
 
-The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications (see refs. [@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
+The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications (see [@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
 
 Our implementation is based on finite-difference and pseudo-spectral methods. At the lowest level, ``VlaPy`` evolves a two-dimensional (2D) grid according to this set of coupled partial integro-differential equations over time. In ``VlaPy``, the simulation dynamics can be initialized through user-specified initial conditions or external forces.
 
@@ -58,7 +58,7 @@ We use operator splitting to advance the time-step [@Crouseilles2015]. Each one 
 We use the Fourier expansions of the distribution function, which are given by
 $$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j).$$
 
-We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion for each grid value of $v$. 
+We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion in $\hat{x}$ for each grid value of $v$. 
 
 This gives
 
@@ -82,7 +82,7 @@ We have implemented a simple Leapfrog scheme as well as a 4th order integrator c
 Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
 
 ### Tests
-The implementation of this equation is tested in the integrated tests section below.
+The implementation of this equation is tested in the integrated tests section.
 
 ## Poisson Equation
 
@@ -100,14 +100,13 @@ $$ \frac{\partial}{\partial x} E(x) = 1 - \int f(x,v) ~dv $$
 
 and the discretized version that is solved is
 
-$$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
+$$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\mathcal{F}_x\left(\sum_j f^n(x_i,v_j) \Delta v\right)}{- i k_x}\right] $$
 
 ### Integrated Code Testing
-Unit tests are provided for this operator to validate its performance and operation under the above assumptions.  
-These are simply unit tests against analytical solutions of integrals of periodic functions. They can be found in 
+Unit tests are provided for this operator to validate its performance and operation under the above assumptions. These are simply unit tests against analytical solutions of integrals of periodic functions. They can be found in 
 `tests/test_fieldsolver.py`.
 
-Below, we provide an illustration of a manual validation of the Poisson equation solver. These are also provided in 
+Below, we provide an example illustration of this validation. The code is provided in 
 `notebooks/test_poisson.ipynb`
 
 ![](../notebooks/screenshots_for_example/poisson_solver.pdf)
@@ -166,19 +165,19 @@ We see from the above figures that the distribution relaxes to a Maxwellian. Dep
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
-Landau Damping is one of the most fundamental plasma physics phenomenon. An extensive review is provided in ref. [@Ryutov1999].  
+Landau Damping is one of the most fundamental plasma physics phenomenon. An extensive review is provided in [@Ryutov1999].  
 
-Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa1973].
+Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in [@Canosa1973].
 
 In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. This is shown in `notebooks/landau_damping.ipynb`. 
 
 We include validation against this phenomenon as an automated integrated test. The tests can be found in 
 `tests/test_landau_damping.py`
 
-Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
+Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of an electron plasma wave with $k=0.3$ is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
 
-<img src="../notebooks/screenshots_for_example/ui.png" width="820">
-<img src="../notebooks/screenshots_for_example/damping.png" width="820">
+![](../notebooks/screenshots_for_example/ui.png)
+![](../notebooks/screenshots_for_example/damping.png)
 
 To run the entire testing suite, make sure `pytest` is installed, and call `pytest` from the root folder for the repository. Individual files can also be run by calling `pytest tests/<test_filename>.py`.
 
