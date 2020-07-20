@@ -53,7 +53,7 @@ $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac
 
 where $f = f(x,v,t)$ is the electron velocity distribution function.
 
-We use operator splitting to advance the time-step [@Crouseilles2015]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+We use operator splitting to advance the time-step [@Strang1968]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We use the Fourier expansions of the distribution function, which are given by
 $$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j).$$
