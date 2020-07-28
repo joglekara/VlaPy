@@ -62,7 +62,7 @@ We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expan
 
 This gives
 
-$$ f^n(x_l, v_j) = \sum \hat{f}_x(k_x, v_j) \exp(i k_x x_j) $$
+$$ f^n(x_l, v_j) = \sum \hat{f}^n_x(k_x, v_j) \exp(i k_x x_j) $$
 
 which is substituted into the Fourier transform of the advection operator in $\hat{x}$, as given by 
 $$ \mathcal{F}_x\left[ \frac{\partial f}{\partial t} = - v \frac{\partial f}{\partial x} \right].$$
@@ -134,9 +134,9 @@ The second implementation is an extension of the first, and extends momentum con
 
 We discretize this backward-in-time, centered-in-space. This procedure results in the time-step scheme given by
 $$ f^{n} = \left[LD \times \bar{v}_{j+1}f^{n+1}_{j+1} + DI \times f^{n+1}_j + UD \times \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$
-$$ LD = {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
-$$ DI =  -\left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
-$$ UD = {\Delta t} \nu \left(\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
+$$ LD = {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) $$
+$$ DI =  \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) $$
+$$ UD = {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) $$
 where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementation. 
 
 This forms a tridiagonal system of equations that can be directly inverted.
