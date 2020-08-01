@@ -41,22 +41,23 @@ The details of the ``VlaPy`` implementation are provided in the following sectio
 # Equations
 
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. These components, represented using normalized units, are 
-$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \omega_p)$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
-where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, and $e$ is the electron charge. 
-The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. 
+$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / (v_{th} \omega_p^{-1})$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
+where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, and $e$ is the fundamental charge. 
+The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. In what follows, we have omitted the 
+$\tilde$ for brevity. 
  
 
 ## Vlasov Equation
 
 The normalized, non-relativistic ($\gamma=1$) Vlasov equation is given by
-$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} - E(x) \frac{\partial f}{\partial v} = 0, $$
+$$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E(x) \frac{\partial f}{\partial v} = 0, $$
 
 where $f = f(x,v,t)$ is the electron velocity distribution function.
 
 We use operator splitting to advance the time-step [@Strang1968]. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We use the Fourier expansions of the distribution function, which are given by
-$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(- i k_v v_j).$$
+$$f(x_l,v_j) = \sum \hat{f_x}(k_x, v_j) \exp(i k_x x_l) = \sum \hat{f_v}(x_l, k_v) \exp(i k_v v_j).$$
 
 We first discretize $f(x,v,t) = f^n(x_l, v_j)$, and then perform a Fourier expansion in $\hat{x}$ for each grid value of $v$. 
 
@@ -76,7 +77,7 @@ Next, we solve for the change in the plasma distribution function, integrate in 
 $$ \hat{f_x}^{n+1}(k_x, v_j) = \exp(-i k_x ~ v_j \Delta t) ~~ \hat{f_x}^n(k_x, v_j). $$ 
 
 The $E \partial f/\partial v$ term is evolved similarly using
-$$ \hat{f_v}^{n+1}(x_l, k_v) = \exp(-i k_v ~ F_l \Delta t) ~~ \hat{f_v}^n(x_l, k_v). $$
+$$ \hat{f_v}^{n+1}(x_l, k_v) = \exp(-i k_v ~ E_l \Delta t) ~~ \hat{f_v}^n(x_l, k_v). $$
 
 We have implemented a simple Leapfrog scheme as well as a 4th order integrator called the 
 Position-Extended-Forest-Ruth-Like Algorithm (PEFRL) [@Omelyan2002]
@@ -100,7 +101,7 @@ $$ \frac{\partial}{\partial x} E(x) = 1 - \int f(x,v) ~dv $$
 
 and the discretized version that is solved is
 
-$$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\mathcal{F}_x\left(\sum_j f^n(x_i,v_j) \Delta v\right)}{- i k_x}\right] $$
+$$  E(x_i)^{n} = \mathcal{F}_x^{-1}\left[\frac{\mathcal{F}_x\left(1 - \sum^j f^n(x_i,v_j) \Delta v\right)}{i k_x}\right] $$
 
 ### Integrated Code Testing
 Unit tests are provided for this operator to validate its performance and operation under the above assumptions. These are simply unit tests against analytical solutions of integrals of periodic functions. They can be found in 
