@@ -44,7 +44,7 @@ The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. The
 $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / (v_{th} \omega_p^{-1})$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
 where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, and $e$ is the fundamental charge. 
 The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. In what follows, we have omitted the 
-$\tilde$ for brevity. 
+tilde for brevity. 
  
 
 ## Vlasov Equation
