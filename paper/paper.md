@@ -41,7 +41,7 @@ The details of the ``VlaPy`` implementation are provided in the following sectio
 # Equations
 
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. These components, represented using normalized units, are 
-$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / \lambda_D$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e$, $\tilde{f} = f / m_e n_e v_{th}^3$. 
+$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / \lambda_D$, $\tilde{m} = m / m_e$, \tilde{q} = q/e, \tilde{m} = m / m_e, $\tilde{E} = e E / m_e v_{th} \omega_p$, $\tilde{f} = f / n_e v_{th}^{-3}$. 
 where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, $\lambda_D$ is the Debye length, and $e$ is the elementary charge. 
 The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. In what follows, we have omitted the 
 tilde for brevity. 
