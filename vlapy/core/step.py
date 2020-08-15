@@ -199,6 +199,25 @@ def get_collision_algorithm(collision_algorithm, static_args):
     :return:
     """
 
+    if collision_algorithm == "lb":
+        # get_collision_matrix_in_batched_arrays =
+        pass
+    elif collision_algorithm == "dg":
+        # get_collision_matrix_in_batched_arrays =
+        pass
+        # Matrix representing collision operator
+        # f = collisions.take_collision_step(
+        #     get_collision_matrix_in_batched_arrays=get_collision_matrix_in_batched_arrays,
+        #     solver="batched_tridiagonal",
+        #     f=f,
+        #     v=v,
+        #     nx=nx,
+        #     nv=nv,
+        #     nu=nu,
+        #     dt=dt,
+        #     dv=dv,
+        # )
+
     # if collision_algorithm == "lb":
     #     def take_collision_step(
     #             get_collision_matrix_in_batched_arrays, f, v, nv, nx, nu, dt, dv,
