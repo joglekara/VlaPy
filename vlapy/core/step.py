@@ -22,7 +22,7 @@
 
 import numpy as np
 
-from vlapy.core import field, vlasov
+from vlapy.core import field, vlasov, collisions
 
 
 def initialize(nx, nv, vmax=6.0):
@@ -168,3 +168,61 @@ def full_PEFRL_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_functi
     )
 
     return e, f
+
+
+def get_vlasov_poisson_step(static_args):
+    """
+    This is the highest level function for getting a jitted Vlasov-Poisson.
+
+    :param static_args:
+    :return:
+    """
+
+    if static_args["vlasov-poisson"] == "leapfrog":
+        vp_step = full_leapfrog_ps_step
+    elif static_args["vlasov-poisson"] == "pefrl":
+        vp_step = full_PEFRL_ps_step
+    else:
+        raise NotImplementedError
+
+    return vp_step
+
+
+def get_collision_algorithm(collision_algorithm, static_args):
+    """
+    This returns the Fokker-Planck operator.
+
+    TODO: Still to implement
+
+    :param collision_algorithm:
+    :param static_args:
+    :return:
+    """
+
+    # if collision_algorithm == "lb":
+    #     def take_collision_step(
+    #             get_collision_matrix_in_batched_arrays, f, v, nv, nx, nu, dt, dv,
+    #     ):
+    #         """
+    #         Takes a collision step using a batched tridiagonal solver
+    #
+    #         :param get_collision_matrix_in_batched_arrays:
+    #         :param f:
+    #         :param v:
+    #         :param nv:
+    #         :param nx:
+    #         :param nu:
+    #         :param dt:
+    #         :param dv:
+    #         :return:
+    #         """
+    #
+    #         # The three diagonals representing collision operator for all x
+    #         cee_a, cee_b, cee_c = get_collision_matrix_in_batched_arrays(
+    #             vax=v, f_xv=f, nv=nv, nx=nx, nu=nu, dt=dt, dv=dv
+    #         )
+    #
+    #         # Solve over all x
+    #         return _batched_tridiagonal_solver_(cee_a, cee_b, cee_c, f.copy(), nv)
+
+    return None
