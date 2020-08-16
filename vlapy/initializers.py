@@ -211,7 +211,7 @@ def make_default_params_dictionary():
             "edfdv": "exponential",
             "poisson": "spectral",
         },
-        "backend": {"core": "numpy", "max_doubles_per_file": int(1e7),},
+        "backend": {"core": "numpy", "max_doubles_per_file": int(1e8),},
         "a0": 1e-7,
     }
 
