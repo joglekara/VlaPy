@@ -26,78 +26,10 @@ from tqdm import tqdm
 import mlflow
 import numpy as np
 
-from vlapy.core import step, field, collisions
-from vlapy import storage
+from vlapy import initializers, storage, inner_loop
 
 
-def _get_rise_fall_coeff_(normalized_time):
-    """
-    This is a smooth function that goes from 0 to 1. It is a 5th order polynomial because it satisfies the following
-    5 conditions
-
-    value = 0 at t=0 and t=1 (2 conditions)
-    first derivative = 0 at t=0 and t=1 (2 conditions)
-    value = 0.5 in the middle
-
-    :param normalized_time:
-    :return:
-    """
-    coeff = (
-        6.0 * pow(normalized_time, 5.0)
-        - 15.0 * pow(normalized_time, 4.0)
-        + 10.0 * pow(normalized_time, 3.0)
-    )
-    return coeff
-
-
-def get_pulse_coefficient(pulse_profile_dictionary, tt):
-    """
-    This function generates an envelope that smoothly goes from 0 to 1, and back down to 0.
-    It follows the nomenclature introduced to me by working with oscilloscopes.
-
-    The pulse profile dictionary will contain a rise time, flat time, and fall time.
-    The rise time is the time over which the pulse goes from 0 to 1
-    The flat time is the duration of the flat-top of the pulse
-    The fall time is the time over which the pulse goes from 1 to 0.
-
-    :param pulse_profile_dictionary:
-    :param tt:
-    :return:
-    """
-    start_time = pulse_profile_dictionary["start_time"]
-    end_time = (
-        start_time
-        + pulse_profile_dictionary["rise_time"]
-        + pulse_profile_dictionary["flat_time"]
-        + pulse_profile_dictionary["fall_time"]
-    )
-
-    this_pulse = 0
-
-    if (tt > start_time) and (tt < end_time):
-        rise_time = pulse_profile_dictionary["rise_time"]
-        flat_time = pulse_profile_dictionary["flat_time"]
-        fall_time = pulse_profile_dictionary["fall_time"]
-        end_rise = start_time + rise_time
-        end_flat = start_time + rise_time + flat_time
-
-        if tt <= end_rise:
-            normalized_time = (tt - start_time) / rise_time
-            this_pulse = _get_rise_fall_coeff_(normalized_time)
-
-        elif (tt > end_rise) and (tt < end_flat):
-            this_pulse = 1.0
-
-        elif tt >= end_flat:
-            normalized_time = (tt - end_flat) / fall_time
-            this_pulse = 1.0 - _get_rise_fall_coeff_(normalized_time)
-
-        this_pulse *= pulse_profile_dictionary["a0"]
-
-    return this_pulse
-
-
-def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
+def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     """
     This is the highest level function that calls the time integration loop
 
@@ -113,107 +45,87 @@ def start_run(all_params, pulse_dictionary, diagnostics, name="test"):
     :return:
     """
 
-    mlflow.set_experiment(name)
+    if "local" not in uris["tracking"].casefold():
+        mlflow.set_tracking_uri(uris["tracking"])
 
-    with mlflow.start_run():
+    exp_id = mlflow.set_experiment(name)
+
+    with mlflow.start_run(experiment_id=exp_id) as run:
         with tempfile.TemporaryDirectory() as temp_path:
-            # Log desired parameters
-            params_to_log_dict = {}
-            for param in diagnostics.params_to_log:
-                if param in ["a0", "k0", "w0"]:
-                    params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
-                else:
-                    params_to_log_dict[param] = all_params[param]
+            # Initialize loop parameters
+            steps_in_loop = int(all_params["backend"]["max_doubles_per_file"]) // (
+                all_params["nx"] * all_params["nv"]
+            )
+            n_loops = all_params["nt"] // steps_in_loop + 1
+            actual_num_steps = n_loops * steps_in_loop
 
-            mlflow.log_params(params_to_log_dict)
+            all_params["steps_in_loop"] = steps_in_loop
+            all_params["n_loops"] = n_loops
+            all_params["actual_num_steps"] = actual_num_steps
 
-            # Initialize machinery
-            nx = all_params["nx"]
-            nv = all_params["nv"]
-            nu = all_params["nu"]
-            tmax = all_params["tmax"]
-            nt = all_params["nt"]
-
-            # Distribution function
-            f = step.initialize(nx, nv)
-
-            # Spatial Grid
-            xmax = all_params["xmax"]
-            xmin = all_params["xmin"]
-            dx = (xmax - xmin) / nx
-            x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-            kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
-            one_over_kx = np.zeros_like(kx)
-            one_over_kx[1:] = 1.0 / kx[1:]
-
-            # Velocity grid
-            vmax = all_params["vmax"]
-            dv = 2 * vmax / nv
-            v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-            kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
-
-            t = np.linspace(0, tmax, nt)
-            dt = t[1] - t[0]
-
-            def driver_function(x, tt):
-                total_field = np.zeros_like(x)
-
-                for this_pulse in list(pulse_dictionary.keys()):
-                    kk = pulse_dictionary[this_pulse]["k0"]
-                    ww = pulse_dictionary[this_pulse]["w0"]
-
-                    envelope = get_pulse_coefficient(
-                        pulse_profile_dictionary=pulse_dictionary[this_pulse], tt=tt
-                    )
-
-                    if np.abs(envelope) > 0.0:
-                        total_field += envelope * np.cos(kk * x - ww * tt)
-
-                return total_field
-
-            e = field.get_total_electric_field(
-                driver_function(x=x, tt=t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+            # Get numpy arrays of the simulation configuration
+            stuff_for_time_loop = initializers.get_everything_ready_for_time_loop(
+                diagnostics=diagnostics,
+                all_params=all_params,
+                pulse_dictionary=pulse_dictionary,
+                overall_num_steps=actual_num_steps,
             )
 
-            # Storage
+            # Initialize the storage manager -- folders, parameters, etc.
             storage_manager = storage.StorageManager(
-                x, v, t, temp_path, store_f=diagnostics.f_rules
+                xax=stuff_for_time_loop["x"],
+                vax=stuff_for_time_loop["v"],
+                f=stuff_for_time_loop["f"],
+                base_path=temp_path,
+                rules_to_store_f=diagnostics.rules_to_store_f,
+                num_steps_in_one_loop=steps_in_loop,
+                all_params=all_params,
+                pulse_dictionary=pulse_dictionary,
             )
-            storage_manager.write_parameters_to_file(all_params, "all_parameters")
-            storage_manager.write_parameters_to_file(pulse_dictionary, "pulses")
 
-            if all_params["collision operator"] == "lb":
-                collision_operator = collisions.make_philharmonic_matrix
-            elif all_params["collision operator"] == "dg":
-                collision_operator = collisions.make_dougherty_matrix
+            sim_config, do_inner_loop = inner_loop.get_inner_loop(
+                all_params=all_params,
+                stuff_for_time_loop=stuff_for_time_loop,
+                steps_in_loop=steps_in_loop,
+                rules_to_store_f=diagnostics.rules_to_store_f,
+            )
 
-            # Time Loop
-            for it in tqdm(range(nt)):
-                e, f = step.full_PEFRL_ps_step(
-                    f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
+            # TODO: Could support resume here
+            it_start = 0
+
+            # We run a higher level loop and a lower level loop.
+            # The higher level loop contains:
+            # 1 - Get the driver for all time-steps involved in this iteration of the lower level loop
+            # 2 - Perform the lower level loop
+            # 3 - Write the output to file
+            #
+            # The lower level loop is a loop over `steps_in_loop` timesteps. It is entirely executed on the
+            # accelerator. The size of this loop can be controlled by the `MAX_DOUBLES_IN_FILE` parameter.
+            # The goal was to allow that parameter to control the amount of memory needed on the accelerator
+            for it in tqdm(range(it_start, n_loops * steps_in_loop, steps_in_loop)):
+                curr_time_index = range(it, it + steps_in_loop)
+
+                # Get driver and time array for the duration of the lower level loop
+                driver_array = np.array(stuff_for_time_loop["driver"][curr_time_index])
+                time_array = np.array(stuff_for_time_loop["t"][curr_time_index])
+
+                # Perform lower level loop
+                sim_config = do_inner_loop(
+                    temp_storage=sim_config,
+                    driver_array=driver_array,
+                    time_array=time_array,
                 )
 
-                if nu > 0.0:
-                    # Matrix representing collision operator
+                # Perform a batched data update with the lower level loop output
+                storage_manager.batch_update(sim_config)
 
-                    f = collisions.take_collision_step(
-                        operator_method=collision_operator,
-                        f=f,
-                        v=v,
-                        nv=nv,
-                        nu=nu,
-                        dt=dt,
-                        dv=dv,
-                    )
+                # Run the diagnostics on the simulation so far
+                diagnostics(storage_manager)
 
-                # All storage stuff here
-                storage_manager.temp_update(
-                    current_time=t[it], f=f, e=e, driver=driver_function(x=x, tt=t[it])
-                )
+                # Log the artifacts
+                storage_manager.log_artifacts()
 
-            # Diagnostics
-            diagnostics(storage_manager)
-
-            # Log
             storage_manager.close()
-            mlflow.log_artifacts(temp_path)
+            del storage_manager
+
+    return run

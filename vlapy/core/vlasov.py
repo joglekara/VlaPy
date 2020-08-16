@@ -33,32 +33,38 @@ def __get_k__(ax):
     return np.fft.fftfreq(ax.size, d=ax[1] - ax[0])
 
 
-def update_spatial_adv_spectral(f, kx, v, dt):
-    """
-    evolution of df/dt = v df/dx
+def get_vdfdx_exponential(kx, v):
+    def step_vdfdx_exponential(f, dt):
+        """
+        evolution of df/dt = v df/dx
 
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-    :param v: velocity axis (numpy array of shape (nv,))
-    :param dt: timestep (single float value)
-    :return:
-    """
+        :param f: distribution function. (numpy array of shape (nx, nv))
+        :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+        :param v: velocity axis (numpy array of shape (nv,))
+        :param dt: timestep (single float value)
+        :return:
+        """
 
-    return np.real(np.fft.ifft(__vdfdx__(np.fft.fft(f, axis=0), v, kx, dt), axis=0))
+        return np.real(np.fft.ifft(__vdfdx__(np.fft.fft(f, axis=0), v, kx, dt), axis=0))
+
+    return step_vdfdx_exponential
 
 
-def update_velocity_adv_spectral(f, kv, e, dt):
-    """
-    evolution of df/dt = e df/dv
+def get_edfdv_exponential(kv):
+    def step_edfdv_exponential(f, e, dt):
+        """
+        evolution of df/dt = e df/dv
 
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-    :param e: electric field (numpy array of shape (nx,))
-    :param dt: timestep (single float value)
-    :return:
-    """
+        :param f: distribution function. (numpy array of shape (nx, nv))
+        :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
+        :param e: electric field (numpy array of shape (nx,))
+        :param dt: timestep (single float value)
+        :return:
+        """
 
-    return np.real(np.fft.ifft(__edfdv__(np.fft.fft(f, axis=1), e, kv, dt), axis=1))
+        return np.real(np.fft.ifft(__edfdv__(np.fft.fft(f, axis=1), e, kv, dt), axis=1))
+
+    return step_edfdv_exponential
 
 
 def __edfdv__(f, e, kv, dt):
@@ -86,3 +92,23 @@ def __vdfdx__(f, v, kx, dt):
     :return:
     """
     return np.exp(-1j * kx[:, None] * dt * v) * f
+
+
+def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
+    if vdfdx_implementation == "exponential":
+        vdfdx = get_vdfdx_exponential(
+            kx=stuff_for_time_loop["kx"], v=stuff_for_time_loop["v"]
+        )
+    else:
+        raise NotImplementedError
+
+    return vdfdx
+
+
+def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
+    if edfdv_implementation == "exponential":
+        edfdv = get_edfdv_exponential(kv=stuff_for_time_loop["kv"])
+    else:
+        raise NotImplementedError
+
+    return edfdv

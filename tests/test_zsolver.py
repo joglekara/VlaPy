@@ -1,7 +1,7 @@
 import numpy as np
 
 from tests.extras import canosa_values
-from diagnostics.z_function import get_roots_to_electrostatic_dispersion
+from vlapy.diagnostics.z_function import get_roots_to_electrostatic_dispersion
 
 
 def test_z_solver():

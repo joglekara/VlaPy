@@ -20,28 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from setuptools import setup, find_packages
+import numpy as np
 
-INSTALL_REQUIREMENTS = [
-    "numpy",
-    "mlflow",
-    "h5netcdf",
-    "xarray",
-    "scipy",
-    "matplotlib",
-    "tqdm",
-    "dask[complete]",
-]
 
-setup(
-    name="vlapy",
-    version="1.0",
-    packages=find_packages(),
-    url="",
-    license="MIT",
-    author="A. S. Joglekar, M. C. Levy",
-    author_email="archisj@gmail.com",
-    description="Pseudo-Spectral, Modular, Pythonic 1D-1V Vlasov-Fokker-Planck code",
-    install_requires=INSTALL_REQUIREMENTS,
-    include_package_data=True,
-)
+def __initialize_f__(nx, v, v0, vshift):
+    dv = v[2] - v[1]
+    f = np.zeros((nx, v.size))
+    f[:,] = np.exp(-((v - vshift) ** 2.0) / 2.0 / v0)
+    f = f / (np.trapz(f, dx=dv, axis=1)[:, None])
+
+    return f
