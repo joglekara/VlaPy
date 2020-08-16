@@ -129,14 +129,11 @@ def get_everything_ready_for_time_loop(
     :param diagnostics:
     :param all_params:
     :param pulse_dictionary:
-    :param num_steps:
     :return:
     """
     # Log desired parameters
     log_initial_conditions(
-        all_params=all_params,
-        pulse_dictionary=pulse_dictionary,
-        # diagnostics=diagnostics,
+        all_params=all_params, pulse_dictionary=pulse_dictionary,
     )
 
     # Initialize machinery
