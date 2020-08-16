@@ -20,9 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from itertools import product
+
 from tests import helpers
 from vlapy.core import step
 import numpy as np
+
+
+ALL_SOLVERS = ["naive", "batched_tridiagonal"]
+ALL_OPERATORS = ["lb", "dg"]
 
 
 def __initialize_for_collisions__(vshift):
@@ -42,7 +48,9 @@ def __initialize_for_collisions__(vshift):
     return f, v, nv, nx, nu, dt, dv
 
 
-def __run_collision_operator_test_loop(vshift, collision_operator, t_end=32):
+def __run_collision_operator_test_loop__(
+    vshift=0.0, collision_operator="lb", t_end=32, solver="naive"
+):
     f, v, nv, nx, nu, dt, dv = __initialize_for_collisions__(vshift=vshift)
 
     stuff_for_time_loop = {
@@ -55,9 +63,7 @@ def __run_collision_operator_test_loop(vshift, collision_operator, t_end=32):
         "dv": dv,
     }
 
-    all_params = {
-        "fokker-planck": {"type": collision_operator, "solver": "batched_tridiagonal"}
-    }
+    all_params = {"fokker-planck": {"type": collision_operator, "solver": solver}}
 
     fp_step = step.get_collision_step(
         all_params=all_params, stuff_for_time_loop=stuff_for_time_loop
@@ -71,44 +77,38 @@ def __run_collision_operator_test_loop(vshift, collision_operator, t_end=32):
     return f, f_out, v, dv
 
 
-def test_lenard_bernstein_maxwellian_solution():
-    __test_maxwellian_solution(collision_operator="lb",)
+def test_maxwellian_solution():
+    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
+        __test_maxwellian_solution__(collision_operator, solver)
 
 
-def test_dougherty_maxwellian_solution():
-    __test_maxwellian_solution(collision_operator="dg",)
-
-
-def __test_maxwellian_solution(collision_operator):
+def __test_maxwellian_solution__(collision_operator, solver):
     """
     tests if df/dt = 0 if f = maxwellian
 
     :return:
     """
 
-    f, f_out, v, dv = __run_collision_operator_test_loop(
-        vshift=0.0, t_end=32, collision_operator=collision_operator,
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.0, t_end=32, collision_operator=collision_operator, solver=solver
     )
 
     np.testing.assert_almost_equal(f, f_out, decimal=6)
 
 
-def test_lenard_bernstein_energy_conservation():
-    __test_energy_conservation(collision_operator="lb",)
+def test_energy_conservation():
+    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
+        __test_energy_conservation__(collision_operator, solver)
 
 
-def test_dougherty_energy_conservation():
-    __test_energy_conservation(collision_operator="dg",)
-
-
-def __test_energy_conservation(collision_operator):
+def __test_energy_conservation__(collision_operator, solver):
     """
     tests if the 2nd moment of f is conserved
 
     :return:
     """
-    f, f_out, v, dv = __run_collision_operator_test_loop(
-        vshift=0.5, t_end=32, collision_operator=collision_operator,
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.5, t_end=32, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f[None,] * v ** 2.0, dx=dv, axis=1)
@@ -116,23 +116,20 @@ def __test_energy_conservation(collision_operator):
     np.testing.assert_almost_equal(temp_out, temp_in, decimal=6)
 
 
-def test_lenard_bernstein_density_conservation():
-    __test_density_conservation(collision_operator="lb",)
+def test_density_conservation():
+    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
+        __test_density_conservation__(collision_operator, solver)
 
 
-def test_dougherty_density_conservation():
-    __test_density_conservation(collision_operator="dg",)
-
-
-def __test_density_conservation(collision_operator):
+def __test_density_conservation__(collision_operator, solver):
     """
     tests if the 0th moment of f is conserved
 
     :return:
     """
 
-    f, f_out, v, dv = __run_collision_operator_test_loop(
-        vshift=0.5, t_end=32, collision_operator=collision_operator,
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.5, t_end=32, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f[None,], dx=dv, axis=1)
@@ -141,21 +138,20 @@ def __test_density_conservation(collision_operator):
 
 
 def test_lenard_bernstein_momentum_conservation_if_initialized_at_zero():
-    __test_momentum_conservation_if_initialized_at_zero(collision_operator="lb")
+    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
+        __test_momentum_conservation_if_initialized_at_zero__(
+            collision_operator=collision_operator, solver=solver
+        )
 
 
-def test_dougherty_momentum_conservation_if_initialized_at_zero():
-    __test_momentum_conservation_if_initialized_at_zero(collision_operator="dg",)
-
-
-def __test_momentum_conservation_if_initialized_at_zero(collision_operator):
+def __test_momentum_conservation_if_initialized_at_zero__(collision_operator, solver):
     """
     tests if the 0th moment of f is conserved
 
     :return:
     """
-    f, f_out, v, dv = __run_collision_operator_test_loop(
-        vshift=0.0, t_end=32, collision_operator=collision_operator
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.0, t_end=32, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f[None,] * v, dx=dv, axis=1)
@@ -165,17 +161,20 @@ def __test_momentum_conservation_if_initialized_at_zero(collision_operator):
 
 
 def test_dougherty_momentum_conservation():
-    __test_momentum_conservation(collision_operator="dg",)
+    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
+        __test_momentum_conservation__(
+            collision_operator=collision_operator, solver=solver
+        )
 
 
-def __test_momentum_conservation(collision_operator):
+def __test_momentum_conservation__(collision_operator, solver):
     """
     tests if the 0th moment of f is conserved
 
     :return:
     """
-    f, f_out, v, dv = __run_collision_operator_test_loop(
-        vshift=0.1, collision_operator=collision_operator,
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.1, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f[None,] * v, dx=dv, axis=1)
