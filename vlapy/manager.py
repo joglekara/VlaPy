@@ -28,8 +28,6 @@ import numpy as np
 
 from vlapy import initializers, storage, inner_loop
 
-MAX_DOUBLES_PER_FILE = int(1e8 / 8)
-
 
 def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     """
@@ -55,11 +53,15 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     with mlflow.start_run(experiment_id=exp_id) as run:
         with tempfile.TemporaryDirectory() as temp_path:
             # Initialize loop parameters
-            steps_in_loop = int(MAX_DOUBLES_PER_FILE) // (
+            steps_in_loop = int(all_params["backend"]["max_doubles_per_file"]) // (
                 all_params["nx"] * all_params["nv"]
             )
             n_loops = all_params["nt"] // steps_in_loop + 1
             actual_num_steps = n_loops * steps_in_loop
+
+            all_params["steps_in_loop"] = steps_in_loop
+            all_params["n_loops"] = n_loops
+            all_params["actual_num_steps"] = actual_num_steps
 
             # Get numpy arrays of the simulation configuration
             stuff_for_time_loop = initializers.get_everything_ready_for_time_loop(

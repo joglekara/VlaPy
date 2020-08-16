@@ -60,28 +60,38 @@ def get_vlasov_poisson_step(all_params, stuff_for_time_loop):
 
 def get_collision_step(stuff_for_time_loop, all_params):
 
-    solver = collisions.get_matrix_solver(
-        nx=stuff_for_time_loop["nx"],
-        nv=stuff_for_time_loop["nv"],
-        solver_name=all_params["fokker-planck"]["solver"],
-    )
-    get_collision_matrix_for_all_x = collisions.get_batched_array_maker(
-        vax=stuff_for_time_loop["v"],
-        nv=stuff_for_time_loop["nv"],
-        nx=stuff_for_time_loop["nx"],
-        nu=stuff_for_time_loop["nu"],
-        dt=stuff_for_time_loop["dt"],
-        dv=stuff_for_time_loop["dv"],
-        operator=all_params["fokker-planck"]["type"],
-    )
+    if all_params["nu"] == 0.0:
 
-    def take_collision_step(f):
+        def take_collision_step(f):
+            return f
 
-        # The three diagonals representing collision operator for all x
-        cee_a, cee_b, cee_c = get_collision_matrix_for_all_x(f_xv=f)
+    elif all_params["nu"] > 0.0:
 
-        # Solve over all x
-        return solver(cee_a, cee_b, cee_c, f)
+        solver = collisions.get_matrix_solver(
+            nx=stuff_for_time_loop["nx"],
+            nv=stuff_for_time_loop["nv"],
+            solver_name=all_params["fokker-planck"]["solver"],
+        )
+        get_collision_matrix_for_all_x = collisions.get_batched_array_maker(
+            vax=stuff_for_time_loop["v"],
+            nv=stuff_for_time_loop["nv"],
+            nx=stuff_for_time_loop["nx"],
+            nu=stuff_for_time_loop["nu"],
+            dt=stuff_for_time_loop["dt"],
+            dv=stuff_for_time_loop["dv"],
+            operator=all_params["fokker-planck"]["type"],
+        )
+
+        def take_collision_step(f):
+
+            # The three diagonals representing collision operator for all x
+            cee_a, cee_b, cee_c = get_collision_matrix_for_all_x(f_xv=f)
+
+            # Solve over all x
+            return solver(cee_a, cee_b, cee_c, f)
+
+    else:
+        raise NotImplementedError
 
     return take_collision_step
 

@@ -85,21 +85,34 @@ def initialize_spatial_quantities(xmin, xmax, nx):
     return dx, x, kx, one_over_kx
 
 
-def log_initial_conditions(all_params, pulse_dictionary, diagnostics):
+def log_initial_conditions(all_params, pulse_dictionary):
     """
     This function logs initial conditions to the mlflow server.
 
     :param all_params:
     :param pulse_dictionary:
-    :param diagnostics:
     :return:
     """
     params_to_log_dict = {}
-    for param in diagnostics.params_to_log:
-        if param in ["a0", "k0", "w0"]:
-            params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
+    # for param in diagnostics.params_to_log:
+    #     if param in ["a0", "k0", "w0"]:
+    #         params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
+    #     else:
+    #         params_to_log_dict[param] = all_params[param]
+
+    for key, val in all_params.items():
+        if isinstance(val, dict):
+            for sub_key, sub_val in val.items():
+                params_to_log_dict[key + "-" + sub_key] = sub_val
         else:
-            params_to_log_dict[param] = all_params[param]
+            params_to_log_dict[key] = val
+
+    for key, val in pulse_dictionary.items():
+        if isinstance(val, dict):
+            for sub_key, sub_val in val.items():
+                params_to_log_dict[key + "-" + sub_key] = sub_val
+        else:
+            params_to_log_dict[key] = val
 
     mlflow.log_params(params_to_log_dict)
 
@@ -128,7 +141,7 @@ def get_everything_ready_for_time_loop(
     log_initial_conditions(
         all_params=all_params,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=diagnostics,
+        # diagnostics=diagnostics,
     )
 
     # Initialize machinery
@@ -203,7 +216,7 @@ def make_default_params_dictionary():
             "edfdv": "exponential",
             "poisson": "spectral",
         },
-        "overall_solver": "numpy",
+        "backend": {"core": "numpy", "max_doubles_per_file": int(1e8),},
         "a0": 1e-7,
     }
 

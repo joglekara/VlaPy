@@ -23,6 +23,7 @@
 
 import numpy as np
 from time import time
+from tqdm import tqdm
 
 from vlapy.core import step
 
@@ -104,7 +105,7 @@ def get_numpy_inner_loop_stepper(
 
         temp_storage["time_batch"] = time_array
         temp_storage["driver_array_batch"] = driver_array
-        for it in range(steps_in_loop):
+        for it in tqdm(range(steps_in_loop)):
             temp_storage, _ = one_numpy_step(temp_storage, it)
 
         temp_storage["time_for_batch"] = time() - t0
@@ -128,7 +129,7 @@ def get_inner_loop(
     :param type:
     :return:
     """
-    if all_params["overall_solver"] == "numpy":
+    if all_params["backend"]["core"] == "numpy":
         sim_config, do_inner_loop = get_numpy_inner_loop_stepper(
             all_params, stuff_for_time_loop, steps_in_loop, rules_to_store_f
         )

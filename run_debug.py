@@ -36,6 +36,9 @@ if __name__ == "__main__":
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
+    all_params_dict["vlasov-poisson"]["time"] = "pefrl"
+    # all_params_dict["fokker-planck"]["type"] = "dg"
+
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,

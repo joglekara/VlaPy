@@ -24,6 +24,7 @@
 import os
 import time
 
+import mlflow
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -131,9 +132,9 @@ class BaseDiagnostic:
     def plot_health(self, storage_manager):
         __plot_health__(self.health_dir, storage_manager=storage_manager)
 
-    def update_health_metrics_dict(self, storage_manager):
+    def log_health_metrics(self, storage_manager):
         health_metrics = {}
         for key, val in storage_manager.health.items():
             health_metrics[key] = val[-1]
 
-        return health_metrics
+        mlflow.log_metrics(metrics=health_metrics)

@@ -74,7 +74,7 @@ def get_dougherty_matrix_maker(vax, nv, nx, nu, dt, dv):
         """
 
         vbar = np.trapz(f_xv * vax[None,], dx=dv, axis=1)
-        v0t_sq = np.trapz(f_xv * (vax[None,] - vbar) ** 2.0, dx=dv, axis=1)
+        v0t_sq = np.trapz(f_xv * (vax[None,] - vbar[:, None]) ** 2.0, dx=dv, axis=1)
 
         a = (
             nu

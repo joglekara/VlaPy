@@ -44,34 +44,19 @@ class LandauDamping(base.BaseDiagnostic):
 
     def __call__(self, storage_manager):
         super()._make_dirs_(storage_manager)
+        super().log_health_metrics(storage_manager=storage_manager)
 
         storage_manager.load_data_over_all_timesteps()
         e_amp, e_phase = llh.get_e_ss(efield_arr=storage_manager.overall_arrs["e"])
-
         metrics = {
             "damping_rate": llh.get_damping_rate(
                 efield_arr=storage_manager.overall_arrs["e"]
             ),
-            "normalized_slope": llh.get_normalized_slope(
-                f_arr=storage_manager.overall_arrs["distribution"], vph=self.vph
-            ),
             "E_ss_amp": e_amp,
             "E_ss_phase": e_phase / np.pi,
-            "wB": np.sqrt(e_amp * self.wepw / self.vph),
-            "dw_ss": llh.get_nlfs(storage_manager.overall_arrs["e"], wepw=self.wepw)[
-                int(0.7 * storage_manager.overall_arrs["e"].coords["time"].data.size)
-            ],
         }
-
-        health_metrics = super().update_health_metrics_dict(
-            storage_manager=storage_manager
-        )
-
         mlflow.log_metrics(metrics=metrics)
-        mlflow.log_metrics(metrics=health_metrics)
-
         self.make_plots(storage_manager)
-
         storage_manager.unload_data_over_all_timesteps()
 
     def make_plots(self, storage_manager):
