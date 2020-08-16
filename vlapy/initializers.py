@@ -94,11 +94,6 @@ def log_initial_conditions(all_params, pulse_dictionary):
     :return:
     """
     params_to_log_dict = {}
-    # for param in diagnostics.params_to_log:
-    #     if param in ["a0", "k0", "w0"]:
-    #         params_to_log_dict[param] = pulse_dictionary["first pulse"][param]
-    #     else:
-    #         params_to_log_dict[param] = all_params[param]
 
     for key, val in all_params.items():
         if isinstance(val, dict):

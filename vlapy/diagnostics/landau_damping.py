@@ -31,9 +31,8 @@ from vlapy.diagnostics import base
 
 
 class LandauDamping(base.BaseDiagnostic):
-    def __init__(self, params_to_log, vph, wepw):
+    def __init__(self, vph, wepw):
         super().__init__()
-        self.params_to_log = params_to_log
         self.rules_to_store_f = {
             "time": "first-last",
             "space": ["k0", "k1"],
@@ -43,43 +42,46 @@ class LandauDamping(base.BaseDiagnostic):
         self.wepw = wepw
 
     def __call__(self, storage_manager):
-        super()._make_dirs_(storage_manager)
+        super().make_dirs(storage_manager)
         super().log_health_metrics(storage_manager=storage_manager)
+        super().load_all_data(storage_manager=storage_manager)
+        metrics = self.get_metrics(storage_manager)
+        self.make_plots(storage_manager)
+        super().log_metrics_and_leave(metrics=metrics, storage_manager=storage_manager)
 
-        storage_manager.load_data_over_all_timesteps()
-        e_amp, e_phase = llh.get_e_ss(efield_arr=storage_manager.overall_arrs["e"])
+    def get_metrics(self, storage_manager):
+        e_amp, e_phase = llh.get_e_ss(efield_arr=storage_manager.fields_dataset["e"])
         metrics = {
             "damping_rate": llh.get_damping_rate(
-                efield_arr=storage_manager.overall_arrs["e"]
+                efield_arr=storage_manager.fields_dataset["e"]
             ),
             "E_ss_amp": e_amp,
             "E_ss_phase": e_phase / np.pi,
         }
-        mlflow.log_metrics(metrics=metrics)
-        self.make_plots(storage_manager)
-        storage_manager.unload_data_over_all_timesteps()
+        return metrics
 
     def make_plots(self, storage_manager):
+        super().make_plots(storage_manager=storage_manager)
 
-        wax = llh.get_w_ax(storage_manager.overall_arrs["e"])
-        tax = storage_manager.overall_arrs["e"].coords["time"].data
-        ek_rec = llh.get_nth_mode(storage_manager.overall_arrs["e"], 1)
+        wax = llh.get_w_ax(storage_manager.fields_dataset["e"])
+        tax = storage_manager.fields_dataset["e"].coords["time"].data
+        ek_rec = llh.get_nth_mode(storage_manager.fields_dataset["e"], 1)
 
         ek_mag = np.array([np.abs(ek_rec[it, 1]) for it in range(tax.size)])
         ekw_mag = np.abs(
             np.fft.fft(np.array([ek_rec[it, 1] for it in range(tax.size)]))
         )
 
-        ek1_shift = llh.get_nlfs(storage_manager.overall_arrs["e"], self.wepw)
+        ek1_shift = llh.get_nlfs(storage_manager.fields_dataset["e"], self.wepw)
 
         v_to_plot = np.abs(
-            storage_manager.overall_arrs["distribution"].coords["velocity"].data
+            storage_manager.dist_dataset["distribution_function"]
+            .coords["velocity"]
+            .data
             - self.vph
         ) < 8 * np.sqrt(self.wepw / self.vph * ek_mag[-1])
         f_to_plot = np.abs(
-            storage_manager.overall_arrs["distribution"]["distribution_function"].data[
-                :, 0, v_to_plot
-            ]
+            storage_manager.dist_dataset["distribution_function"].data[:, 0, v_to_plot]
         )
 
         base.plot_e_vs_t(
@@ -103,19 +105,21 @@ class LandauDamping(base.BaseDiagnostic):
         base.plot_fhat0(
             plots_dir=self.plots_dir,
             f=np.abs(f_to_plot),
-            v=storage_manager.overall_arrs["distribution"]
+            v=storage_manager.dist_dataset["distribution_function"]
             .coords["velocity"]
             .data[v_to_plot],
             title="Zeroth Mode of Distribution Function",
             filename="fk0_zi.png",
         )
 
-        super().plot_health(storage_manager=storage_manager)
-
-        v_to_plot = storage_manager.overall_arrs["distribution"].coords["velocity"].data
-        f_to_plot = storage_manager.overall_arrs["distribution"][
-            "distribution_function"
-        ].data[:, 0,]
+        v_to_plot = (
+            storage_manager.dist_dataset["distribution_function"]
+            .coords["velocity"]
+            .data
+        )
+        f_to_plot = storage_manager.dist_dataset["distribution_function"].data[
+            :, 0,
+        ]
 
         base.plot_fhat0(
             plots_dir=self.plots_dir,
@@ -125,9 +129,9 @@ class LandauDamping(base.BaseDiagnostic):
             filename="fk0-zo.png",
         )
 
-        f_to_plot = storage_manager.overall_arrs["distribution"][
-            "distribution_function"
-        ].data[:, 1,]
+        f_to_plot = storage_manager.dist_dataset["distribution_function"].data[
+            :, 1,
+        ]
         base.plot_fhat0(
             plots_dir=self.plots_dir,
             f=np.abs(f_to_plot),

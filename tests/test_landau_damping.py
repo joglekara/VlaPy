@@ -24,11 +24,13 @@ import numpy as np
 
 from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
-from diagnostics import landau_damping
+from vlapy.diagnostics import landau_damping
+
+ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
 
 
 def __run_integrated_landau_damping_test_and_return_damping_rate__(
-    k0, log_nu_over_nu_ld
+    k0, log_nu_over_nu_ld, time_integrator
 ):
     """
     This is the fully integrated flow for a landau damping run
@@ -45,6 +47,8 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
+    all_params_dict["vlasov-poisson"]["time"] = time_integrator
+
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
@@ -56,16 +60,6 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
             "k0": k0,
         }
     }
-
-    params_to_log = [
-        "nu",
-        "w0",
-        "k0",
-        "a0",
-        "w_epw",
-        "nu_ld",
-        "v_ph",
-    ]
 
     mlflow_exp_name = "vlapy-test"
 
@@ -81,9 +75,7 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(
-            params_to_log=params_to_log,
-            vph=all_params_dict["v_ph"],
-            wepw=all_params_dict["w_epw"],
+            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
         ),
         uris=uris,
         name=mlflow_exp_name,
@@ -95,7 +87,7 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
     )
 
 
-def test_full_leapfrog_ps_step_landau_damping():
+def test_full_landau_damping():
     """
     Tests Landau Damping for a random wavenumber
 
@@ -103,12 +95,12 @@ def test_full_leapfrog_ps_step_landau_damping():
     """
     rand_k0 = np.random.uniform(0.25, 0.4, 1)[0]
 
-    (
-        measured_rate,
-        actual_rate,
-    ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
-        k0=rand_k0, log_nu_over_nu_ld=None
-    )
+    for time_integrator in ALL_TIME_INTEGRATORS:
+        (
+            measured_rate,
+            actual_rate,
+        ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
+            k0=rand_k0, log_nu_over_nu_ld=None, time_integrator=time_integrator
+        )
 
-    print(measured_rate, actual_rate)
-    np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)
+        np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)

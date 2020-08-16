@@ -32,8 +32,8 @@ def get_nth_mode(efield_arr, mode_number):
     :param mode_number:
     :return:
     """
-    ek = np.fft.fft(efield_arr["electric_field"].data, axis=1, norm="ortho")
-    ek_rec = np.zeros(efield_arr["electric_field"].shape, dtype=np.complex)
+    ek = np.fft.fft(efield_arr.data, axis=1, norm="ortho")
+    ek_rec = np.zeros(efield_arr.shape, dtype=np.complex)
     ek_rec[:, mode_number] = ek[:, mode_number]
     ek_rec = 2 * np.fft.ifft(ek_rec, axis=1, norm="ortho")
 
@@ -61,9 +61,7 @@ def get_e_ss(efield_arr):
     :return:
     """
 
-    ek1_ss = (
-        2 * np.fft.fft(efield_arr["electric_field"].data, axis=1, norm="ortho")[-1, 1]
-    )
+    ek1_ss = 2 * np.fft.fft(efield_arr.data, axis=1, norm="ortho")[-1, 1]
 
     return np.abs(ek1_ss), np.angle(ek1_ss)
 
@@ -81,7 +79,7 @@ def get_damping_rate(efield_arr):
 
     t_ind = tax.size // 4
 
-    ek = np.fft.fft(efield_arr["electric_field"].data, axis=1)
+    ek = np.fft.fft(efield_arr.data, axis=1)
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(tax.size)])[t_ind:]
 
     dedt = np.gradient(np.log(ek_mag), tax[2] - tax[1])
@@ -100,7 +98,7 @@ def get_nlfs(ef, wepw):
     :param wepw:
     :return:
     """
-    ek1 = np.fft.fft(ef["electric_field"], axis=1)[:, 1]
+    ek1 = np.fft.fft(ef.data, axis=1)[:, 1]
 
     # ek1.shape
     dt = ef.coords["time"].data[2] - ef.coords["time"].data[1]
@@ -157,7 +155,7 @@ def get_oscillation_frequency(efield_arr):
 
     # TODO AJ - need to come up with a better way to specify this index
     t_ind = tax.size // 4
-    ekw = np.fft.fft2(efield_arr["electric_field"].data[t_ind:, :])
+    ekw = np.fft.fft2(efield_arr.data[t_ind:, :])
     ek1w = np.abs(ekw[:, 1])
 
     wax = get_w_ax(efield_arr)

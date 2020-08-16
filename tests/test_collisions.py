@@ -63,7 +63,10 @@ def __run_collision_operator_test_loop__(
         "dv": dv,
     }
 
-    all_params = {"fokker-planck": {"type": collision_operator, "solver": solver}}
+    all_params = {
+        "fokker-planck": {"type": collision_operator, "solver": solver},
+        "nu": 1e-3,
+    }
 
     fp_step = step.get_collision_step(
         all_params=all_params, stuff_for_time_loop=stuff_for_time_loop

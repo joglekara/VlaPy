@@ -36,7 +36,7 @@ if __name__ == "__main__":
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
-    all_params_dict["vlasov-poisson"]["time"] = "pefrl"
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
     # all_params_dict["fokker-planck"]["type"] = "dg"
 
     pulse_dictionary = {
@@ -75,9 +75,7 @@ if __name__ == "__main__":
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(
-            params_to_log=params_to_log,
-            vph=all_params_dict["v_ph"],
-            wepw=all_params_dict["w_epw"],
+            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
         ),
         uris=uris,
         name=mlflow_exp_name,

@@ -33,7 +33,7 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
     This function converts the previously created NumPy arrays to JAX arrays.
 
     It also creates the temporary storage for e and f that is used for the
-    low-level JAX time-loop
+    low-level time-loop
 
     :param stuff_for_time_loop:
     :param nt_in_loop:
@@ -43,7 +43,7 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
 
     # This is where we initialize the right distribution function storage array
     # If we're saving all the "x" values then that array is created
-    if store_f_rules == "all-x":
+    if store_f_rules["space"] == "all":
         store_f = np.zeros(
             (nt_in_loop,) + stuff_for_time_loop["f"].shape, dtype=np.complex64
         )
@@ -63,9 +63,9 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
 
     # This is where we return the whole simulation configuration dictionary
     return {
+        "time_batch": np.zeros(nt_in_loop),
         "e": np.array(stuff_for_time_loop["e"]),
         "f": np.array(stuff_for_time_loop["f"]),
-        "stored_e": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
         "stored_f": np.array(store_f),
         "health": {
             "mean_n": np.zeros(nt_in_loop),
@@ -77,6 +77,16 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
             "mean_t_plus_e2_plus_de2": np.zeros(nt_in_loop),
             "mean_f2": np.zeros(nt_in_loop),
             "mean_flogf": np.zeros(nt_in_loop),
+        },
+        "fields": {
+            "e": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "driver": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "n": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "j": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "T": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "q": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "fv4": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
+            "vN": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
         },
     }
 

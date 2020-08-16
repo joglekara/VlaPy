@@ -25,13 +25,13 @@ import tempfile
 
 import numpy as np
 
-from vlapy import storage
+from vlapy import storage, inner_loop
 from tests import helpers
 
 
 def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
     if rules_to_store_f is None:
-        rules_to_store_f = {"space": "all-x", "time": "all"}
+        rules_to_store_f = {"space": "all", "time": "all"}
 
     st = storage.StorageManager(
         xax=xax,
@@ -43,26 +43,18 @@ def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
         num_steps_in_one_loop=2,
     )
 
-    f = helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0)
-    batch_f = np.zeros((2,) + f.shape)
-    batch_f[:,] = f
+    stuff_for_time_loop = {
+        "f": helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0),
+        "e": np.ones(xax.size),
+    }
 
-    if rules_to_store_f["space"][0] == "k0":
-        batch_f = np.fft.fft(batch_f, axis=1)[
-            :, : len(rules_to_store_f["space"]),
-        ]
-    elif rules_to_store_f["space"] == "all-x":
-        pass
-    else:
-        raise NotImplementedError
-
-    e = np.ones(xax.size)
-    batch_e = np.zeros((2,) + e.shape)
-    batch_e[:,] = e
-
-    st.batch_update(
-        current_time=np.array([0.0, 0.1]), f=batch_f, e=batch_e, driver=0.5 * batch_e,
+    sim_config = inner_loop.get_arrays_for_time_loop(
+        stuff_for_time_loop=stuff_for_time_loop,
+        nt_in_loop=2,
+        store_f_rules=rules_to_store_f,
     )
+
+    st.batch_update(sim_config=sim_config)
 
     return st
 
@@ -74,7 +66,7 @@ def test_storage_individual_file_creation():
     with tempfile.TemporaryDirectory() as td:
         st = __initialize_base_storage_stuff__(td, xax, vax)
 
-        assert os.path.exists(os.path.join(st.paths["e-individual"], "000.nc"))
+        assert os.path.exists(os.path.join(st.paths["fields-individual"], "000.nc"))
         assert os.path.exists(
             os.path.join(st.paths["distribution-individual"], "000.nc")
         )
@@ -88,7 +80,7 @@ def test_storage_total_file_creation():
         st = __initialize_base_storage_stuff__(td, xax, vax)
         st.load_data_over_all_timesteps()
 
-        assert os.path.exists(os.path.join(st.paths["e"], "all-e.nc"))
+        assert os.path.exists(os.path.join(st.paths["fields"], "all-fields.nc"))
         assert os.path.exists(
             os.path.join(st.paths["distribution"], "all-distribution.nc")
         )
@@ -101,12 +93,12 @@ def test_storage_init_shape():
     with tempfile.TemporaryDirectory() as td:
         st = __initialize_base_storage_stuff__(td, xax, vax)
         st.load_data_over_all_timesteps()
-        np.testing.assert_equal(st.overall_arrs["e"].coords["space"].size, xax.size)
+        np.testing.assert_equal(st.fields_dataset["e"].coords["space"].size, xax.size)
         np.testing.assert_equal(
-            st.overall_arrs["distribution"].coords["space"].size, xax.size
+            st.dist_dataset["distribution_function"].coords["space"].size, xax.size
         )
         np.testing.assert_equal(
-            st.overall_arrs["distribution"].coords["velocity"].size, vax.size
+            st.dist_dataset["distribution_function"].coords["velocity"].size, vax.size
         )
 
 
@@ -122,11 +114,11 @@ def test_storage_init_shape_fourier():
 
         st.load_data_over_all_timesteps()
 
-        np.testing.assert_equal(st.overall_arrs["e"].coords["space"].size, xax.size)
+        np.testing.assert_equal(st.fields_dataset["e"].coords["space"].size, xax.size)
         np.testing.assert_equal(
-            st.overall_arrs["distribution"].coords["fourier_mode"].size,
+            st.dist_dataset["distribution_function"].coords["fourier_mode"].size,
             len(st.rules_to_store_f["space"]),
         )
         np.testing.assert_equal(
-            st.overall_arrs["distribution"].coords["velocity"].size, vax.size
+            st.dist_dataset["distribution_function"].coords["velocity"].size, vax.size
         )

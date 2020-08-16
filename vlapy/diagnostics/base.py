@@ -37,7 +37,7 @@ def __get_figure_and_plot__():
 
 
 def __plot_health__(health_dir, storage_manager):
-    t = storage_manager.overall_arrs["e"].coords["time"].data
+    t = storage_manager.fields_dataset["e"].coords["time"].data
 
     for metric, vals in storage_manager.health.items():
         this_fig, this_plt = __get_figure_and_plot__()
@@ -118,7 +118,7 @@ class BaseDiagnostic:
         self.health_dir = ""
         self.rules_to_store_f = None
 
-    def _make_dirs_(self, storage_manager):
+    def make_dirs(self, storage_manager):
         timestr = time.strftime("%Y%m%d-%H%M%S")
         self.plots_dir = os.path.join(
             storage_manager.paths["long_term"], "plots", timestr
@@ -129,7 +129,7 @@ class BaseDiagnostic:
         os.makedirs(self.plots_dir, exist_ok=True)
         os.makedirs(self.health_dir, exist_ok=True)
 
-    def plot_health(self, storage_manager):
+    def make_plots(self, storage_manager):
         __plot_health__(self.health_dir, storage_manager=storage_manager)
 
     def log_health_metrics(self, storage_manager):
@@ -138,3 +138,10 @@ class BaseDiagnostic:
             health_metrics[key] = val[-1]
 
         mlflow.log_metrics(metrics=health_metrics)
+
+    def log_metrics_and_leave(self, metrics, storage_manager):
+        mlflow.log_metrics(metrics=metrics)
+        storage_manager.unload_data_over_all_timesteps()
+
+    def load_all_data(self, storage_manager):
+        storage_manager.load_data_over_all_timesteps()

@@ -104,7 +104,7 @@ def get_f_update(store_f_rule):
     :param store_f_rule:
     :return:
     """
-    if store_f_rule["space"] == "all-x":
+    if store_f_rule["space"] == "all":
 
         def get_f_to_store(f):
             return f
@@ -122,6 +122,61 @@ def get_f_update(store_f_rule):
     return get_f_to_store
 
 
+def get_fields_update(dv, v):
+    def update_fields(temp_storage_fields, e, de, f, i):
+        temp_storage_fields["e"][i] = e
+        temp_storage_fields["driver"][i] = de
+        temp_storage_fields["n"][i] = np.trapz(f, dx=dv, axis=1)
+        temp_storage_fields["j"][i] = np.trapz(f * v, dx=dv, axis=1)
+        temp_storage_fields["T"][i] = np.trapz(f * v ** 2, dx=dv, axis=1)
+        temp_storage_fields["q"][i] = np.trapz(f * v ** 3, dx=dv, axis=1)
+        temp_storage_fields["fv4"][i] = np.trapz(f * v ** 4, dx=dv, axis=1)
+        temp_storage_fields["vN"][i] = np.trapz(f * v ** 5, dx=dv, axis=1)
+
+        return temp_storage_fields
+
+    return update_fields
+
+
+def get_health_update(dv, v):
+    def update_health(temp_storage_health, e, de, f, i):
+
+        # Density
+        temp_storage_health["mean_n"][i] = np.mean(np.trapz(f, dx=dv, axis=1), axis=0)
+
+        # Momentum
+        temp_storage_health["mean_v"][i] = np.mean(
+            np.trapz(f * v, dx=dv, axis=1), axis=0
+        )
+
+        # Energy
+        temp_storage_health["mean_T"][i] = np.mean(
+            np.trapz(f * v ** 2.0, dx=dv, axis=1), axis=0
+        )
+        temp_storage_health["mean_e2"][i] = np.mean(e ** 2.0, axis=0)
+        temp_storage_health["mean_de2"][i] = np.mean(de ** 2.0, axis=0)
+        temp_storage_health["mean_t_plus_e2_minus_de2"][i] = temp_storage_health[
+            "mean_T"
+        ][i] + (temp_storage_health["mean_e2"][i] - temp_storage_health["mean_de2"][i])
+        temp_storage_health["mean_t_plus_e2_plus_de2"][i] = (
+            temp_storage_health["mean_T"][i]
+            + temp_storage_health["mean_e2"][i]
+            + temp_storage_health["mean_de2"][i]
+        )
+
+        # Abstract
+        temp_storage_health["mean_f2"][i] = np.mean(
+            np.trapz(np.real(f) ** 2.0, dx=dv, axis=1), axis=0
+        )
+        temp_storage_health["mean_flogf"][i] = np.mean(
+            np.trapz(f * np.log(f), dx=dv, axis=1), axis=0
+        )
+
+        return temp_storage_health
+
+    return update_health
+
+
 def get_storage_step(stuff_for_time_loop):
     dv = stuff_for_time_loop["dv"]
     v = stuff_for_time_loop["v"]
@@ -130,44 +185,20 @@ def get_storage_step(stuff_for_time_loop):
         store_f_rule=stuff_for_time_loop["rules_to_store_f"]
     )
 
+    update_fields = get_fields_update(dv, v)
+    update_health = get_health_update(dv, v)
+
     def storage_step(temp_storage, e, de, f, i):
-        temp_storage["stored_e"][i] = e
         temp_storage["stored_f"][i] = store_f_function(f)
 
         temp_storage["e"] = e
         temp_storage["f"] = f
 
-        temp_health_storage = temp_storage["health"]
-
-        # Density
-        temp_health_storage["mean_n"][i] = np.mean(np.trapz(f, dx=dv, axis=1), axis=0)
-
-        # Momentum
-        temp_health_storage["mean_v"][i] = np.mean(
-            np.trapz(f * v, dx=dv, axis=1), axis=0
+        temp_storage["fields"] = update_fields(
+            temp_storage_fields=temp_storage["fields"], de=de, e=e, f=f, i=i
         )
-
-        # Energy
-        temp_health_storage["mean_T"][i] = np.mean(
-            np.trapz(f * v ** 2.0, dx=dv, axis=1), axis=0
-        )
-        temp_health_storage["mean_e2"][i] = np.mean(e ** 2.0, axis=0)
-        temp_health_storage["mean_de2"][i] = np.mean(de ** 2.0, axis=0)
-        temp_health_storage["mean_t_plus_e2_minus_de2"][i] = temp_health_storage[
-            "mean_T"
-        ][i] + (temp_health_storage["mean_e2"][i] - temp_health_storage["mean_de2"][i])
-        temp_health_storage["mean_t_plus_e2_plus_de2"][i] = (
-            temp_health_storage["mean_T"][i]
-            + temp_health_storage["mean_e2"][i]
-            + temp_health_storage["mean_de2"][i]
-        )
-
-        # Abstract
-        temp_health_storage["mean_f2"][i] = np.mean(
-            np.trapz(np.real(f) ** 2.0, dx=dv, axis=1), axis=0
-        )
-        temp_health_storage["mean_flogf"][i] = np.mean(
-            np.trapz(f * np.log(f), dx=dv, axis=1), axis=0
+        temp_storage["health"] = update_health(
+            temp_storage_health=temp_storage["health"], f=f, de=de, e=e, i=i
         )
 
         return temp_storage

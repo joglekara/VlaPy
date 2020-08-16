@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import numpy as np
-
 
 def get_full_leapfrog_step(vdfdx, edfdv, field_solve, x, dt, driver_function):
     def full_leapfrog_ps_step(e, f, t):
@@ -48,13 +46,6 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, x, dt, driver_function):
         :param driver_function: function that returns an electric field (numpy array of shape (nx,))
         :return:
         """
-        # f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
-        # )
-        # f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
-
         f = edfdv(f=f, e=e, dt=0.5 * dt)
         f = vdfdx(f=f, dt=dt)
         e = field_solve(driver_field=driver_function(t + dt), f=f)
@@ -101,84 +92,37 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, x, kx, v, kv, dt, driver_func
         dt4 = dt2
         dt5 = dt1
 
-        # x1
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt1)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt1), f=f, dv=dv, one_over_kx=one_over_kx
-        # )
-        #
-        # # v1
-        # f = vlasov.update_velocity_adv_spectral(
-        #     f, kv, e, 0.5 * (1.0 - 2.0 * lambd) * dt
-        # )
-        #
-        # # x2
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt2)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt1 + dt2), f=f, dv=dv, one_over_kx=one_over_kx
-        # )
-        #
-        # # v2
-        # f = vlasov.update_velocity_adv_spectral(f, kv, e, lambd * dt)
-        #
-        # # x3
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt3)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt1 + dt2 + dt3), f=f, dv=dv, one_over_kx=one_over_kx
-        # )
-        #
-        # # v3
-        # f = vlasov.update_velocity_adv_spectral(f, kv, e, lambd * dt)
-        #
-        # # x4
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt4)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt1 + dt2 + dt3 + dt4),
-        #     f=f,
-        #     dv=dv,
-        #     one_over_kx=one_over_kx,
-        # )
-        #
-        # # v4
-        # f = vlasov.update_velocity_adv_spectral(
-        #     f, kv, e, 0.5 * (1.0 - 2.0 * lambd) * dt
-        # )
-        #
-        # # x5
-        # f = vlasov.update_spatial_adv_spectral(f, kx, v, dt5)
-        # e = field.get_total_electric_field(
-        #     driver_function(x, t + dt1 + dt2 + dt3 + dt4 + dt5),
-        #     f=f,
-        #     dv=dv,
-        #     one_over_kx=one_over_kx,
-        # )
+        vdt1 = 0.5 * (1.0 - 2.0 * lambd) * dt
+        vdt2 = lambd * dt
+        vdt3 = vdt2
+        vdt4 = vdt1
 
         f = vdfdx(f, dt1)
         e = field_solve(driver_function(t + dt1), f=f)
 
         # v1
-        f = edfdv(f, e, 0.5 * (1.0 - 2.0 * lambd) * dt)
+        f = edfdv(f, e, vdt1)
 
         # x2
         f = vdfdx(f, dt2)
         e = field_solve(driver_function(t + dt1 + dt2), f=f)
 
         # v2
-        f = edfdv(f, e, lambd * dt)
+        f = edfdv(f, e, vdt2)
 
         # x3
         f = vdfdx(f, dt3)
         e = field_solve(driver_function(t + dt1 + dt2 + dt3), f=f)
 
         # v3
-        f = edfdv(f, e, lambd * dt)
+        f = edfdv(f, e, vdt3)
 
         # x4
         f = vdfdx(f, dt4)
         e = field_solve(driver_function(t + dt1 + dt2 + dt3 + dt4), f=f,)
 
         # v4
-        f = edfdv(f, e, 0.5 * (1.0 - 2.0 * lambd) * dt)
+        f = edfdv(f, e, vdt4)
 
         # x5
         f = vdfdx(f, dt5)
