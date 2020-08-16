@@ -28,10 +28,12 @@ from vlapy.core import step
 import numpy as np
 
 
-ALL_SOLVERS = ["naive", "batched_tridiagonal"]
+# ALL_SOLVERS = ["naive", "batched_tridiagonal"]
+ALL_SOLVERS = ["batched_tridiagonal"]
 ALL_OPERATORS = ["lb", "dg"]
 
 TOLERANCE = 4
+T_END = 16
 
 
 def __initialize_for_collisions__(vshift):
@@ -52,7 +54,7 @@ def __initialize_for_collisions__(vshift):
 
 
 def __run_collision_operator_test_loop__(
-    vshift=0.0, collision_operator="lb", t_end=32, solver="naive"
+    vshift=0.0, collision_operator="lb", t_end=T_END, solver="naive"
 ):
     f, v, nv, nx, nu, dt, dv = __initialize_for_collisions__(vshift=vshift)
 
@@ -95,7 +97,7 @@ def __test_maxwellian_solution__(collision_operator, solver):
     """
 
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.0, t_end=32, collision_operator=collision_operator, solver=solver
+        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
     )
 
     np.testing.assert_almost_equal(f, f_out, decimal=4)
@@ -113,7 +115,7 @@ def __test_energy_conservation__(collision_operator, solver):
     :return:
     """
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.5, t_end=32, collision_operator=collision_operator, solver=solver
+        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f * v[None, :] ** 2.0, dx=dv, axis=1)
@@ -134,7 +136,7 @@ def __test_density_conservation__(collision_operator, solver):
     """
 
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.5, t_end=32, collision_operator=collision_operator, solver=solver
+        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f, dx=dv, axis=1)
@@ -156,7 +158,7 @@ def __test_momentum_conservation_if_initialized_at_zero__(collision_operator, so
     :return:
     """
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.0, t_end=32, collision_operator=collision_operator, solver=solver
+        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
     )
 
     temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
@@ -186,7 +188,7 @@ def __test_momentum_conservation__(collision_operator, solver):
     :return:
     """
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=1.5, collision_operator=collision_operator, solver=solver, t_end=64,
+        vshift=1.5, collision_operator=collision_operator, solver=solver, t_end=T_END,
     )
 
     temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
