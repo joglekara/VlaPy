@@ -154,7 +154,7 @@ def get_storage_step(stuff_for_time_loop):
 
         # Abstract
         temp_health_storage["mean_f2"][i] = np.mean(
-            np.trapz(f ** 2.0, dx=dv, axis=1), axis=0
+            np.trapz(np.real(f) ** 2.0, dx=dv, axis=1), axis=0
         )
         temp_health_storage["mean_flogf"][i] = np.mean(
             np.trapz(f * np.log(f), dx=dv, axis=1), axis=0

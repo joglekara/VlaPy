@@ -35,21 +35,20 @@ def __get_figure_and_plot__():
     return this_fig, this_plt
 
 
-def plot_health(health_dir, storage_manager):
-    # t = storage_manager.overall_arrs["e"].coords["time"].data
-    #
-    # for metric, vals in storage_manager.health.items():
-    #     this_fig, this_plt = __get_figure_and_plot__()
-    #     this_plt.plot(t[-vals.size :], vals)
-    #     this_plt.grid()
-    #     this_plt.set_xlabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
-    #     this_plt.set_ylabel(metric, fontsize=12)
-    #     this_plt.set_title(metric + " vs Time", fontsize=14)
-    #     this_fig.savefig(
-    #         os.path.join(health_dir, metric + ".png"), bbox_inches="tight",
-    #     )
-    #     plt.close(this_fig)
-    pass
+def __plot_health__(health_dir, storage_manager):
+    t = storage_manager.overall_arrs["e"].coords["time"].data
+
+    for metric, vals in storage_manager.health.items():
+        this_fig, this_plt = __get_figure_and_plot__()
+        this_plt.plot(t[-vals.size :], vals)
+        this_plt.grid()
+        this_plt.set_xlabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
+        this_plt.set_ylabel(metric, fontsize=12)
+        this_plt.set_title(metric + " vs Time", fontsize=14)
+        this_fig.savefig(
+            os.path.join(health_dir, metric + ".png"), bbox_inches="tight",
+        )
+        plt.close(this_fig)
 
 
 def plot_e_vs_t(plots_dir, t, e, title):
@@ -129,15 +128,12 @@ class BaseDiagnostic:
         os.makedirs(self.plots_dir, exist_ok=True)
         os.makedirs(self.health_dir, exist_ok=True)
 
-    def _make_health_dict_(self, storage_manager):
-        health = {}
+    def plot_health(self, storage_manager):
+        __plot_health__(self.health_dir, storage_manager=storage_manager)
+
+    def update_health_metrics_dict(self, storage_manager):
+        health_metrics = {}
         for key, val in storage_manager.health.items():
-            if "(" in key:
-                mod_key = key.replace("(", "_")
-                mod_key = mod_key.replace(")", "_")
-            else:
-                mod_key = key
+            health_metrics[key] = val[-1]
 
-            health[mod_key] = val[-1]
-
-        return health
+        return health_metrics

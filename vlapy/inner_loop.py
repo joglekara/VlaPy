@@ -115,7 +115,7 @@ def get_numpy_inner_loop_stepper(
 
 
 def get_inner_loop(
-    all_params, stuff_for_time_loop, steps_in_loop, rules_to_store_f, type="numpy"
+    all_params, stuff_for_time_loop, steps_in_loop, rules_to_store_f,
 ):
     """
     This is the function that gets the correct inner loop calculation routines given
@@ -128,7 +128,7 @@ def get_inner_loop(
     :param type:
     :return:
     """
-    if type == "numpy":
+    if all_params["overall_solver"] == "numpy":
         sim_config, do_inner_loop = get_numpy_inner_loop_stepper(
             all_params, stuff_for_time_loop, steps_in_loop, rules_to_store_f
         )

@@ -23,7 +23,7 @@
 import mlflow
 import numpy as np
 
-from diagnostics import z_function
+from vlapy.diagnostics import z_function
 from vlapy.core import field_driver
 
 
@@ -203,6 +203,7 @@ def make_default_params_dictionary():
             "edfdv": "exponential",
             "poisson": "spectral",
         },
+        "overall_solver": "numpy",
         "a0": 1e-7,
     }
 

@@ -20,14 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from jax.config import config
-config.update("jax_enable_x64", True)
-config.update("jax_disable_jit", True)
-
 from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
-from diagnostics import landau_damping
-
+from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
     k0 = 0.3

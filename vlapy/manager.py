@@ -81,7 +81,6 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             )
 
             sim_config, do_inner_loop = inner_loop.get_inner_loop(
-                type="numpy",
                 all_params=all_params,
                 stuff_for_time_loop=stuff_for_time_loop,
                 steps_in_loop=steps_in_loop,
@@ -115,12 +114,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
                 )
 
                 # Perform a batched data update with the lower level loop output
-                storage_manager.batch_update(
-                    current_time=time_array,
-                    f=np.array(sim_config["stored_f"]),
-                    e=np.array(sim_config["stored_e"]),
-                    driver=driver_array,
-                )
+                storage_manager.batch_update(sim_config)
 
                 # Run the diagnostics on the simulation so far
                 diagnostics(storage_manager)

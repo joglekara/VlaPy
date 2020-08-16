@@ -26,8 +26,8 @@ import numpy as np
 import mlflow
 from matplotlib import pyplot as plt
 
-from diagnostics import low_level_helpers as llh
-from diagnostics import base
+from vlapy.diagnostics import low_level_helpers as llh
+from vlapy.diagnostics import base
 
 
 class LandauDamping(base.BaseDiagnostic):
@@ -63,10 +63,12 @@ class LandauDamping(base.BaseDiagnostic):
             ],
         }
 
-        health = super()._make_health_dict_(storage_manager=storage_manager)
+        health_metrics = super().update_health_metrics_dict(
+            storage_manager=storage_manager
+        )
 
         mlflow.log_metrics(metrics=metrics)
-        # mlflow.log_metrics(metrics=health)
+        mlflow.log_metrics(metrics=health_metrics)
 
         self.make_plots(storage_manager)
 
@@ -115,7 +117,7 @@ class LandauDamping(base.BaseDiagnostic):
         )
         base.plot_fhat0(
             plots_dir=self.plots_dir,
-            f=f_to_plot,
+            f=np.abs(f_to_plot),
             v=storage_manager.overall_arrs["distribution"]
             .coords["velocity"]
             .data[v_to_plot],
@@ -123,7 +125,7 @@ class LandauDamping(base.BaseDiagnostic):
             filename="fk0_zi.png",
         )
 
-        base.plot_health(self.health_dir, storage_manager)
+        super().plot_health(storage_manager=storage_manager)
 
         v_to_plot = storage_manager.overall_arrs["distribution"].coords["velocity"].data
         f_to_plot = storage_manager.overall_arrs["distribution"][
@@ -132,7 +134,7 @@ class LandauDamping(base.BaseDiagnostic):
 
         base.plot_fhat0(
             plots_dir=self.plots_dir,
-            f=f_to_plot,
+            f=np.abs(f_to_plot),
             v=v_to_plot,
             title="Zeroth Mode of Distribution Function",
             filename="fk0-zo.png",
@@ -143,7 +145,7 @@ class LandauDamping(base.BaseDiagnostic):
         ].data[:, 1,]
         base.plot_fhat0(
             plots_dir=self.plots_dir,
-            f=f_to_plot,
+            f=np.abs(f_to_plot),
             v=v_to_plot,
             title="First Mode of Distribution Function",
             filename="fk1-zo.png",

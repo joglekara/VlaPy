@@ -53,6 +53,16 @@ def load_over_all_timesteps(individual_path, overall_path):
     return arr
 
 
+def get_batched_data_from_sim_config(sim_config):
+    e = sim_config["stored_e"]
+    f = sim_config["stored_f"]
+    time_batch = sim_config["time_batch"]
+    driver_batch = sim_config["driver_array_batch"]
+    health = sim_config["health"]
+
+    return e, f, time_batch, driver_batch, health
+
+
 def get_paths(base_path):
     """
     This function writes the paths to a dictionary and also makes the folder structure
@@ -169,48 +179,27 @@ class StorageManager:
         else:
             raise NotImplementedError
 
-        self.health = {
-            "sum(n)": np.zeros(self.num_timesteps_to_store),
-            "sum(T)": np.zeros(self.num_timesteps_to_store),
-            "sum(f*logf)": np.zeros(self.num_timesteps_to_store),
-            "sum(f^2)": np.zeros(self.num_timesteps_to_store),
-            "sum(e)": np.zeros(self.num_timesteps_to_store),
-            "sum(e^2)": np.zeros(self.num_timesteps_to_store),
-        }
+        self.health = {}
 
         self.stored_quantities = ["e", "driver", "distribution"]
         self.overall_arrs = {}
 
-    def health_update(self, e, f):
-        dv = self.vax[2] - self.vax[1]
-        # self.health["sum(n)"] = np.sum(
-        #     np.trapz(f, dx=dv, axis=2), axis=1
-        # )
-        # self.health["sum(T)"] = np.sum(
-        #     np.trapz(f * self.vax ** 2.0, dx=dv, axis=2), axis=1
-        # )
-        # self.health["sum(f*v^4)"] = np.sum(
-        #     np.trapz(f * self.vax ** 4.0, dx=dv, axis=2), axis=1
-        # )
-        # self.health["sum(f*v^8)"] = np.sum(
-        #     np.trapz(f * self.vax ** 8.0, dx=dv, axis=2), axis=1
-        # )
-        # self.health["sum(e)"] = np.sum(e, axis=1)
-        # self.health["sum(e^2)"] = np.sum(e ** 2, axis=1)
-        # self.health["sum(|e|)"] = np.sum(np.abs(e), axis=1)
-
-    def batch_update(self, current_time, f, e, driver):
+    def batch_update(self, sim_config):
         """
         This method updates the storage arrays by batch by fetching them from the accelerator
 
         :return:
         """
 
+        e, f, current_time, driver, health = get_batched_data_from_sim_config(
+            sim_config
+        )
+
         self.time_store = current_time
         self.field_store = e
         self.driver_store = driver
         self.dist_store = f
-        self.health_update(e, f)
+        self.health = health
 
         self.__batched_write_to_file__()
         self.stored += 1
