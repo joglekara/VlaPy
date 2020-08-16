@@ -55,11 +55,12 @@ def load_over_all_timesteps(individual_path, overall_path):
 
 def get_batched_data_from_sim_config(sim_config):
     f = sim_config["stored_f"]
+    current_f = sim_config["f"]
     time_batch = sim_config["time_batch"]
     health = sim_config["health"]
     fields = sim_config["fields"]
 
-    return fields, f, time_batch, health
+    return fields, f, time_batch, health, current_f
 
 
 def get_paths(base_path):
@@ -94,6 +95,7 @@ class StorageManager:
         self,
         xax,
         vax,
+        f,
         base_path,
         num_steps_in_one_loop,
         all_params,
@@ -124,6 +126,7 @@ class StorageManager:
         self.stored = 0
         self.xax = xax
         self.vax = vax
+        self.init_f = f
         self.num_timesteps_to_store = num_steps_in_one_loop
 
         self.write_parameters_to_file(all_params, "all_parameters")
@@ -147,12 +150,16 @@ class StorageManager:
         :return:
         """
 
+        dict_of_stored_dists = {}
+
         (
             dict_of_stored_fields,
-            dist_store,
+            dict_of_stored_dists["distribution_function"],
             time_actually_stored,
             self.health,
+            self.current_f,
         ) = get_batched_data_from_sim_config(sim_config)
+
         self.write_series_batch(
             time_actually_stored=time_actually_stored,
             dict_of_stored_series=self.health,
@@ -161,69 +168,11 @@ class StorageManager:
             time_actually_stored=time_actually_stored,
             dict_of_stored_fields=dict_of_stored_fields,
         )
-        self.write_f_batch(
-            time_actually_stored=time_actually_stored, dist_store=dist_store
+        self.write_dist_batch(
+            time_actually_stored=time_actually_stored,
+            dict_of_stored_dist=dict_of_stored_dists,
         )
         self.stored += 1
-
-    def write_f_batch(self, time_actually_stored, dist_store):
-        """
-        This function writes a batch of the distribution function
-
-        :param time_actually_stored:
-        :param dist_store:
-        :return:
-        """
-        if self.rules_to_store_f is None:
-            pass
-        else:
-            f_coords = [
-                ("time", time_actually_stored),
-                (None, None),
-                ("velocity", self.vax),
-            ]
-
-            if self.rules_to_store_f["space"] == "all":
-                f_coords[1] = ("space", self.xax)
-
-            elif self.rules_to_store_f["space"][0] == "k0":
-                f_coords[1] = (
-                    "fourier_mode",
-                    np.linspace(
-                        0, len(self.rules_to_store_f) - 1, len(self.rules_to_store_f)
-                    ),
-                )
-
-            else:
-                raise NotImplementedError
-
-            f_arr = xr.DataArray(data=dist_store, coords=f_coords,)
-
-            f_arr_ds = f_arr.to_dataset(name="distribution_function")
-
-            if self.rules_to_store_f["time"] == "first-last":
-                if self.stored == 0:
-                    self.f_store_index = 0
-                else:
-                    self.f_store_index = 999
-            elif self.rules_to_store_f["time"] == "all":
-                if self.stored == 0:
-                    self.f_store_index = 0
-                else:
-                    self.f_store_index += 1
-            else:
-                raise NotImplementedError
-
-            f_arr_ds.to_netcdf(
-                os.path.join(
-                    self.paths["distribution-individual"],
-                    format(self.f_store_index, "03") + ".nc",
-                ),
-                engine="h5netcdf",
-                invalid_netcdf=True,
-            )
-
-            del f_arr_ds
 
     def write_field_batch(self, time_actually_stored, dict_of_stored_fields):
         """
@@ -238,7 +187,9 @@ class StorageManager:
         self.__write_batch__(
             dict_of_stored_fields,
             coords=field_coords,
-            individual_folder_path=self.paths["fields-individual"],
+            individual_file_name=os.path.join(
+                self.paths["fields-individual"], format(self.stored, "03") + ".nc"
+            ),
         )
 
     def write_series_batch(self, time_actually_stored, dict_of_stored_series):
@@ -254,10 +205,58 @@ class StorageManager:
         self.__write_batch__(
             dict_of_stored_series,
             coords=series_coords,
-            individual_folder_path=self.paths["series-individual"],
+            individual_file_name=os.path.join(
+                self.paths["series-individual"], format(self.stored, "03") + ".nc"
+            ),
         )
 
-    def __write_batch__(self, dict_of_stored_data, coords, individual_folder_path):
+    def write_dist_batch(self, time_actually_stored, dict_of_stored_dist):
+
+        if not isinstance(self.rules_to_store_f, dict):
+            raise NotImplementedError
+
+        f_coords = [
+            ("time", time_actually_stored),
+            (None, None),
+            ("velocity", self.vax),
+        ]
+
+        if self.rules_to_store_f["space"] == "all":
+            f_coords[1] = ("space", self.xax)
+
+        elif self.rules_to_store_f["space"][0] == "k0":
+            f_coords[1] = (
+                "fourier_mode",
+                np.linspace(
+                    0, len(self.rules_to_store_f) - 1, len(self.rules_to_store_f)
+                ),
+            )
+        else:
+            raise NotImplementedError
+
+        if self.rules_to_store_f["time"] == "first-last":
+            if self.stored == 0:
+                self.f_store_index = 0
+            else:
+                self.f_store_index = 999
+        elif self.rules_to_store_f["time"] == "all":
+            if self.stored == 0:
+                self.f_store_index = 0
+            else:
+                self.f_store_index += 1
+        else:
+            raise NotImplementedError
+
+        self.__write_batch__(
+            dict_of_stored_dist,
+            coords=f_coords,
+            individual_file_name=os.path.join(
+                self.paths["distribution-individual"],
+                format(self.f_store_index, "03") + ".nc",
+            ),
+        )
+
+    def __write_batch__(self, dict_of_stored_data, coords, individual_file_name):
         """
         This writes a batch of 1D arrays to file
 
@@ -274,10 +273,7 @@ class StorageManager:
         ds = xr.Dataset(data_vars=dataarray_dict)
 
         # Save
-        ds.to_netcdf(
-            os.path.join(individual_folder_path, format(self.stored, "03") + ".nc"),
-            engine="h5netcdf",
-        )
+        ds.to_netcdf(individual_file_name, engine="h5netcdf")
         del ds
 
     def write_parameters_to_file(self, param_dict, filename):

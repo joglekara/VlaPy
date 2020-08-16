@@ -50,6 +50,39 @@ def __plot_health__(health_dir, storage_manager):
         plt.close(this_fig)
 
 
+def __plot_fields__(fields_dir, storage_manager):
+    for metric, vals in storage_manager.fields_dataset.items():
+        this_fig, this_plt = __get_figure_and_plot__()
+        cb = this_plt.contourf(
+            vals.coords["space"].data, vals.coords["time"].data, vals.data
+        )
+        this_plt.set_ylabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
+        this_plt.set_xlabel(r"Space ($\lambda_D$)", fontsize=12)
+        this_plt.set_title(metric + " vs Time and Space", fontsize=14)
+        this_fig.colorbar(cb)
+        this_fig.savefig(
+            os.path.join(fields_dir, metric + ".png"), bbox_inches="tight",
+        )
+        plt.close(this_fig)
+
+
+def __plot_distribution__(dist_dir, storage_manager):
+    this_fig, this_plt = __get_figure_and_plot__()
+    cb = this_plt.contourf(
+        storage_manager.fields_dataset.coords["space"].data,
+        storage_manager.dist_dataset.coords["velocity"].data,
+        np.real((storage_manager.current_f - storage_manager.init_f).T),
+    )
+    this_plt.set_ylabel(r"Velocity ($v_{th}$)", fontsize=12)
+    this_plt.set_xlabel(r"Space ($\lambda_D$)", fontsize=12)
+    this_plt.set_title("Most Recent Distribution Function", fontsize=14)
+    this_fig.colorbar(cb)
+    this_fig.savefig(
+        os.path.join(dist_dir, "fxv.png"), bbox_inches="tight",
+    )
+    plt.close(this_fig)
+
+
 def plot_e_vs_t(plots_dir, t, e, title):
     this_fig, this_plt = __get_figure_and_plot__()
     this_plt.plot(t, e)
@@ -114,6 +147,8 @@ class BaseDiagnostic:
     def __init__(self):
         self.plots_dir = ""
         self.health_dir = ""
+        self.fields_dir = ""
+        self.dist_dir = ""
         self.rules_to_store_f = None
 
     def make_dirs(self, storage_manager):
@@ -124,11 +159,21 @@ class BaseDiagnostic:
         self.health_dir = os.path.join(
             storage_manager.paths["long_term"], "plots", timestr, "health"
         )
+        self.fields_dir = os.path.join(
+            storage_manager.paths["long_term"], "plots", timestr, "fields"
+        )
+        self.dist_dir = os.path.join(
+            storage_manager.paths["long_term"], "plots", timestr, "distribution"
+        )
         os.makedirs(self.plots_dir, exist_ok=True)
         os.makedirs(self.health_dir, exist_ok=True)
+        os.makedirs(self.fields_dir, exist_ok=True)
+        os.makedirs(self.dist_dir, exist_ok=True)
 
     def make_plots(self, storage_manager):
-        __plot_health__(self.health_dir, storage_manager=storage_manager)
+        __plot_health__(health_dir=self.health_dir, storage_manager=storage_manager)
+        __plot_fields__(fields_dir=self.fields_dir, storage_manager=storage_manager)
+        __plot_distribution__(dist_dir=self.dist_dir, storage_manager=storage_manager)
 
     def log_health_metrics(self, storage_manager):
         health_metrics = {}

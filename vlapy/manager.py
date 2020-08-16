@@ -75,6 +75,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             storage_manager = storage.StorageManager(
                 xax=stuff_for_time_loop["x"],
                 vax=stuff_for_time_loop["v"],
+                f=stuff_for_time_loop["f"],
                 base_path=temp_path,
                 rules_to_store_f=diagnostics.rules_to_store_f,
                 num_steps_in_one_loop=steps_in_loop,
