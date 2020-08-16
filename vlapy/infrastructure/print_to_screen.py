@@ -20,28 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from setuptools import setup, find_packages
+import pprint
+from datetime import datetime
 
-INSTALL_REQUIREMENTS = [
-    "numpy",
-    "mlflow",
-    "h5netcdf",
-    "xarray",
-    "scipy",
-    "matplotlib",
-    "tqdm",
-    "dask[complete]",
-]
 
-setup(
-    name="vlapy",
-    version="1.0",
-    packages=find_packages(),
-    url="",
-    license="MIT",
-    author="A. S. Joglekar, M. C. Levy",
-    author_email="archisj@gmail.com",
-    description="Pseudo-Spectral, Modular, Pythonic 1D-1V Vlasov-Fokker-Planck code",
-    install_requires=INSTALL_REQUIREMENTS,
-    include_package_data=True,
-)
+def print_startup_message(exp_name, all_params_dict, pulse_dictionary):
+    print("Starting VlaPy at " + datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+    print("MLFlow experiment name: " + exp_name)
+    print("Run parameters: ")
+    pprint.pprint(all_params_dict)
+    print("Driver parameters: ")
+    pprint.pprint(pulse_dictionary)
+    print()

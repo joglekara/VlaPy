@@ -20,27 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-import uuid
-import shutil
-import numpy as np
+from vlapy import manager, initializers
+from vlapy.infrastructure import mlflow_helpers, print_to_screen
+from vlapy.diagnostics import landau_damping
 
-from vlapy import manager
-from diagnostics import landau_damping
+if __name__ == "__main__":
+    k0 = 0.3
+    log_nu_over_nu_ld = -7
 
+    all_params_dict = initializers.make_default_params_dictionary()
+    all_params_dict = initializers.specify_epw_params_to_dict(
+        k0=k0, all_params_dict=all_params_dict
+    )
+    all_params_dict = initializers.specify_collisions_to_dict(
+        log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
+    )
 
-def test_manager_folder():
-    all_params_dict = {
-        "nx": 48,
-        "xmin": 0.0,
-        "xmax": 2.0 * np.pi / 0.3,
-        "nv": 512,
-        "vmax": 6.0,
-        "nt": 1000,
-        "tmax": 100,
-        "nu": 0.0,
-        "collision operator": "lb",
-    }
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+    # all_params_dict["fokker-planck"]["type"] = "dg"
 
     pulse_dictionary = {
         "first pulse": {
@@ -48,17 +45,33 @@ def test_manager_folder():
             "rise_time": 5,
             "flat_time": 10,
             "fall_time": 5,
-            "a0": 1e-6,
-            "k0": 0.3,
-            "w0": 1.1598,
+            "w0": all_params_dict["w_epw"],
+            "a0": all_params_dict["a0"],
+            "k0": k0,
         }
     }
 
-    params_to_log = ["k0"]
+    mlflow_exp_name = "vlapy-test"
 
-    manager.start_run(
+    uris = {
+        "tracking": "local",
+    }
+
+    print_to_screen.print_startup_message(
+        mlflow_exp_name, all_params_dict, pulse_dictionary
+    )
+
+    that_run = manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=landau_damping.LandauDamping(params_to_log),
-        name="unit-test",
+        diagnostics=landau_damping.LandauDamping(
+            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
+        ),
+        uris=uris,
+        name=mlflow_exp_name,
+    )
+
+    print(
+        mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run),
+        all_params_dict["nu_ld"],
     )

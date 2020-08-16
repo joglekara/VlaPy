@@ -20,309 +20,99 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from itertools import product
+
 import numpy as np
 
-from vlapy.core import step, field
-from diagnostics.z_function import get_roots_to_electrostatic_dispersion
+from vlapy import manager, initializers
+from vlapy.infrastructure import mlflow_helpers, print_to_screen
+from vlapy.diagnostics import landau_damping
+
+ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
+ALL_VDFDX_INTEGRATORS = ["exponential"]
+ALL_EDFDV_INTEGRATORS = ["exponential"]
 
 
-def test_full_leapfrog_ps_step_landau_damping():
+def __run_integrated_landau_damping_test_and_return_damping_rate__(
+    k0, log_nu_over_nu_ld, time_integrator, edfdv_integrator, vdfdx_integrator
+):
+    """
+    This is the fully integrated flow for a Landau damping run
 
-    nx = 64
-    nv = 512
-
-    f = step.initialize(nx, nv)
-
-    k0 = 0.3
-    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
-    w0 = np.real(w_complex)
-    actual_decay_rate = np.imag(w_complex)
-
-    xmax = 2 * np.pi / k0
-    xmin = 0.0
-
-    dx = (xmax - xmin) / nx
-    x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-    kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
-    one_over_kx = np.zeros_like(kx)
-    one_over_kx[1:] = 1.0 / kx[1:]
-
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
-
-    nt = 1000
-    tmax = 100
-    t = np.linspace(0, tmax, nt)
-    dt = t[1] - t[0]
-
-    def driver_function(x, t):
-        """
-        t is 0D
-        x is 1D
-
-        """
-        a0 = 4e-4
-        envelope = np.exp(-((t - 8) ** 8.0) / 4.0 ** 8.0)
-
-        return envelope * a0 * np.cos(k0 * x + w0 * t)
-
-    field_store = np.zeros([nt, nx])
-    dist_store = np.zeros([nt, nx, nv])
-    t_store = np.zeros(nt)
-
-    e = field.get_total_electric_field(
-        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    :param k0:
+    :param log_nu_over_nu_ld:
+    :return:
+    """
+    all_params_dict = initializers.make_default_params_dictionary()
+    all_params_dict = initializers.specify_epw_params_to_dict(
+        k0=k0, all_params_dict=all_params_dict
+    )
+    all_params_dict = initializers.specify_collisions_to_dict(
+        log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
-    it = 0
-    t_store[it] = t[it]
-    dist_store[it] = f
-    field_store[it] = e
+    all_params_dict["vlasov-poisson"]["time"] = time_integrator
+    all_params_dict["vlasov-poisson"]["edfdv"] = edfdv_integrator
+    all_params_dict["vlasov-poisson"]["vdfdx"] = vdfdx_integrator
 
-    for it in range(1, nt):
-        e, f = step.full_leapfrog_ps_step(
-            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
-        )
+    pulse_dictionary = {
+        "first pulse": {
+            "start_time": 0,
+            "rise_time": 5,
+            "flat_time": 10,
+            "fall_time": 5,
+            "w0": all_params_dict["w_epw"],
+            "a0": all_params_dict["a0"],
+            "k0": k0,
+        }
+    }
 
-        t_store[it] = t[it]
-        dist_store[it] = f
-        field_store[it] = e
+    mlflow_exp_name = "vlapy-test"
 
-    t_ind = 600
-    ek = np.fft.fft(field_store, axis=1)
-    ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
-    decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
+    uris = {
+        "tracking": "local",
+    }
 
-    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
-
-    ekw = np.fft.fft2(field_store[nt // 2 :,])
-    ek1w = np.abs(ekw[:, 1])
-    wax = np.fft.fftfreq(ek1w.shape[0], d=dt) * 2 * np.pi
-
-    np.testing.assert_almost_equal(wax[ek1w.argmax()], w0, decimal=1)
-
-
-def test_full_leapfrog_ps_step_zero():
-
-    nx = 32
-    nv = 512
-
-    f = step.initialize(nx, nv)
-
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
-    k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
-
-    xmax = 2 * np.pi / k0
-    xmin = 0.0
-
-    dx = (xmax - xmin) / nx
-    x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-    kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
-    one_over_kx = np.zeros_like(kx)
-    one_over_kx[1:] = 1.0 / kx[1:]
-
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
-
-    nt = 400
-    tmax = 40.0
-    t = np.linspace(0, tmax, nt)
-    dt = t[1] - t[0]
-
-    def driver_function(x, t):
-        """
-        t is 0D
-        x is 1D
-
-        """
-        a0 = 1e-6
-        envelope = np.exp(-((t - 8) ** 8.0) / 4.0 ** 8.0)
-
-        return 0 * envelope * a0 * np.cos(k0 * x + w0 * t)
-
-    field_store = np.zeros([nt, nx])
-    dist_store = np.zeros([nt, nx, nv])
-    t_store = np.zeros(nt)
-
-    e = field.get_total_electric_field(
-        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    print_to_screen.print_startup_message(
+        mlflow_exp_name, all_params_dict, pulse_dictionary
     )
 
-    it = 0
-    t_store[it] = t[it]
-    dist_store[it] = f
-    field_store[it] = e
-
-    for it in range(1, nt):
-        e, f = step.full_leapfrog_ps_step(
-            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
-        )
-
-        t_store[it] = t[it]
-        dist_store[it] = f
-        field_store[it] = e
-
-    np.testing.assert_almost_equal(field_store[0], field_store[-1], decimal=2)
-    np.testing.assert_almost_equal(dist_store[0], dist_store[-1], decimal=2)
-
-
-def test_full_PEFRL_ps_step_landau_damping():
-
-    nx = 64
-    nv = 512
-
-    f = step.initialize(nx, nv)
-
-    k0 = 0.3
-    w_complex = get_roots_to_electrostatic_dispersion(1.0, 1.0, k0)
-    w0 = np.real(w_complex)
-    actual_decay_rate = np.imag(w_complex)
-
-    xmax = 2 * np.pi / k0
-    xmin = 0.0
-
-    dx = (xmax - xmin) / nx
-    x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-    kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
-    one_over_kx = np.zeros_like(kx)
-    one_over_kx[1:] = 1.0 / kx[1:]
-
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
-
-    nt = 1000
-    tmax = 100
-    t = np.linspace(0, tmax, nt)
-    dt = t[1] - t[0]
-
-    def driver_function(x, t):
-        """
-        t is 0D
-        x is 1D
-
-        """
-        a0 = 4e-4
-        envelope = np.exp(-((t - 8) ** 8.0) / 4.0 ** 8.0)
-
-        return envelope * a0 * np.cos(k0 * x + w0 * t)
-
-    field_store = np.zeros([nt, nx])
-    dist_store = np.zeros([nt, nx, nv])
-    t_store = np.zeros(nt)
-
-    e = field.get_total_electric_field(
-        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    that_run = manager.start_run(
+        all_params=all_params_dict,
+        pulse_dictionary=pulse_dictionary,
+        diagnostics=landau_damping.LandauDamping(
+            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
+        ),
+        uris=uris,
+        name=mlflow_exp_name,
     )
 
-    it = 0
-    t_store[it] = t[it]
-    dist_store[it] = f
-    field_store[it] = e
-
-    for it in range(1, nt):
-        e, f = step.full_PEFRL_ps_step(
-            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
-        )
-
-        t_store[it] = t[it]
-        dist_store[it] = f
-        field_store[it] = e
-
-    t_ind = 600
-    ek = np.fft.fft(field_store, axis=1)
-    ek_mag = np.array([np.abs(ek[it, 1]) for it in range(nt)])
-    decay_rate = np.mean(np.gradient(np.log(ek_mag[-t_ind:]), 0.1))
-
-    np.testing.assert_almost_equal(decay_rate, actual_decay_rate, decimal=2)
-
-    ekw = np.fft.fft2(field_store[nt // 2 :,])
-    ek1w = np.abs(ekw[:, 1])
-    wax = np.fft.fftfreq(ek1w.shape[0], d=dt) * 2 * np.pi
-
-    np.testing.assert_almost_equal(wax[ek1w.argmax()], w0, decimal=1)
-
-
-def test_full_pefrl_ps_step_zero():
-
-    nx = 32
-    nv = 512
-
-    f = step.initialize(nx, nv)
-
-    # f - defined
-    # w0 = 1.1056
-    # k0 = 0.25
-
-    w0 = 1.1598
-    k0 = 0.3
-
-    # w0 = 1.2850
-    # k0 = 0.4
-
-    xmax = 2 * np.pi / k0
-    xmin = 0.0
-
-    dx = (xmax - xmin) / nx
-    x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
-    kx = np.fft.fftfreq(x.size, d=dx) * 2.0 * np.pi
-    one_over_kx = np.zeros_like(kx)
-    one_over_kx[1:] = 1.0 / kx[1:]
-
-    vmax = 6.0
-    dv = 2 * vmax / nv
-    v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    kv = np.fft.fftfreq(v.size, d=dv) * 2.0 * np.pi
-
-    nt = 400
-    tmax = 40.0
-    t = np.linspace(0, tmax, nt)
-    dt = t[1] - t[0]
-
-    def driver_function(x, t):
-        """
-        t is 0D
-        x is 1D
-
-        """
-        a0 = 1e-6
-        envelope = np.exp(-((t - 8) ** 8.0) / 4.0 ** 8.0)
-
-        return 0 * envelope * a0 * np.cos(k0 * x + w0 * t)
-
-    field_store = np.zeros([nt, nx])
-    dist_store = np.zeros([nt, nx, nv])
-    t_store = np.zeros(nt)
-
-    e = field.get_total_electric_field(
-        driver_function(x, t[0]), f=f, dv=dv, one_over_kx=one_over_kx
+    return (
+        mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run),
+        all_params_dict["nu_ld"],
     )
 
-    it = 0
-    t_store[it] = t[it]
-    dist_store[it] = f
-    field_store[it] = e
 
-    for it in range(1, nt):
-        e, f = step.full_PEFRL_ps_step(
-            f, x, kx, one_over_kx, v, kv, dv, t[it], dt, e, driver_function
+def test_full_landau_damping():
+    """
+    Tests Landau Damping for a random wavenumber
+
+    :return:
+    """
+    rand_k0 = np.random.uniform(0.25, 0.4, 1)[0]
+
+    for vdfdx_integrator, edfdv_integrator, time_integrator in product(
+        ALL_VDFDX_INTEGRATORS, ALL_EDFDV_INTEGRATORS, ALL_TIME_INTEGRATORS
+    ):
+        (
+            measured_rate,
+            actual_rate,
+        ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
+            k0=rand_k0,
+            log_nu_over_nu_ld=None,
+            time_integrator=time_integrator,
+            vdfdx_integrator=vdfdx_integrator,
+            edfdv_integrator=edfdv_integrator,
         )
 
-        t_store[it] = t[it]
-        dist_store[it] = f
-        field_store[it] = e
-
-    np.testing.assert_almost_equal(field_store[0], field_store[-1], decimal=2)
-    np.testing.assert_almost_equal(dist_store[0], dist_store[-1], decimal=2)
+        np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)

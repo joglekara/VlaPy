@@ -22,13 +22,86 @@
 
 import os
 import json
+import shutil
 
+import mlflow
 import xarray as xr
 import numpy as np
 
 
+def load_over_all_timesteps(individual_path, overall_path):
+    """
+    This function
+    1 - loads multiple dataarrays
+    2 - concatenates them into one dataset
+    3 - writes to file
+
+    :param individual_path:
+    :param overall_path:
+    :return:
+    """
+    arr = xr.open_mfdataset(
+        individual_path, combine="by_coords", engine="h5netcdf", parallel=True,
+    )
+
+    arr.to_netcdf(
+        overall_path, engine="h5netcdf", invalid_netcdf=True,
+    )
+
+    arr = xr.open_dataset(overall_path, engine="h5netcdf",)
+
+    return arr
+
+
+def get_batched_data_from_sim_config(sim_config):
+    f = sim_config["stored_f"]
+    current_f = sim_config["f"]
+    time_batch = sim_config["time_batch"]
+    series = sim_config["series"]
+    fields = sim_config["fields"]
+
+    return fields, f, time_batch, series, current_f
+
+
+def get_paths(base_path):
+    """
+    This function writes the paths to a dictionary and also makes the folder structure
+
+    :param base_path:
+    :return:
+    """
+    paths = {
+        "base": base_path,
+        "long_term": os.path.join(base_path, "long_term"),
+        "temp": os.path.join(base_path, "temp"),
+        "series": os.path.join(base_path, "long_term", "series"),
+        "fields": os.path.join(base_path, "long_term", "fields"),
+        "distribution": os.path.join(base_path, "long_term", "distribution_function"),
+        "series-individual": os.path.join(base_path, "temp", "series"),
+        "fields-individual": os.path.join(base_path, "temp", "fields"),
+        "distribution-individual": os.path.join(
+            base_path, "temp", "distribution_function"
+        ),
+    }
+
+    for key, val in paths.items():
+        os.makedirs(val, exist_ok=True)
+
+    return paths
+
+
 class StorageManager:
-    def __init__(self, x, v, t, base_path, store_f=None):
+    def __init__(
+        self,
+        xax,
+        vax,
+        f,
+        base_path,
+        num_steps_in_one_loop,
+        all_params,
+        pulse_dictionary,
+        rules_to_store_f=None,
+    ):
         """
         This is the initialization for the storage class.
         The paths are set
@@ -45,205 +118,162 @@ class StorageManager:
         :param v: velocity axis (numpy array of shape (nv,))
         :param t: time axis (numpy array of shape (nt,))
         :param base_path: path to run folder (string)
-        :param store_f: list of Fourier modes to store (len = 0+`num_fourier_modes`)
+        :param rules_to_store_f: list of Fourier modes to store (len = 0+`num_fourier_modes`)
         """
 
-        self.base_path = base_path
-        self.efield_path = os.path.join(base_path, "electric_field_vs_time.nc")
-        self.driver_efield_path = os.path.join(
-            base_path, "driver_electric_field_vs_time.nc"
-        )
-        self.f_path = os.path.join(base_path, "dist_func_vs_time.nc")
+        self.paths = get_paths(base_path)
+        self.rules_to_store_f = rules_to_store_f
+        self.stored = 0
+        self.xax = xax
+        self.vax = vax
+        self.init_f = f
+        self.num_timesteps_to_store = num_steps_in_one_loop
 
-        self.initialize_temporary_storage(x, v, t, store_f)
-        self.__init_electric_field_storage(t=t, x=x)
-
-        self.store_f = store_f
-
-        if store_f is not None:
-            self.__init_dist_func_storage(t=t, x=x, v=v, f_storage_rules=store_f)
+        self.write_parameters_to_file(all_params, "all_parameters")
+        self.write_parameters_to_file(pulse_dictionary, "pulses")
 
     def close(self):
         """
-        This method closes all the files safely before program termination
+        This method removes the temporary directories and files
 
         :return:
         """
-        self.efield_arr.to_netcdf(
-            self.efield_path, engine="h5netcdf", invalid_netcdf=True
-        )
-        self.driver_efield_arr.to_netcdf(
-            self.driver_efield_path, engine="h5netcdf", invalid_netcdf=True
-        )
-        if self.store_f:
-            self.f_arr.to_netcdf(self.f_path, engine="h5netcdf", invalid_netcdf=True)
 
-    def initialize_temporary_storage(self, x, v, t, store_f):
+        shutil.rmtree(self.paths["distribution-individual"])
+        shutil.rmtree(self.paths["fields-individual"])
+
+    def batch_update(self, sim_config):
         """
-        This method initializes storage
+        This method updates the storage arrays by batch by fetching them from the accelerator
 
-        :param x: real-space axis (numpy array of shape (nx,))
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param t: time axis (numpy array of shape (nt,))
-        :param store_f: list of Fourier modes to store (len = 0+`num_fourier_modes`)
+        :param sim_config:
         :return:
         """
-        nt = t.size
-        nx = x.size
-        nv = v.size
 
-        if nt // 4 < 100:
-            self.t_store = 100
-        else:
-            self.t_store = nt // 4
+        dict_of_stored_dists = {}
 
-        self.temp_field_store = np.zeros([self.t_store, nx])
-        self.temp_driver_store = np.zeros([self.t_store, nx])
-        self.temp_t_store = np.zeros(self.t_store)
-        self.it_store = 0
+        (
+            dict_of_stored_fields,
+            dict_of_stored_dists["distribution_function"],
+            time_actually_stored,
+            series,
+            self.current_f,
+        ) = get_batched_data_from_sim_config(sim_config)
 
-        if store_f == "all-x":
-            self.temp_dist_store = np.zeros([self.t_store, nx, nv])
-        else:
-            kax = np.linspace(0, 1, 2)
-            self.temp_dist_store = np.zeros(
-                (self.t_store, kax.size, nv), dtype=np.complex
+        self.write_series_batch(
+            time_actually_stored=time_actually_stored, dict_of_stored_series=series,
+        )
+        self.write_field_batch(
+            time_actually_stored=time_actually_stored,
+            dict_of_stored_fields=dict_of_stored_fields,
+        )
+        self.write_dist_batch(
+            time_actually_stored=time_actually_stored,
+            dict_of_stored_dist=dict_of_stored_dists,
+        )
+        self.stored += 1
+
+    def write_field_batch(self, time_actually_stored, dict_of_stored_fields):
+        """
+        This writes a batch of 1D arrays to file
+
+        :param time_actually_stored:
+        :param dict_of_stored_fields:
+        :return:
+        """
+
+        field_coords = [("time", time_actually_stored), ("space", self.xax)]
+        self.__write_batch__(
+            dict_of_stored_fields,
+            coords=field_coords,
+            individual_file_name=os.path.join(
+                self.paths["fields-individual"], format(self.stored, "03") + ".nc"
+            ),
+        )
+
+    def write_series_batch(self, time_actually_stored, dict_of_stored_series):
+        """
+        This writes a batch of 1D arrays to file
+
+        :param time_actually_stored:
+        :param dict_of_stored_fields:
+        :return:
+        """
+
+        series_coords = [("time", time_actually_stored)]
+        self.__write_batch__(
+            dict_of_stored_series,
+            coords=series_coords,
+            individual_file_name=os.path.join(
+                self.paths["series-individual"], format(self.stored, "03") + ".nc"
+            ),
+        )
+
+    def write_dist_batch(self, time_actually_stored, dict_of_stored_dist):
+
+        if not isinstance(self.rules_to_store_f, dict):
+            raise NotImplementedError
+
+        f_coords = [
+            ("time", time_actually_stored),
+            (None, None),
+            ("velocity", self.vax),
+        ]
+
+        if self.rules_to_store_f["space"] == "all":
+            f_coords[1] = ("space", self.xax)
+
+        elif self.rules_to_store_f["space"][0] == "k0":
+            f_coords[1] = (
+                "fourier_mode",
+                np.linspace(
+                    0, len(self.rules_to_store_f) - 1, len(self.rules_to_store_f)
+                ),
             )
-
-    def __init_electric_field_storage(self, t, x):
-        """
-        Initialize electric field storage DataArray
-
-        :param t: time axis (numpy array of shape (nt,))
-        :param x: real-space axis (numpy array of shape (nx,))
-        :return:
-        """
-
-        electric_field_store = np.zeros((t.size, x.size))
-
-        ef_DA = xr.DataArray(
-            data=electric_field_store, coords=[("time", t), ("space", x)]
-        )
-
-        ef_DA.to_netcdf(self.efield_path, engine="h5netcdf", invalid_netcdf=True)
-
-        self.efield_arr = xr.load_dataarray(self.efield_path, engine="h5netcdf")
-
-        driver_electric_field_store = np.zeros((t.size, x.size))
-
-        driver_ef_DA = xr.DataArray(
-            data=driver_electric_field_store, coords=[("time", t), ("space", x)]
-        )
-
-        driver_ef_DA.to_netcdf(
-            self.driver_efield_path, engine="h5netcdf", invalid_netcdf=True
-        )
-
-        self.driver_efield_arr = xr.load_dataarray(
-            self.driver_efield_path, engine="h5netcdf"
-        )
-
-    def __init_dist_func_storage(self, t, x, v, f_storage_rules):
-        """
-        Initialize distribution function storage
-
-        :param t: time axis (numpy array of shape (nt,))
-        :param x: real-space axis (numpy array of shape (nx,))
-        :param v: velocity axis (numpy array of shape (nv,))
-        :return:
-        """
-
-        if f_storage_rules == "all-x":
-            dist_func_store = np.zeros((t.size, x.size, v.size))
-            f_DA = xr.DataArray(
-                data=dist_func_store,
-                coords=[("time", t), ("space", x), ("velocity", v)],
-            )
         else:
-            kax = np.linspace(0, 1, 2)
-            dist_func_store = np.zeros((t.size, kax.size, v.size), dtype=np.complex)
-            f_DA = xr.DataArray(
-                data=dist_func_store,
-                coords=[("time", t), ("fourier_mode", kax), ("velocity", v)],
-            )
+            raise NotImplementedError
 
-        f_DA.to_netcdf(self.f_path, engine="h5netcdf", invalid_netcdf=True)
-
-        self.f_arr = xr.load_dataarray(self.f_path, engine="h5netcdf")
-
-    def temp_update(self, current_time, f, e, driver):
-        """
-        This is the method that performs an update at the end of every time step
-
-        :param current_time: current_time (float)
-        :param f: distribution function at current time (numpy array of shape (nx, nv))
-        :param e: electric field at current time (numpy array of shape (nx, ))
-        :param driver: driver electric field at current time (numpy array of shape (nx, ))
-        :return:
-        """
-        self.temp_t_store[self.it_store] = current_time
-        self.temp_field_store[self.it_store] = e
-        self.temp_driver_store[self.it_store] = driver
-
-        if self.store_f is not None:
-            if self.store_f == "all-x":
-                self.temp_dist_store[self.it_store] = f
+        if self.rules_to_store_f["time"] == "first-last":
+            if self.stored == 0:
+                self.f_store_index = 0
             else:
-                fk = np.fft.fft(f, axis=0, norm="ortho")
-                self.temp_dist_store[self.it_store, 0, :] = fk[
-                    0,
-                ]
-                self.temp_dist_store[self.it_store, 1, :] = fk[
-                    1,
-                ]
+                self.f_store_index = 999
+        elif self.rules_to_store_f["time"] == "all":
+            if self.stored == 0:
+                self.f_store_index = 0
+            else:
+                self.f_store_index += 1
+        else:
+            raise NotImplementedError
 
-        self.temp_ticker_update()
+        self.__write_batch__(
+            dict_of_stored_dist,
+            coords=f_coords,
+            individual_file_name=os.path.join(
+                self.paths["distribution-individual"],
+                format(self.f_store_index, "03") + ".nc",
+            ),
+        )
 
-    def temp_ticker_update(self):
+    def __write_batch__(self, dict_of_stored_data, coords, individual_file_name):
         """
-        This is the method that updates the storage ticker at every timestep
-        It also checks so to see if this is the timestep to write to file
+        This writes a batch of 1D arrays to file
 
+        :param time_actually_stored:
+        :param dict_of_stored_fields:
         :return:
         """
 
-        self.it_store += 1
+        dataarray_dict = {}
 
-        if self.it_store == self.t_store:
-            self.batched_write_to_file()
-            self.it_store = 0
+        for name, array in dict_of_stored_data.items():
+            dataarray_dict[name] = xr.DataArray(data=array, coords=coords,)
 
-    def batched_write_to_file(self):
-        """
-        Write batched to file
+        ds = xr.Dataset(data_vars=dataarray_dict)
 
-        This is to save time by waiting to fill some of the history
-        rather than writing to file every time step
-
-        :return:
-        """
-        t_xr = xr.DataArray(data=self.temp_t_store, dims=["time"])
-
-        self.efield_arr.loc[t_xr, :] = self.temp_field_store
-        self.driver_efield_arr.loc[t_xr, :] = self.temp_driver_store
-
-        # Save and reopen
-        self.efield_arr.to_netcdf(
-            self.efield_path, engine="h5netcdf", invalid_netcdf=True
-        )
-        self.driver_efield_arr.to_netcdf(
-            self.driver_efield_path, engine="h5netcdf", invalid_netcdf=True
-        )
-
-        self.efield_arr = xr.load_dataarray(self.efield_path, engine="h5netcdf")
-        self.driver_efield_arr = xr.load_dataarray(
-            self.driver_efield_path, engine="h5netcdf"
-        )
-
-        if self.store_f is not None:
-            self.f_arr.loc[t_xr,] = self.temp_dist_store
-            self.f_arr.to_netcdf(self.f_path, engine="h5netcdf", invalid_netcdf=True)
-            self.f_arr = xr.load_dataarray(self.f_path, engine="h5netcdf")
+        # Save
+        ds.to_netcdf(individual_file_name, engine="h5netcdf")
+        del ds
 
     def write_parameters_to_file(self, param_dict, filename):
         """
@@ -253,5 +283,36 @@ class StorageManager:
         :param filename:
         :return:
         """
-        with open(os.path.join(self.base_path, filename + ".txt"), "w") as fi:
+        with open(os.path.join(self.paths["base"], filename + ".txt"), "w") as fi:
             json.dump(param_dict, fi)
+
+    def load_data_over_all_timesteps(self):
+        """
+
+        :return:
+        """
+
+        self.series_dataset = load_over_all_timesteps(
+            individual_path=self.paths["series-individual"] + "/*.nc",
+            overall_path=os.path.join(self.paths["series"], "all-series.nc"),
+        )
+
+        self.fields_dataset = load_over_all_timesteps(
+            individual_path=self.paths["fields-individual"] + "/*.nc",
+            overall_path=os.path.join(self.paths["fields"], "all-fields.nc"),
+        )
+
+        self.dist_dataset = load_over_all_timesteps(
+            individual_path=self.paths["distribution-individual"] + "/*.nc",
+            overall_path=os.path.join(
+                self.paths["distribution"], "all-distribution.nc"
+            ),
+        )
+
+    def log_artifacts(self):
+        mlflow.log_artifacts(self.paths["long_term"])
+
+    def unload_data_over_all_timesteps(self):
+        del self.series_dataset
+        del self.fields_dataset
+        del self.dist_dataset

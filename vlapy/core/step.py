@@ -22,149 +22,226 @@
 
 import numpy as np
 
-from vlapy.core import field, vlasov
+from vlapy.core import field, vlasov, collisions, vlasov_poisson
 
 
-def initialize(nx, nv, vmax=6.0):
+def get_vlasov_poisson_step(all_params, stuff_for_time_loop):
     """
-    Initializes a Maxwell-Boltzmann distribution
+    This is the highest level function for getting a jitted Vlasov-Poisson.
 
-    TODO: temperature and density pertubations
-
-    :param nx: size of grid in x (single int)
-    :param nv: size of grid in v (single int)
-    :param vmax: maximum absolute value of v (single float)
+    :param static_args:
     :return:
     """
 
-    f = np.zeros([nx, nv], dtype=np.float16)
-    dv = 2.0 * vmax / nv
-    vax = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
+    vdfdx = vlasov.get_vdfdx(
+        stuff_for_time_loop=stuff_for_time_loop,
+        vdfdx_implementation=all_params["vlasov-poisson"]["vdfdx"],
+    )
+    edfdv = vlasov.get_edfdv(
+        stuff_for_time_loop=stuff_for_time_loop,
+        edfdv_implementation=all_params["vlasov-poisson"]["edfdv"],
+    )
 
-    for ix in range(nx):
-        f[ix,] = np.exp(-(vax ** 2.0) / 2.0)
+    field_solver = field.get_field_solver(
+        stuff_for_time_loop=stuff_for_time_loop,
+        field_solver_implementation=all_params["vlasov-poisson"]["poisson"],
+    )
 
-    # normalize
-    f = f / np.sum(f[0,]) / dv
+    vp_step = vlasov_poisson.get_time_integrator(
+        time_integrator_name=all_params["vlasov-poisson"]["time"],
+        vdfdx=vdfdx,
+        edfdv=edfdv,
+        field_solver=field_solver,
+        stuff_for_time_loop=stuff_for_time_loop,
+    )
 
-    return f
+    return vp_step
 
 
-def full_leapfrog_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_function):
+def get_collision_step(stuff_for_time_loop, all_params):
+
+    if all_params["nu"] == 0.0:
+
+        def take_collision_step(f):
+            return f
+
+    elif all_params["nu"] > 0.0:
+
+        solver = collisions.get_matrix_solver(
+            nx=stuff_for_time_loop["nx"],
+            nv=stuff_for_time_loop["nv"],
+            solver_name=all_params["fokker-planck"]["solver"],
+        )
+        get_collision_matrix_for_all_x = collisions.get_batched_array_maker(
+            vax=stuff_for_time_loop["v"],
+            nv=stuff_for_time_loop["nv"],
+            nx=stuff_for_time_loop["nx"],
+            nu=stuff_for_time_loop["nu"],
+            dt=stuff_for_time_loop["dt"],
+            dv=stuff_for_time_loop["dv"],
+            operator=all_params["fokker-planck"]["type"],
+        )
+
+        def take_collision_step(f):
+
+            # The three diagonals representing collision operator for all x
+            cee_a, cee_b, cee_c = get_collision_matrix_for_all_x(f_xv=f)
+
+            # Solve over all x
+            return solver(cee_a, cee_b, cee_c, f)
+
+    else:
+        raise NotImplementedError
+
+    return take_collision_step
+
+
+def get_f_update(store_f_rule):
     """
-    Takes a step forward in time for f and e
+    This function returns the function used in the stepper for storing f in a batch
+    It performs the necessary transformations if we're just storing Fourier modes.
 
-    Uses leapfrog scheme
-    1 - spatial advection for 0.5 dt
-
-    2a - field solve
-    2b - velocity advection for dt
-
-    3 - spatial advection for 0.5 dt
-
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param x: real-space axis (numpy array of shape (nx,))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-    :param v: velocity axis (numpy array of shape (nv,))
-    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-    :param dv: velocity-axis spacing (single float value)
-    :param t: current time (single float value)
-    :param dt: timestep (single float value)
-    :param e: electric field (numpy array of shape (nx,))
-    :param driver_function: function that returns an electric field (numpy array of shape (nx,))
+    :param store_f_rule:
     :return:
     """
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt), f=f, dv=dv, one_over_kx=one_over_kx
+    if store_f_rule["space"] == "all":
+
+        def get_f_to_store(f):
+            return f
+
+    elif store_f_rule["space"][0] == "k0":
+
+        def get_f_to_store(f):
+            return np.fft.fft(f, axis=0)[
+                : len(store_f_rule),
+            ]
+
+    else:
+        raise NotImplementedError
+
+    return get_f_to_store
+
+
+def get_fields_update(dv, v):
+    def update_fields(temp_storage_fields, e, de, f, i):
+        temp_storage_fields["e"][i] = e
+        temp_storage_fields["driver"][i] = de
+        temp_storage_fields["n"][i] = np.trapz(f, dx=dv, axis=1)
+        temp_storage_fields["j"][i] = np.trapz(f * v, dx=dv, axis=1)
+        temp_storage_fields["T"][i] = np.trapz(f * v ** 2, dx=dv, axis=1)
+        temp_storage_fields["q"][i] = np.trapz(f * v ** 3, dx=dv, axis=1)
+        temp_storage_fields["fv4"][i] = np.trapz(f * v ** 4, dx=dv, axis=1)
+        temp_storage_fields["vN"][i] = np.trapz(f * v ** 5, dx=dv, axis=1)
+
+        return temp_storage_fields
+
+    return update_fields
+
+
+def get_series_update(dv):
+    def update_series(temp_storage, e, de, f, i):
+        temp_storage_series = temp_storage["series"]
+        # Density
+        temp_storage_series["mean_n"][i] = np.mean(
+            temp_storage["fields"]["n"][i], axis=0
+        )
+
+        # Momentum
+        temp_storage_series["mean_j"][i] = np.mean(
+            temp_storage["fields"]["j"][i], axis=0
+        )
+
+        # Energy
+        temp_storage_series["mean_T"][i] = np.mean(
+            temp_storage["fields"]["T"][i], axis=0
+        )
+        temp_storage_series["mean_e2"][i] = np.mean(e ** 2.0, axis=0)
+        temp_storage_series["mean_de2"][i] = np.mean(de ** 2.0, axis=0)
+        temp_storage_series["mean_t_plus_e2_minus_de2"][i] = temp_storage_series[
+            "mean_T"
+        ][i] + (temp_storage_series["mean_e2"][i] - temp_storage_series["mean_de2"][i])
+        temp_storage_series["mean_t_plus_e2_plus_de2"][i] = (
+            temp_storage_series["mean_T"][i]
+            + temp_storage_series["mean_e2"][i]
+            + temp_storage_series["mean_de2"][i]
+        )
+
+        # Abstract
+        temp_storage_series["mean_f2"][i] = np.mean(
+            np.trapz(np.real(f) ** 2.0, dx=dv, axis=1), axis=0
+        )
+        temp_storage_series["mean_flogf"][i] = np.mean(
+            np.trapz(f * np.log(f), dx=dv, axis=1), axis=0
+        )
+
+        return temp_storage_series
+
+    return update_series
+
+
+def get_storage_step(stuff_for_time_loop):
+    dv = stuff_for_time_loop["dv"]
+    v = stuff_for_time_loop["v"]
+
+    store_f_function = get_f_update(
+        store_f_rule=stuff_for_time_loop["rules_to_store_f"]
     )
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * dt)
 
-    return e, f
+    update_fields = get_fields_update(dv, v)
+    update_series = get_series_update(dv)
+
+    def storage_step(temp_storage, e, de, f, i):
+        temp_storage["stored_f"][i] = store_f_function(f)
+
+        temp_storage["e"] = e
+        temp_storage["f"] = f
+
+        temp_storage["fields"] = update_fields(
+            temp_storage_fields=temp_storage["fields"], de=de, e=e, f=f, i=i
+        )
+        temp_storage["series"] = update_series(
+            temp_storage=temp_storage, f=f, de=de, e=e, i=i
+        )
+
+        return temp_storage
+
+    return storage_step
 
 
-def full_PEFRL_ps_step(f, x, kx, one_over_kx, v, kv, dv, t, dt, e, driver_function):
+def get_timestep(all_params, stuff_for_time_loop):
     """
-    Takes a step forward in time for f and e using the
-    Performance-Extended Forest-Ruth-Like algorithm
+    Gets the full VFP + logging timestep
 
-    This is a 4th order symplectic integrator.
-    http://physics.ucsc.edu/~peter/242/leapfrog.pdf
-
-    :param f: distribution function. (numpy array of shape (nx, nv))
-
-    :param x: real-space axis (numpy array of shape (nx,))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-
-    :param v: velocity axis (numpy array of shape (nv,))
-    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-    :param dv: velocity-axis spacing (single float value)
-
-    :param t: current time (single float value)
-    :param dt: timestep (single float value)
-
-    :param e: electric field (numpy array of shape (nv,))
-
-    :param driver_function:
+    :param all_params:
     :return:
     """
-    xsi = 0.1786178958448091
-    lambd = -0.2123418310626054
-    chi = -0.6626458266981849e-1
 
-    dt1 = xsi * dt
-    dt2 = chi * dt
-    dt3 = (1.0 - 2.0 * (chi + xsi)) * dt
-    dt4 = dt2
-    dt5 = dt1
-
-    # x1
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt1)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt1), f=f, dv=dv, one_over_kx=one_over_kx
+    vp_step = get_vlasov_poisson_step(
+        all_params=all_params, stuff_for_time_loop=stuff_for_time_loop
     )
-
-    # v1
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * (1.0 - 2.0 * lambd) * dt)
-
-    # x2
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt2)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2), f=f, dv=dv, one_over_kx=one_over_kx
+    fp_step = get_collision_step(
+        all_params=all_params, stuff_for_time_loop=stuff_for_time_loop
     )
+    storage_step = get_storage_step(stuff_for_time_loop=stuff_for_time_loop)
 
-    # v2
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, lambd * dt)
+    def timestep(temp_storage, i):
+        """
+        This is just a wrapper around a Vlasov-Poisson + Fokker-Planck timestep
 
-    # x3
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt3)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3), f=f, dv=dv, one_over_kx=one_over_kx
-    )
+        :param val:
+        :param i:
+        :return:
+        """
+        e = temp_storage["e"]
+        f = temp_storage["f"]
+        t = temp_storage["time_batch"][i]
+        de = temp_storage["driver_array_batch"][i]
 
-    # v3
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, lambd * dt)
+        e, f = vp_step(e=e, f=f, t=t)
+        f = fp_step(f=f)
 
-    # x4
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt4)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3 + dt4),
-        f=f,
-        dv=dv,
-        one_over_kx=one_over_kx,
-    )
+        temp_storage = storage_step(temp_storage=temp_storage, e=e, de=de, f=f, i=i)
 
-    # v4
-    f = vlasov.update_velocity_adv_spectral(f, kv, e, 0.5 * (1.0 - 2.0 * lambd) * dt)
+        return temp_storage, i
 
-    # x5
-    f = vlasov.update_spatial_adv_spectral(f, kx, v, dt5)
-    e = field.get_total_electric_field(
-        driver_function(x, t + dt1 + dt2 + dt3 + dt4 + dt5),
-        f=f,
-        dv=dv,
-        one_over_kx=one_over_kx,
-    )
-
-    return e, f
+    return timestep
