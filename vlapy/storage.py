@@ -73,8 +73,10 @@ def get_paths(base_path):
         "base": base_path,
         "long_term": os.path.join(base_path, "long_term"),
         "temp": os.path.join(base_path, "temp"),
+        "series": os.path.join(base_path, "long_term", "series"),
         "fields": os.path.join(base_path, "long_term", "fields"),
         "distribution": os.path.join(base_path, "long_term", "distribution_function"),
+        "series-individual": os.path.join(base_path, "temp", "series"),
         "fields-individual": os.path.join(base_path, "temp", "fields"),
         "distribution-individual": os.path.join(
             base_path, "temp", "distribution_function"
@@ -151,7 +153,10 @@ class StorageManager:
             time_actually_stored,
             self.health,
         ) = get_batched_data_from_sim_config(sim_config)
-
+        self.write_series_batch(
+            time_actually_stored=time_actually_stored,
+            dict_of_stored_series=self.health,
+        )
         self.write_field_batch(
             time_actually_stored=time_actually_stored,
             dict_of_stored_fields=dict_of_stored_fields,
@@ -229,23 +234,51 @@ class StorageManager:
         :return:
         """
 
-        field_dataarray_dict = {}
         field_coords = [("time", time_actually_stored), ("space", self.xax)]
-        for field_name, field_array in dict_of_stored_fields.items():
-            field_dataarray_dict[field_name] = xr.DataArray(
-                data=field_array, coords=field_coords,
-            )
+        self.__write_batch__(
+            dict_of_stored_fields,
+            coords=field_coords,
+            individual_folder_path=self.paths["fields-individual"],
+        )
 
-        field_ds = xr.Dataset(data_vars=field_dataarray_dict)
+    def write_series_batch(self, time_actually_stored, dict_of_stored_series):
+        """
+        This writes a batch of 1D arrays to file
+
+        :param time_actually_stored:
+        :param dict_of_stored_fields:
+        :return:
+        """
+
+        series_coords = [("time", time_actually_stored)]
+        self.__write_batch__(
+            dict_of_stored_series,
+            coords=series_coords,
+            individual_folder_path=self.paths["series-individual"],
+        )
+
+    def __write_batch__(self, dict_of_stored_data, coords, individual_folder_path):
+        """
+        This writes a batch of 1D arrays to file
+
+        :param time_actually_stored:
+        :param dict_of_stored_fields:
+        :return:
+        """
+
+        dataarray_dict = {}
+
+        for name, array in dict_of_stored_data.items():
+            dataarray_dict[name] = xr.DataArray(data=array, coords=coords,)
+
+        ds = xr.Dataset(data_vars=dataarray_dict)
 
         # Save
-        field_ds.to_netcdf(
-            os.path.join(
-                self.paths["fields-individual"], format(self.stored, "03") + ".nc"
-            ),
+        ds.to_netcdf(
+            os.path.join(individual_folder_path, format(self.stored, "03") + ".nc"),
             engine="h5netcdf",
         )
-        del field_ds
+        del ds
 
     def write_parameters_to_file(self, param_dict, filename):
         """
@@ -263,6 +296,12 @@ class StorageManager:
 
         :return:
         """
+
+        self.series_dataset = load_over_all_timesteps(
+            individual_path=self.paths["series-individual"] + "/*.nc",
+            overall_path=os.path.join(self.paths["series"], "all-series.nc"),
+        )
+
         self.fields_dataset = load_over_all_timesteps(
             individual_path=self.paths["fields-individual"] + "/*.nc",
             overall_path=os.path.join(self.paths["fields"], "all-fields.nc"),
@@ -270,12 +309,15 @@ class StorageManager:
 
         self.dist_dataset = load_over_all_timesteps(
             individual_path=self.paths["distribution-individual"] + "/*.nc",
-            overall_path=os.path.join(self.paths["distribution"], "all-distribution.nc"),
+            overall_path=os.path.join(
+                self.paths["distribution"], "all-distribution.nc"
+            ),
         )
 
     def log_artifacts(self):
         mlflow.log_artifacts(self.paths["long_term"])
 
     def unload_data_over_all_timesteps(self):
+        del self.series_dataset
         del self.fields_dataset
         del self.dist_dataset

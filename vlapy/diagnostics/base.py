@@ -37,11 +37,9 @@ def __get_figure_and_plot__():
 
 
 def __plot_health__(health_dir, storage_manager):
-    t = storage_manager.fields_dataset["e"].coords["time"].data
-
-    for metric, vals in storage_manager.health.items():
+    for metric, vals in storage_manager.series_dataset.items():
         this_fig, this_plt = __get_figure_and_plot__()
-        this_plt.plot(t[-vals.size :], vals)
+        this_plt.plot(vals.coords["time"].data, vals.data)
         this_plt.grid()
         this_plt.set_xlabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
         this_plt.set_ylabel(metric, fontsize=12)
