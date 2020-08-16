@@ -21,67 +21,112 @@
 # SOFTWARE.
 
 import os
-import uuid
-import shutil
+import tempfile
 
 import numpy as np
 
 from vlapy import storage
+from tests import helpers
 
 
-def test_storage_init_files_exist():
+def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
+    if rules_to_store_f is None:
+        rules_to_store_f = {"space": "all-x", "time": "all"}
+
+    st = storage.StorageManager(
+        xax=xax,
+        vax=vax,
+        base_path=td,
+        rules_to_store_f=rules_to_store_f,
+        all_params={},
+        pulse_dictionary={},
+        num_steps_in_one_loop=2,
+    )
+
+    f = helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0)
+    batch_f = np.zeros((2,) + f.shape)
+    batch_f[:,] = f
+
+    if rules_to_store_f["space"][0] == "k0":
+        batch_f = np.fft.fft(batch_f, axis=1)[
+            :, : len(rules_to_store_f["space"]),
+        ]
+    elif rules_to_store_f["space"] == "all-x":
+        pass
+    else:
+        raise NotImplementedError
+
+    e = np.ones(xax.size)
+    batch_e = np.zeros((2,) + e.shape)
+    batch_e[:,] = e
+
+    st.batch_update(
+        current_time=np.array([0.0, 0.1]), f=batch_f, e=batch_e, driver=0.5 * batch_e,
+    )
+
+    return st
+
+
+def test_storage_individual_file_creation():
     xax = np.linspace(0, 1, 16)
-    vax = np.linspace(0, 1, 24)
-    tax = np.linspace(0, 1, 32)
+    vax = np.linspace(-6, 6, 24)
 
-    dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
-    os.makedirs(dirname, exist_ok=True)
+    with tempfile.TemporaryDirectory() as td:
+        st = __initialize_base_storage_stuff__(td, xax, vax)
 
-    st = storage.StorageManager(x=xax, v=vax, t=tax, base_path=dirname, store_f="all-x")
+        assert os.path.exists(os.path.join(st.paths["e-individual"], "000.nc"))
+        assert os.path.exists(
+            os.path.join(st.paths["distribution-individual"], "000.nc")
+        )
 
-    assert os.path.exists(os.path.join(dirname, "electric_field_vs_time.nc"))
-    assert os.path.exists(os.path.join(dirname, "dist_func_vs_time.nc"))
 
-    shutil.rmtree(dirname)
+def test_storage_total_file_creation():
+    xax = np.linspace(0, 1, 16)
+    vax = np.linspace(-6, 6, 24)
+
+    with tempfile.TemporaryDirectory() as td:
+        st = __initialize_base_storage_stuff__(td, xax, vax)
+        st.load_data_over_all_timesteps()
+
+        assert os.path.exists(os.path.join(st.paths["e"], "all-e.nc"))
+        assert os.path.exists(
+            os.path.join(st.paths["distribution"], "all-distribution.nc")
+        )
 
 
 def test_storage_init_shape():
     xax = np.linspace(0, 1, 16)
-    vax = np.linspace(0, 1, 24)
-    tax = np.linspace(0, 1, 32)
+    vax = np.linspace(-6, 6, 24)
 
-    dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
-    os.makedirs(dirname, exist_ok=True)
-
-    st = storage.StorageManager(x=xax, v=vax, t=tax, base_path=dirname, store_f="all-x")
-
-    np.testing.assert_equal(st.efield_arr.coords["space"].size, xax.size)
-    np.testing.assert_equal(st.efield_arr.coords["time"].size, tax.size)
-
-    np.testing.assert_equal(st.f_arr.coords["space"].size, xax.size)
-    np.testing.assert_equal(st.f_arr.coords["time"].size, tax.size)
-    np.testing.assert_equal(st.f_arr.coords["velocity"].size, vax.size)
-
-    shutil.rmtree(dirname)
+    with tempfile.TemporaryDirectory() as td:
+        st = __initialize_base_storage_stuff__(td, xax, vax)
+        st.load_data_over_all_timesteps()
+        np.testing.assert_equal(st.overall_arrs["e"].coords["space"].size, xax.size)
+        np.testing.assert_equal(
+            st.overall_arrs["distribution"].coords["space"].size, xax.size
+        )
+        np.testing.assert_equal(
+            st.overall_arrs["distribution"].coords["velocity"].size, vax.size
+        )
 
 
 def test_storage_init_shape_fourier():
     xax = np.linspace(0, 1, 16)
-    vax = np.linspace(0, 1, 24)
-    tax = np.linspace(0, 1, 32)
+    vax = np.linspace(-6, 6, 24)
 
-    dirname = os.path.join(os.getcwd(), str(uuid.uuid4()))
-    os.makedirs(dirname, exist_ok=True)
+    with tempfile.TemporaryDirectory() as td:
+        rules_to_store_f = {"space": ["k0", "k1"], "time": "all"}
+        st = __initialize_base_storage_stuff__(
+            td, xax, vax, rules_to_store_f=rules_to_store_f
+        )
 
-    st = storage.StorageManager(
-        x=xax, v=vax, t=tax, base_path=dirname, store_f=["k0", "k1"]
-    )
+        st.load_data_over_all_timesteps()
 
-    np.testing.assert_equal(st.efield_arr.coords["space"].size, xax.size)
-    np.testing.assert_equal(st.efield_arr.coords["time"].size, tax.size)
-
-    np.testing.assert_equal(st.f_arr.coords["fourier_mode"].size, 2)
-    np.testing.assert_equal(st.f_arr.coords["time"].size, tax.size)
-    np.testing.assert_equal(st.f_arr.coords["velocity"].size, vax.size)
-
-    shutil.rmtree(dirname)
+        np.testing.assert_equal(st.overall_arrs["e"].coords["space"].size, xax.size)
+        np.testing.assert_equal(
+            st.overall_arrs["distribution"].coords["fourier_mode"].size,
+            len(st.rules_to_store_f["space"]),
+        )
+        np.testing.assert_equal(
+            st.overall_arrs["distribution"].coords["velocity"].size, vax.size
+        )

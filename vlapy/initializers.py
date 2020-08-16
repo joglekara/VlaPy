@@ -80,7 +80,7 @@ def log_initial_conditions(all_params, pulse_dictionary, diagnostics):
 
 
 def get_everything_ready_for_time_loop(
-    diagnostics, all_params, pulse_dictionary, num_steps
+    diagnostics, all_params, pulse_dictionary, overall_num_steps
 ):
     """
     In order to keep the main time loop clean, this function handles all the
@@ -122,20 +122,19 @@ def get_everything_ready_for_time_loop(
 
     t_dummy = np.linspace(0, all_params["tmax"], all_params["nt"])
     dt = t_dummy[1] - t_dummy[0]
-    t = dt * np.arange(num_steps)
+    t = dt * np.arange(overall_num_steps)
 
     # Field Driver
-    driver_array = field_driver.get_driver_array_after_defining_function(
-        x, t, num_steps, pulse_dictionary=pulse_dictionary
+    driver_function = field_driver.get_driver_function(
+        x=x, pulse_dictionary=pulse_dictionary
     )
-    e = field.get_total_electric_field(
-        driver_array[0], f=f, dv=dv, one_over_kx=one_over_kx
+    driver_array = field_driver.get_driver_array_using_function(
+        x, t, pulse_dictionary=pulse_dictionary
     )
 
     everything_for_time_loop = {
-        "e": e,
+        "e": np.zeros(x.size),
         "f": f,
-        "electric_field": e,
         "nx": all_params["nx"],
         "kx": kx,
         "x": x,
@@ -145,64 +144,15 @@ def get_everything_ready_for_time_loop(
         "nv": all_params["nv"],
         "dv": dv,
         "driver": driver_array,
+        "driver_function": driver_function,
         "dt": dt,
         "nu": all_params["nu"],
         "t": t,
         "vlasov-poisson": all_params["vlasov-poisson"],
+        "fokker-planck": all_params["fokker-planck"],
     }
 
     return everything_for_time_loop
-
-
-def get_jax_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
-    """
-    This function converts the previously created NumPy arrays to JAX arrays.
-
-    It also creates the temporary storage for e and f that is used for the
-    low-level JAX time-loop
-
-    :param stuff_for_time_loop:
-    :param nt_in_loop:
-    :param store_f_rules:
-    :return:
-    """
-
-    # This is where we initialize the right distribution function storage array
-    # If we're saving all the "x" values then that array is created
-    if store_f_rules == "all-x":
-        store_f = np.zeros(
-            (nt_in_loop,) + stuff_for_time_loop["f"].shape, dtype=jnp.complex64
-        )
-        store_f[0,] = stuff_for_time_loop["f"]
-
-    # If we're saving the first M spatial-modes then that array is created
-    elif isinstance(store_f_rules["space"], list) and store_f_rules["space"][0] == "k0":
-        store_f = np.zeros(
-            (nt_in_loop, len(store_f_rules), stuff_for_time_loop["f"].shape[1]),
-            dtype=np.complex64,
-        )
-
-        store_f[0,] = np.fft.fft(stuff_for_time_loop["f"], axis=0)[: len(store_f_rules)]
-
-    else:
-        raise NotImplementedError
-
-    # This is where we return the whole simulation configuration dictionary
-    return {
-        "e": jnp.array(stuff_for_time_loop["e"]),
-        "f": jnp.array(stuff_for_time_loop["f"]),
-        "stored_e": jnp.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
-        "stored_f": jnp.array(store_f),
-        "x": jnp.array(stuff_for_time_loop["x"]),
-        "kx": jnp.array(stuff_for_time_loop["kx"]),
-        "one_over_kx": jnp.array(stuff_for_time_loop["one_over_kx"]),
-        "v": jnp.array(stuff_for_time_loop["v"]),
-        "kv": jnp.array(stuff_for_time_loop["kv"]),
-        "dv": jnp.array(stuff_for_time_loop["dv"]),
-        "t": jnp.array(stuff_for_time_loop["t"]),
-        "dt": stuff_for_time_loop["dt"],
-        "vlasov-poisson": stuff_for_time_loop["vlasov-poisson"],
-    }
 
 
 def make_default_params_dictionary():
@@ -218,8 +168,13 @@ def make_default_params_dictionary():
         "vmax": 6.0,
         "nt": 1000,
         "tmax": 100,
-        "collision operator": "lb",
-        "vlasov-poisson": "leapfrog",
+        "fokker-planck": {"type": "lb", "solver": "batched_tridiagonal",},
+        "vlasov-poisson": {
+            "time": "leapfrog",
+            "vdfdx": "exponential",
+            "edfdv": "exponential",
+            "poisson": "spectral",
+        },
         "a0": 1e-7,
     }
 

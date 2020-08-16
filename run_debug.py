@@ -20,23 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import numpy as np
+from jax.config import config
+config.update("jax_enable_x64", True)
+config.update("jax_disable_jit", True)
 
 from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from diagnostics import landau_damping
 
 
-def __run_integrated_landau_damping_test_and_return_damping_rate__(
-    k0, log_nu_over_nu_ld
-):
-    """
-    This is the fully integrated flow for a landau damping run
+if __name__ == "__main__":
+    k0 = 0.3
+    log_nu_over_nu_ld = None
 
-    :param k0:
-    :param log_nu_over_nu_ld:
-    :return:
-    """
     all_params_dict = initializers.make_default_params_dictionary()
     all_params_dict = initializers.specify_epw_params_to_dict(
         k0=k0, all_params_dict=all_params_dict
@@ -89,26 +85,7 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
         name=mlflow_exp_name,
     )
 
-    return (
+    print(
         mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run),
         all_params_dict["nu_ld"],
     )
-
-
-def test_full_leapfrog_ps_step_landau_damping():
-    """
-    Tests Landau Damping for a random wavenumber
-
-    :return:
-    """
-    rand_k0 = np.random.uniform(0.25, 0.4, 1)[0]
-
-    (
-        measured_rate,
-        actual_rate,
-    ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
-        k0=rand_k0, log_nu_over_nu_ld=None
-    )
-
-    print(measured_rate, actual_rate)
-    np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)

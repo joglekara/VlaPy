@@ -26,8 +26,7 @@ from tqdm import tqdm
 import mlflow
 import numpy as np
 
-from vlapy.core import step
-from vlapy import initializers, storage
+from vlapy import initializers, storage, inner_loop
 
 MAX_DOUBLES_PER_FILE = int(1e8 / 8)
 
@@ -67,7 +66,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
                 diagnostics=diagnostics,
                 all_params=all_params,
                 pulse_dictionary=pulse_dictionary,
-                num_steps=actual_num_steps,
+                overall_num_steps=actual_num_steps,
             )
 
             # Initialize the storage manager -- folders, parameters, etc.
@@ -81,18 +80,12 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
                 pulse_dictionary=pulse_dictionary,
             )
 
-            # Get things for the Time Loop
-
-            # Simulation Config
-            sim_config = initializers.get_jax_arrays_for_time_loop(
-                stuff_for_time_loop, steps_in_loop, diagnostics.rules_to_store_f
-            )
-
-            # JITted stepper for a single timestep
-            one_jitted_step = step.get_jitted_stepper(
-                diagnostics.rules_to_store_f,
-                collision_algorithm=None,
-                static_args=sim_config,
+            sim_config, do_inner_loop = inner_loop.get_inner_loop(
+                type="numpy",
+                all_params=all_params,
+                stuff_for_time_loop=stuff_for_time_loop,
+                steps_in_loop=steps_in_loop,
+                rules_to_store_f=diagnostics.rules_to_store_f,
             )
 
             # TODO: Could support resume here
@@ -109,22 +102,24 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             # The goal was to allow that parameter to control the amount of memory needed on the accelerator
             for it in tqdm(range(it_start, n_loops * steps_in_loop, steps_in_loop)):
                 curr_time_index = range(it, it + steps_in_loop)
-                # Get driver for the duration of the lower level loop
-                sim_config["driver"] = jnp.array(
-                    stuff_for_time_loop["driver"][curr_time_index]
-                )
 
-                # Perform lower level loop using a `scan`
-                sim_config, it_in_loop = jax.lax.scan(
-                    one_jitted_step, sim_config, np.arange(steps_in_loop)
+                # Get driver and time array for the duration of the lower level loop
+                driver_array = np.array(stuff_for_time_loop["driver"][curr_time_index])
+                time_array = np.array(stuff_for_time_loop["t"][curr_time_index])
+
+                # Perform lower level loop
+                sim_config = do_inner_loop(
+                    temp_storage=sim_config,
+                    driver_array=driver_array,
+                    time_array=time_array,
                 )
 
                 # Perform a batched data update with the lower level loop output
                 storage_manager.batch_update(
-                    current_time=np.array(stuff_for_time_loop["t"][curr_time_index]),
+                    current_time=time_array,
                     f=np.array(sim_config["stored_f"]),
                     e=np.array(sim_config["stored_e"]),
-                    driver=np.array(sim_config["driver"]),
+                    driver=driver_array,
                 )
 
                 # Run the diagnostics on the simulation so far
