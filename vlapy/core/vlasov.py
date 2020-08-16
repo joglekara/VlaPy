@@ -92,3 +92,23 @@ def __vdfdx__(f, v, kx, dt):
     :return:
     """
     return np.exp(-1j * kx[:, None] * dt * v) * f
+
+
+def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
+    if vdfdx_implementation == "exponential":
+        vdfdx = get_vdfdx_exponential(
+            kx=stuff_for_time_loop["kx"], v=stuff_for_time_loop["v"]
+        )
+    else:
+        raise NotImplementedError
+
+    return vdfdx
+
+
+def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
+    if edfdv_implementation == "exponential":
+        edfdv = get_edfdv_exponential(kv=stuff_for_time_loop["kv"])
+    else:
+        raise NotImplementedError
+
+    return edfdv

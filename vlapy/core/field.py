@@ -62,7 +62,7 @@ def solve_for_field(charge_density, one_over_kx):
     )
 
 
-def get_field_solver(dv, one_over_kx):
+def get_spectral_solver(dv, one_over_kx):
     """
     This function gets the field solver
 
@@ -86,3 +86,15 @@ def get_field_solver(dv, one_over_kx):
         )
 
     return solve_total_electric_field
+
+
+def get_field_solver(stuff_for_time_loop, field_solver_implementation="spectral"):
+
+    if field_solver_implementation == "spectral":
+        field_solver = get_spectral_solver(
+            dv=stuff_for_time_loop["dv"], one_over_kx=stuff_for_time_loop["one_over_kx"]
+        )
+    else:
+        raise NotImplementedError
+
+    return field_solver

@@ -96,7 +96,7 @@ def plot_dw_vs_t(plots_dir, t, ek1_shift, title):
     plt.close(this_fig)
 
 
-def plot_fhat0(plots_dir, f, v, title):
+def plot_fhat0(plots_dir, f, v, title, filename):
     this_fig, this_plt = __get_figure_and_plot__()
 
     this_plt.plot(v, f[0], label="initial")
@@ -107,7 +107,7 @@ def plot_fhat0(plots_dir, f, v, title):
     this_plt.set_ylabel(r"$\hat{f}^{0}$", fontsize=12)
     this_plt.set_title(title, fontsize=14)
     this_fig.savefig(
-        os.path.join(plots_dir, "fk0.png"), bbox_inches="tight",
+        os.path.join(plots_dir, filename), bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -116,6 +116,7 @@ class BaseDiagnostic:
     def __init__(self):
         self.plots_dir = ""
         self.health_dir = ""
+        self.rules_to_store_f = None
 
     def _make_dirs_(self, storage_manager):
         timestr = time.strftime("%Y%m%d-%H%M%S")

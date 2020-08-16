@@ -24,7 +24,32 @@ import mlflow
 import numpy as np
 
 from diagnostics import z_function
-from vlapy.core import step, field, field_driver
+from vlapy.core import field_driver
+
+
+def initialize_distribution(nx, nv, vmax=6.0):
+    """
+    Initializes a Maxwell-Boltzmann distribution
+
+    TODO: temperature and density pertubations
+
+    :param nx: size of grid in x (single int)
+    :param nv: size of grid in v (single int)
+    :param vmax: maximum absolute value of v (single float)
+    :return:
+    """
+
+    f = np.zeros([nx, nv], dtype=np.float64)
+    dv = 2.0 * vmax / nv
+    vax = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
+
+    for ix in range(nx):
+        f[ix,] = np.exp(-(vax ** 2.0) / 2.0)
+
+    # normalize
+    f = f / np.trapz(f, dx=dv, axis=1)[:, None]
+
+    return f
 
 
 def initialize_velocity_quantities(vmax, nv):
@@ -108,7 +133,9 @@ def get_everything_ready_for_time_loop(
 
     # Initialize machinery
     # Distribution function
-    f = step.initialize(all_params["nx"], all_params["nv"])
+    f = initialize_distribution(
+        nx=all_params["nx"], nv=all_params["nv"], vmax=all_params["vmax"]
+    )
 
     # Spatial Grid
     dx, x, kx, one_over_kx = initialize_spatial_quantities(
@@ -148,6 +175,7 @@ def get_everything_ready_for_time_loop(
         "dt": dt,
         "nu": all_params["nu"],
         "t": t,
+        "rules_to_store_f": diagnostics.rules_to_store_f,
         "vlasov-poisson": all_params["vlasov-poisson"],
         "fokker-planck": all_params["fokker-planck"],
     }
@@ -165,7 +193,7 @@ def make_default_params_dictionary():
         "nx": 64,
         "xmin": 0.0,
         "nv": 1024,
-        "vmax": 6.0,
+        "vmax": 6.4,
         "nt": 1000,
         "tmax": 100,
         "fokker-planck": {"type": "lb", "solver": "batched_tridiagonal",},

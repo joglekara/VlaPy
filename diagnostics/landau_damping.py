@@ -120,11 +120,34 @@ class LandauDamping(base.BaseDiagnostic):
             .coords["velocity"]
             .data[v_to_plot],
             title="Zeroth Mode of Distribution Function",
+            filename="fk0_zi.png",
         )
 
         base.plot_health(self.health_dir, storage_manager)
 
-        # storage_manager.__delete_distribution__()
+        v_to_plot = storage_manager.overall_arrs["distribution"].coords["velocity"].data
+        f_to_plot = storage_manager.overall_arrs["distribution"][
+            "distribution_function"
+        ].data[:, 0,]
+
+        base.plot_fhat0(
+            plots_dir=self.plots_dir,
+            f=f_to_plot,
+            v=v_to_plot,
+            title="Zeroth Mode of Distribution Function",
+            filename="fk0-zo.png",
+        )
+
+        f_to_plot = storage_manager.overall_arrs["distribution"][
+            "distribution_function"
+        ].data[:, 1,]
+        base.plot_fhat0(
+            plots_dir=self.plots_dir,
+            f=f_to_plot,
+            v=v_to_plot,
+            title="First Mode of Distribution Function",
+            filename="fk1-zo.png",
+        )
 
         # fk1_kv_t = np.abs(
         #     np.fft.fft(
