@@ -33,20 +33,21 @@ def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
     if rules_to_store_f is None:
         rules_to_store_f = {"space": "all", "time": "all"}
 
+    stuff_for_time_loop = {
+        "f": helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0),
+        "e": np.ones(xax.size),
+    }
+
     st = storage.StorageManager(
         xax=xax,
         vax=vax,
+        f=stuff_for_time_loop["f"],
         base_path=td,
         rules_to_store_f=rules_to_store_f,
         all_params={},
         pulse_dictionary={},
         num_steps_in_one_loop=2,
     )
-
-    stuff_for_time_loop = {
-        "f": helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0),
-        "e": np.ones(xax.size),
-    }
 
     sim_config = inner_loop.get_arrays_for_time_loop(
         stuff_for_time_loop=stuff_for_time_loop,
