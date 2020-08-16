@@ -20,11 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 
 import numpy as np
-import mlflow
-from matplotlib import pyplot as plt
 
 from vlapy.diagnostics import low_level_helpers as llh
 from vlapy.diagnostics import base
@@ -43,11 +40,14 @@ class LandauDamping(base.BaseDiagnostic):
 
     def __call__(self, storage_manager):
         super().make_dirs(storage_manager)
-        super().log_health_metrics(storage_manager=storage_manager)
         super().load_all_data(storage_manager=storage_manager)
+        super().log_series_metrics(storage_manager=storage_manager)
+
         metrics = self.get_metrics(storage_manager)
         self.make_plots(storage_manager)
-        super().log_metrics_and_leave(metrics=metrics, storage_manager=storage_manager)
+
+        super().log_custom_metrics(metrics=metrics)
+        super().leave(storage_manager=storage_manager)
 
     def get_metrics(self, storage_manager):
         e_amp, e_phase = llh.get_e_ss(efield_arr=storage_manager.fields_dataset["e"])
@@ -159,52 +159,3 @@ class LandauDamping(base.BaseDiagnostic):
         # )
         #
         # del fk1_kv_t
-
-    def __plot_f_k1(self, fk1_kv_t, time, kv, title):
-
-        kv = np.fft.fftshift(kv)
-        fk1_kv_t = np.fft.fftshift(fk1_kv_t, axes=-1)
-
-        max_fk1_kv = np.amax(fk1_kv_t)
-        largest_wavenumber_index_vs_time = [
-            np.amax(
-                np.where(fk1_kv_t[it, : fk1_kv_t.shape[1] // 2] < max_fk1_kv * 1e-2)
-            )
-            for it in range(fk1_kv_t.shape[0])
-        ]
-        t1 = int(0.3 * fk1_kv_t.shape[0])
-        t2 = int(0.7 * fk1_kv_t.shape[0])
-
-        wavenumber_propagation_speed = abs(
-            kv[largest_wavenumber_index_vs_time[t2]]
-        ) - abs(kv[largest_wavenumber_index_vs_time[t1]])
-
-        wavenumber_propagation_speed /= time[t2] - time[t1]
-
-        this_fig = plt.figure(figsize=(8, 4))
-        this_plt = this_fig.add_subplot(111)
-        levels = np.linspace(-8, -2, 19)
-        cb = this_plt.contourf(kv, time, np.log10(fk1_kv_t), levels=levels)
-        this_fig.colorbar(cb)
-        this_plt.plot(
-            kv[largest_wavenumber_index_vs_time[t2] : kv.size // 2],
-            -kv[largest_wavenumber_index_vs_time[t2] : kv.size // 2]
-            / wavenumber_propagation_speed,
-            "r",
-        )
-        this_plt.axhline(y=time[t2], ls="--")
-        this_plt.axhline(y=time[t1], ls="--")
-        this_plt.axvline(x=kv[largest_wavenumber_index_vs_time[t2]], ls="-.")
-        this_plt.axvline(x=kv[largest_wavenumber_index_vs_time[t1]], ls="-.")
-        this_plt.set_xlabel(r"$k_v$", fontsize=12)
-        this_plt.set_ylabel(r"$1/\omega_p$", fontsize=12)
-        this_plt.set_title(
-            title
-            + ", wavenumber propagation speed = "
-            + str(round(wavenumber_propagation_speed, 6)),
-            fontsize=14,
-        )
-        this_fig.savefig(
-            os.path.join(self.plots_dir, "fk1.png"), bbox_inches="tight",
-        )
-        plt.close(this_fig)

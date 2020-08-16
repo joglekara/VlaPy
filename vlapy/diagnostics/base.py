@@ -36,7 +36,7 @@ def __get_figure_and_plot__():
     return this_fig, this_plt
 
 
-def __plot_health__(health_dir, storage_manager):
+def __plot_series__(series_dir, storage_manager):
     for metric, vals in storage_manager.series_dataset.items():
         this_fig, this_plt = __get_figure_and_plot__()
         this_plt.plot(vals.coords["time"].data, vals.data)
@@ -45,7 +45,7 @@ def __plot_health__(health_dir, storage_manager):
         this_plt.set_ylabel(metric, fontsize=12)
         this_plt.set_title(metric + " vs Time", fontsize=14)
         this_fig.savefig(
-            os.path.join(health_dir, metric + ".png"), bbox_inches="tight",
+            os.path.join(series_dir, metric + ".png"), bbox_inches="tight",
         )
         plt.close(this_fig)
 
@@ -143,21 +143,71 @@ def plot_fhat0(plots_dir, f, v, title, filename):
     plt.close(this_fig)
 
 
+def __plot_f_k1(self, fk1_kv_t, time, kv, title):
+
+    kv = np.fft.fftshift(kv)
+    fk1_kv_t = np.fft.fftshift(fk1_kv_t, axes=-1)
+
+    max_fk1_kv = np.amax(fk1_kv_t)
+    largest_wavenumber_index_vs_time = [
+        np.amax(np.where(fk1_kv_t[it, : fk1_kv_t.shape[1] // 2] < max_fk1_kv * 1e-2))
+        for it in range(fk1_kv_t.shape[0])
+    ]
+    t1 = int(0.3 * fk1_kv_t.shape[0])
+    t2 = int(0.7 * fk1_kv_t.shape[0])
+
+    wavenumber_propagation_speed = abs(kv[largest_wavenumber_index_vs_time[t2]]) - abs(
+        kv[largest_wavenumber_index_vs_time[t1]]
+    )
+
+    wavenumber_propagation_speed /= time[t2] - time[t1]
+
+    this_fig = plt.figure(figsize=(8, 4))
+    this_plt = this_fig.add_subplot(111)
+    levels = np.linspace(-8, -2, 19)
+    cb = this_plt.contourf(kv, time, np.log10(fk1_kv_t), levels=levels)
+    this_fig.colorbar(cb)
+    this_plt.plot(
+        kv[largest_wavenumber_index_vs_time[t2] : kv.size // 2],
+        -kv[largest_wavenumber_index_vs_time[t2] : kv.size // 2]
+        / wavenumber_propagation_speed,
+        "r",
+    )
+    this_plt.axhline(y=time[t2], ls="--")
+    this_plt.axhline(y=time[t1], ls="--")
+    this_plt.axvline(x=kv[largest_wavenumber_index_vs_time[t2]], ls="-.")
+    this_plt.axvline(x=kv[largest_wavenumber_index_vs_time[t1]], ls="-.")
+    this_plt.set_xlabel(r"$k_v$", fontsize=12)
+    this_plt.set_ylabel(r"$1/\omega_p$", fontsize=12)
+    this_plt.set_title(
+        title
+        + ", wavenumber propagation speed = "
+        + str(round(wavenumber_propagation_speed, 6)),
+        fontsize=14,
+    )
+    this_fig.savefig(
+        os.path.join(self.plots_dir, "fk1.png"), bbox_inches="tight",
+    )
+    plt.close(this_fig)
+
+
 class BaseDiagnostic:
     def __init__(self):
         self.plots_dir = ""
-        self.health_dir = ""
+        self.series_dir = ""
         self.fields_dir = ""
         self.dist_dir = ""
         self.rules_to_store_f = None
+        self.stepper = 0
+        self.timer = time.time()
 
     def make_dirs(self, storage_manager):
         timestr = time.strftime("%Y%m%d-%H%M%S")
         self.plots_dir = os.path.join(
             storage_manager.paths["long_term"], "plots", timestr
         )
-        self.health_dir = os.path.join(
-            storage_manager.paths["long_term"], "plots", timestr, "health"
+        self.series_dir = os.path.join(
+            storage_manager.paths["long_term"], "plots", timestr, "series"
         )
         self.fields_dir = os.path.join(
             storage_manager.paths["long_term"], "plots", timestr, "fields"
@@ -166,25 +216,32 @@ class BaseDiagnostic:
             storage_manager.paths["long_term"], "plots", timestr, "distribution"
         )
         os.makedirs(self.plots_dir, exist_ok=True)
-        os.makedirs(self.health_dir, exist_ok=True)
+        os.makedirs(self.series_dir, exist_ok=True)
         os.makedirs(self.fields_dir, exist_ok=True)
         os.makedirs(self.dist_dir, exist_ok=True)
 
     def make_plots(self, storage_manager):
-        __plot_health__(health_dir=self.health_dir, storage_manager=storage_manager)
+        __plot_series__(series_dir=self.series_dir, storage_manager=storage_manager)
         __plot_fields__(fields_dir=self.fields_dir, storage_manager=storage_manager)
         __plot_distribution__(dist_dir=self.dist_dir, storage_manager=storage_manager)
 
-    def log_health_metrics(self, storage_manager):
-        health_metrics = {}
-        for key, val in storage_manager.health.items():
-            health_metrics[key] = val[-1]
+    def log_series_metrics(self, storage_manager):
+        series_metrics = {}
+        for key, val in storage_manager.series_dataset.items():
+            series_metrics[key] = val.data[-1]
 
-        mlflow.log_metrics(metrics=health_metrics)
+        mlflow.log_metrics(metrics=series_metrics, step=self.stepper)
 
-    def log_metrics_and_leave(self, metrics, storage_manager):
-        mlflow.log_metrics(metrics=metrics)
+    def log_custom_metrics(self, metrics):
+        mlflow.log_metrics(metrics=metrics, step=self.stepper)
+
+    def leave(self, storage_manager):
         storage_manager.unload_data_over_all_timesteps()
+        mlflow.log_metrics(
+            metrics={"time_for_batch": time.time() - self.timer}, step=self.stepper
+        )
+        self.timer = time.time()
+        self.stepper += 1
 
     def load_all_data(self, storage_manager):
         storage_manager.load_data_over_all_timesteps()

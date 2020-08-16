@@ -67,9 +67,9 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
         "e": np.array(stuff_for_time_loop["e"]),
         "f": np.array(stuff_for_time_loop["f"]),
         "stored_f": np.array(store_f),
-        "health": {
+        "series": {
             "mean_n": np.zeros(nt_in_loop),
-            "mean_v": np.zeros(nt_in_loop),
+            "mean_j": np.zeros(nt_in_loop),
             "mean_T": np.zeros(nt_in_loop),
             "mean_e2": np.zeros(nt_in_loop),
             "mean_de2": np.zeros(nt_in_loop),

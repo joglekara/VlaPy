@@ -57,10 +57,10 @@ def get_batched_data_from_sim_config(sim_config):
     f = sim_config["stored_f"]
     current_f = sim_config["f"]
     time_batch = sim_config["time_batch"]
-    health = sim_config["health"]
+    series = sim_config["series"]
     fields = sim_config["fields"]
 
-    return fields, f, time_batch, health, current_f
+    return fields, f, time_batch, series, current_f
 
 
 def get_paths(base_path):
@@ -156,13 +156,12 @@ class StorageManager:
             dict_of_stored_fields,
             dict_of_stored_dists["distribution_function"],
             time_actually_stored,
-            self.health,
+            series,
             self.current_f,
         ) = get_batched_data_from_sim_config(sim_config)
 
         self.write_series_batch(
-            time_actually_stored=time_actually_stored,
-            dict_of_stored_series=self.health,
+            time_actually_stored=time_actually_stored, dict_of_stored_series=series,
         )
         self.write_field_batch(
             time_actually_stored=time_actually_stored,
