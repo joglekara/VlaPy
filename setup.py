@@ -30,6 +30,7 @@ INSTALL_REQUIREMENTS = [
     "scipy",
     "matplotlib",
     "tqdm",
+    "dask[complete]",
 ]
 
 setup(
