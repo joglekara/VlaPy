@@ -30,7 +30,7 @@ from vlapy.core import step
 
 def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
     """
-    This function converts the previously created NumPy arrays to JAX arrays.
+    This function converts the previously created NumPy arrays to NumPy arrays.
 
     It also creates the temporary storage for e and f that is used for the
     low-level time-loop
