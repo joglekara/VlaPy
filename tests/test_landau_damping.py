@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from itertools import product
+
 import numpy as np
 
 from vlapy import manager, initializers
@@ -27,13 +29,15 @@ from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from vlapy.diagnostics import landau_damping
 
 ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
+ALL_VDFDX_INTEGRATORS = ["exponential"]
+ALL_EDFDV_INTEGRATORS = ["exponential"]
 
 
 def __run_integrated_landau_damping_test_and_return_damping_rate__(
-    k0, log_nu_over_nu_ld, time_integrator
+    k0, log_nu_over_nu_ld, time_integrator, edfdv_integrator, vdfdx_integrator
 ):
     """
-    This is the fully integrated flow for a landau damping run
+    This is the fully integrated flow for a Landau damping run
 
     :param k0:
     :param log_nu_over_nu_ld:
@@ -48,6 +52,8 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
     )
 
     all_params_dict["vlasov-poisson"]["time"] = time_integrator
+    all_params_dict["vlasov-poisson"]["edfdv"] = edfdv_integrator
+    all_params_dict["vlasov-poisson"]["vdfdx"] = vdfdx_integrator
 
     pulse_dictionary = {
         "first pulse": {
@@ -95,12 +101,18 @@ def test_full_landau_damping():
     """
     rand_k0 = np.random.uniform(0.25, 0.4, 1)[0]
 
-    for time_integrator in ALL_TIME_INTEGRATORS:
+    for vdfdx_integrator, edfdv_integrator, time_integrator in product(
+        ALL_VDFDX_INTEGRATORS, ALL_EDFDV_INTEGRATORS, ALL_TIME_INTEGRATORS
+    ):
         (
             measured_rate,
             actual_rate,
         ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
-            k0=rand_k0, log_nu_over_nu_ld=None, time_integrator=time_integrator
+            k0=rand_k0,
+            log_nu_over_nu_ld=None,
+            time_integrator=time_integrator,
+            vdfdx_integrator=vdfdx_integrator,
+            edfdv_integrator=edfdv_integrator,
         )
 
         np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)
