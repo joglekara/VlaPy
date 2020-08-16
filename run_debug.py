@@ -26,7 +26,7 @@ from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
     k0 = 0.3
-    log_nu_over_nu_ld = None
+    log_nu_over_nu_ld = -7
 
     all_params_dict = initializers.make_default_params_dictionary()
     all_params_dict = initializers.specify_epw_params_to_dict(
@@ -50,16 +50,6 @@ if __name__ == "__main__":
             "k0": k0,
         }
     }
-
-    params_to_log = [
-        "nu",
-        "w0",
-        "k0",
-        "a0",
-        "w_epw",
-        "nu_ld",
-        "v_ph",
-    ]
 
     mlflow_exp_name = "vlapy-test"
 
