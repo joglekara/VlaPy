@@ -34,6 +34,16 @@ def __get_k__(ax):
 
 
 def get_vdfdx_exponential(kx, v):
+    """
+    This function creates the exponential vdfdx stepper
+
+    It uses kx and v as metadata that should stay constant throughout the simulation
+
+    :param kx:
+    :param v:
+    :return:
+    """
+
     def step_vdfdx_exponential(f, dt):
         """
         evolution of df/dt = v df/dx
@@ -55,6 +65,15 @@ def get_vdfdx_exponential(kx, v):
 
 
 def get_edfdv_exponential(kv):
+    """
+    This function creates the exponential edfdv stepper
+
+    It uses kv as metadata that should stay constant throughout the simulation
+
+    :param kv:
+    :return:
+    """
+
     def step_edfdv_exponential(f, e, dt):
         """
         evolution of df/dt = e df/dv
@@ -76,13 +95,39 @@ def get_edfdv_exponential(kv):
 
 
 def get_edfdv_center_differenced(dv):
+    """
+    This function creates the center differenced edfdv stepper
+
+    It uses dv as metadata that should stay constant throughout the simulation
+
+    :param dv:
+    :return:
+    """
+
     def step_edfdv_center_difference(f, e, dt):
+        """
+        This method calculates the f + dt * e * df/dv using naive
+        2nd-order center differencing
+
+        :param f:
+        :param e:
+        :param dt:
+        :return:
+        """
         return f - e[:, None] * np.gradient(f, dv, axis=1, edge_order=2) * dt
 
     return step_edfdv_center_difference
 
 
 def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
+    """
+    This function enables VlaPy to choose the implementation of the vdfdx stepper
+    to use in the lower level sections of the simulation
+
+    :param stuff_for_time_loop:
+    :param vdfdx_implementation:
+    :return:
+    """
     if vdfdx_implementation == "exponential":
         vdfdx = get_vdfdx_exponential(
             kx=stuff_for_time_loop["kx"], v=stuff_for_time_loop["v"]
@@ -94,6 +139,14 @@ def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
 
 
 def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
+    """
+    This function enables VlaPy to choose the implementation of the edfdv stepper
+    to use in the lower level sections of the simulation
+
+    :param stuff_for_time_loop:
+    :param edfdv_implementation:
+    :return:
+    """
     if edfdv_implementation == "exponential":
         edfdv = get_edfdv_exponential(kv=stuff_for_time_loop["kv"])
     elif edfdv_implementation == "cd2":
