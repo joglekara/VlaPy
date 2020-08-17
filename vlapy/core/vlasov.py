@@ -45,7 +45,11 @@ def get_vdfdx_exponential(kx, v):
         :return:
         """
 
-        return np.real(np.fft.ifft(__vdfdx__(np.fft.fft(f, axis=0), v, kx, dt), axis=0))
+        return np.real(
+            np.fft.ifft(
+                np.exp(-1j * kx[:, None] * dt * v) * np.fft.fft(f, axis=0), axis=0
+            )
+        )
 
     return step_vdfdx_exponential
 
@@ -62,36 +66,20 @@ def get_edfdv_exponential(kv):
         :return:
         """
 
-        return np.real(np.fft.ifft(__edfdv__(np.fft.fft(f, axis=1), e, kv, dt), axis=1))
+        return np.real(
+            np.fft.ifft(
+                np.exp(-1j * kv * dt * e[:, None]) * np.fft.fft(f, axis=1), axis=1
+            )
+        )
 
     return step_edfdv_exponential
 
 
-def __edfdv__(f, e, kv, dt):
-    """
-    Lowest level routine for Edf/dv. This operator is in Fourier space
+def get_edfdv_center_differenced(dv):
+    def step_edfdv_center_difference(f, e, dt):
+        return f - e[:, None] * np.gradient(f, dv, axis=1, edge_order=2) * dt
 
-
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param e: electric field (numpy array of shape (nx,))
-    :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-    :param dt: timestep (single float value)
-    :return:
-    """
-    return np.exp(-1j * kv * dt * e[:, None]) * f
-
-
-def __vdfdx__(f, v, kx, dt):
-    """
-    Lowest level routine for vdf/dx. This operator is in Fourier space
-
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param v: velocity axis (numpy array of shape (nv,))
-    :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-    :param dt: timestep (single float value)
-    :return:
-    """
-    return np.exp(-1j * kx[:, None] * dt * v) * f
+    return step_edfdv_center_difference
 
 
 def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
@@ -108,6 +96,8 @@ def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
 def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
     if edfdv_implementation == "exponential":
         edfdv = get_edfdv_exponential(kv=stuff_for_time_loop["kv"])
+    elif edfdv_implementation == "cd2":
+        edfdv = get_edfdv_center_differenced(dv=stuff_for_time_loop["dv"])
     else:
         raise NotImplementedError
 
