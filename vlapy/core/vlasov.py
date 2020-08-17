@@ -34,6 +34,16 @@ def __get_k__(ax):
 
 
 def get_vdfdx_exponential(kx, v):
+    """
+    This function creates the exponential vdfdx stepper
+
+    It uses kx and v as metadata that should stay constant throughout the simulation
+
+    :param kx:
+    :param v:
+    :return:
+    """
+
     def step_vdfdx_exponential(f, dt):
         """
         evolution of df/dt = v df/dx
@@ -55,6 +65,15 @@ def get_vdfdx_exponential(kx, v):
 
 
 def get_edfdv_exponential(kv):
+    """
+    This function creates the exponential edfdv stepper
+
+    It uses kv as metadata that should stay constant throughout the simulation
+
+    :param kv:
+    :return:
+    """
+
     def step_edfdv_exponential(f, e, dt):
         """
         evolution of df/dt = e df/dv
@@ -76,6 +95,15 @@ def get_edfdv_exponential(kv):
 
 
 def get_edfdv_center_differenced(dv):
+    """
+    This function creates the center differenced edfdv stepper
+
+    It uses dv as metadata that should stay constant throughout the simulation
+
+    :param dv:
+    :return:
+    """
+
     def step_edfdv_center_difference(f, e, dt):
         """
         This method calculates the f + dt * e * df/dv using naive
