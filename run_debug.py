@@ -26,7 +26,7 @@ from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
     k0 = 0.3
-    log_nu_over_nu_ld = -7
+    log_nu_over_nu_ld = -3
 
     all_params_dict = initializers.make_default_params_dictionary()
     all_params_dict = initializers.specify_epw_params_to_dict(
@@ -37,16 +37,20 @@ if __name__ == "__main__":
     )
 
     all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+
+    tmax = 500
+    all_params_dict["tmax"] = tmax
+    all_params_dict["nt"] = 8 * tmax
     # all_params_dict["fokker-planck"]["type"] = "dg"
 
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 5,
-            "flat_time": 10,
-            "fall_time": 5,
+            "rise_time": 20,
+            "flat_time": 50,
+            "fall_time": 20,
             "w0": all_params_dict["w_epw"],
-            "a0": all_params_dict["a0"],
+            "a0": 1e-3,
             "k0": k0,
         }
     }

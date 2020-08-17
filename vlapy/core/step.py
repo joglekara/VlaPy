@@ -157,14 +157,6 @@ def get_series_update(dv):
         )
         temp_storage_series["mean_e2"][i] = np.mean(e ** 2.0, axis=0)
         temp_storage_series["mean_de2"][i] = np.mean(de ** 2.0, axis=0)
-        temp_storage_series["mean_t_plus_e2_minus_de2"][i] = temp_storage_series[
-            "mean_T"
-        ][i] + (temp_storage_series["mean_e2"][i] - temp_storage_series["mean_de2"][i])
-        temp_storage_series["mean_t_plus_e2_plus_de2"][i] = (
-            temp_storage_series["mean_T"][i]
-            + temp_storage_series["mean_e2"][i]
-            + temp_storage_series["mean_de2"][i]
-        )
 
         # Abstract
         temp_storage_series["mean_f2"][i] = np.mean(
@@ -187,8 +179,8 @@ def get_storage_step(stuff_for_time_loop):
         store_f_rule=stuff_for_time_loop["rules_to_store_f"]
     )
 
-    update_fields = get_fields_update(dv, v)
-    update_series = get_series_update(dv)
+    update_fields = get_fields_update(dv=dv, v=v)
+    update_series = get_series_update(dv=dv)
 
     def storage_step(temp_storage, e, de, f, i):
         temp_storage["stored_f"][i] = store_f_function(f)

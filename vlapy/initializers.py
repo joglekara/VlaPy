@@ -195,9 +195,9 @@ def make_default_params_dictionary():
     :return:
     """
     all_params_dict = {
-        "nx": 32,
+        "nx": 64,
         "xmin": 0.0,
-        "nv": 512,
+        "nv": 1024,
         "vmax": 6.4,
         "nt": 1000,
         "tmax": 100,
@@ -208,7 +208,7 @@ def make_default_params_dictionary():
             "edfdv": "exponential",
             "poisson": "spectral",
         },
-        "backend": {"core": "numpy", "max_doubles_per_file": int(1e7),},
+        "backend": {"core": "numpy", "max_doubles_per_file": int(1e8),},
         "a0": 1e-7,
     }
 
