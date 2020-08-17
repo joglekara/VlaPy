@@ -73,10 +73,9 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
             "mean_T": np.zeros(nt_in_loop),
             "mean_e2": np.zeros(nt_in_loop),
             "mean_de2": np.zeros(nt_in_loop),
-            "mean_t_plus_e2_minus_de2": np.zeros(nt_in_loop),
-            "mean_t_plus_e2_plus_de2": np.zeros(nt_in_loop),
             "mean_f2": np.zeros(nt_in_loop),
             "mean_flogf": np.zeros(nt_in_loop),
+            "mean_cum_de2_previous": 0.0,
         },
         "fields": {
             "e": np.zeros((nt_in_loop,) + stuff_for_time_loop["e"].shape),
@@ -119,6 +118,26 @@ def get_numpy_inner_loop_stepper(
             temp_storage, _ = one_numpy_step(temp_storage, it)
 
         temp_storage["time_for_batch"] = time() - t0
+
+        # Energy from driver
+        temp_storage["series"]["mean_cum_de2"] = temp_storage["series"][
+            "mean_cum_de2_previous"
+        ] + np.cumsum(temp_storage["series"]["mean_de2"])
+
+        # See if E_driver = E_f + E_e
+        temp_storage["series"]["mean_t_plus_e2_minus_cum_de2"] = temp_storage["series"][
+            "mean_T"
+        ] + (temp_storage["series"]["mean_e2"] - temp_storage["series"]["mean_cum_de2"])
+
+        temp_storage["series"]["mean_t_plus_e2_plus_cum_de2"] = (
+            temp_storage["series"]["mean_T"]
+            + temp_storage["series"]["mean_e2"]
+            + temp_storage["series"]["mean_de2"]
+        )
+
+        temp_storage["series"]["mean_cum_de2_previous"] = temp_storage["series"][
+            "mean_cum_de2"
+        ][-1]
 
         return temp_storage
 
