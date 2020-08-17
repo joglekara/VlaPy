@@ -20,12 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import numpy as np
+
 from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
-    k0 = 0.3
+    k0 = np.random.uniform(0.3, 0.4, 1)[0]
     log_nu_over_nu_ld = -3
 
     all_params_dict = initializers.make_default_params_dictionary()
@@ -37,8 +39,9 @@ if __name__ == "__main__":
     )
 
     all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "cd2"
 
-    tmax = 500
+    tmax = 100
     all_params_dict["tmax"] = tmax
     all_params_dict["nt"] = 8 * tmax
     # all_params_dict["fokker-planck"]["type"] = "dg"
@@ -46,11 +49,11 @@ if __name__ == "__main__":
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 20,
-            "flat_time": 50,
-            "fall_time": 20,
+            "rise_time": 10,
+            "flat_time": 20,
+            "fall_time": 10,
             "w0": all_params_dict["w_epw"],
-            "a0": 1e-3,
+            "a0": 1e-7,
             "k0": k0,
         }
     }
