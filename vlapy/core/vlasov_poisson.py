@@ -134,35 +134,74 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, x, kx, v, kv, dt, driver_func
 
 
 def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
+    """
+    This is the 6th order integrator for 1D Vlasov-Poisson systems given in
+    Casas, F., Crouseilles, N., Faou, E., & Mehrenberger, M. (2017). High-order Hamiltonian splitting for
+    the Vlasov–Poisson equations.
+    Numerische Mathematik, 135(3), 769–801. https://doi.org/10.1007/s00211-016-0816-z
+
+    :param vdfdx:
+    :param edfdv:
+    :param field_solve:
+    :param dt:
+    :param driver_function:
+    :return:
+    """
+
+    a1 = 0.168735950563437422448196
+    a2 = 0.377851589220928303880766
+    a3 = -0.093175079568731452657924
+    b1 = 0.049086460976116245491441
+    b2 = 0.264177609888976700200146
+    b3 = 0.186735929134907054308413
+    c1 = -0.000069728715055305084099
+    c2 = -0.000625704827430047189169
+    c3 = -0.002213085124045325561636
+    d2 = -2.916600457689847816445691e-6
+    d3 = 3.048480261700038788680723e-5
+    e3 = 4.985549387875068121593988e-7
+
     def sixth_order_step(e, f, t):
-        f = edfdv(f=f, e=e, dt=a1 * dt)
+        """
+        The actual 6th order stepper for the time splitting
+
+        :param e:
+        :param f:
+        :param t:
+        :return:
+        """
+        D1 = b1 + 2.0 * c1 * dt ** 2.0
+        D2 = b2 + 2.0 * c2 * dt ** 2.0 + 4.0 * d2 * dt ** 4.0
+        D3 = b3 + 2.0 * c3 * dt ** 2.0 + 4.0 * d3 * dt ** 4.0 - 8.0 * e3 * dt ** 6.0
+
+        f = edfdv(f=f, e=e, dt=D1 * dt)
+
+        f = vdfdx(f=f, dt=a1 * dt)
+        e = field_solve(driver_field=driver_function(t + a1 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=D2 * dt)
 
         f = vdfdx(f=f, dt=a2 * dt)
         e = field_solve(driver_field=driver_function(t + a2 * dt), f=f)
 
-        f = edfdv(f=f, e=e, dt=a3 * dt)
+        f = edfdv(f=f, e=e, dt=D3 * dt)
 
-        f = vdfdx(f=f, dt=a4 * dt)
-        e = field_solve(driver_field=driver_function(t + a4 * dt), f=f)
+        f = vdfdx(f=f, dt=a3 * dt)
+        e = field_solve(driver_field=driver_function(t + a3 * dt), f=f)
 
-        f = edfdv(f=f, e=e, dt=a5 * dt)
-
-        f = vdfdx(f=f, dt=a6 * dt)
-        e = field_solve(driver_field=driver_function(t + a6 * dt), f=f)
-
-        f = edfdv(f=f, e=e, dt=a5 * dt)
-
-        f = vdfdx(f=f, dt=a4 * dt)
-        e = field_solve(driver_field=driver_function(t + a4 * dt), f=f)
-
-        f = edfdv(f=f, e=e, dt=a3 * dt)
+        f = edfdv(f=f, e=e, dt=D3 * dt)
 
         f = vdfdx(f=f, dt=a2 * dt)
         e = field_solve(driver_field=driver_function(t + a2 * dt), f=f)
 
-        f = edfdv(f=f, e=e, dt=a1 * dt)
+        f = edfdv(f=f, e=e, dt=D2 * dt)
 
-        pass
+        f = vdfdx(f=f, dt=a1 * dt)
+        e = field_solve(driver_field=driver_function(t + a1 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=D1 * dt)
+
+        return e, f
 
     return sixth_order_step
 
