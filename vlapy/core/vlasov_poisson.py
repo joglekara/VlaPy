@@ -133,6 +133,40 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, x, kx, v, kv, dt, driver_func
     return full_pefrl_ps_step
 
 
+def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
+    def sixth_order_step(e, f, t):
+        f = edfdv(f=f, e=e, dt=a1 * dt)
+
+        f = vdfdx(f=f, dt=a2 * dt)
+        e = field_solve(driver_field=driver_function(t + a2 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=a3 * dt)
+
+        f = vdfdx(f=f, dt=a4 * dt)
+        e = field_solve(driver_field=driver_function(t + a4 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=a5 * dt)
+
+        f = vdfdx(f=f, dt=a6 * dt)
+        e = field_solve(driver_field=driver_function(t + a6 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=a5 * dt)
+
+        f = vdfdx(f=f, dt=a4 * dt)
+        e = field_solve(driver_field=driver_function(t + a4 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=a3 * dt)
+
+        f = vdfdx(f=f, dt=a2 * dt)
+        e = field_solve(driver_field=driver_function(t + a2 * dt), f=f)
+
+        f = edfdv(f=f, e=e, dt=a1 * dt)
+
+        pass
+
+    return sixth_order_step
+
+
 def get_time_integrator(
     time_integrator_name, vdfdx, edfdv, field_solver, stuff_for_time_loop
 ):
