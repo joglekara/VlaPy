@@ -191,6 +191,14 @@ def get_time_integrator(
             dt=stuff_for_time_loop["dt"],
             driver_function=stuff_for_time_loop["driver_function"],
         )
+    elif time_integrator_name == "h-sixth":
+        vp_step = get_6th_order_integrator(
+            vdfdx=vdfdx,
+            edfdv=edfdv,
+            field_solve=field_solver,
+            dt=stuff_for_time_loop["dt"],
+            driver_function=stuff_for_time_loop["driver_function"],
+        )
     else:
         raise NotImplementedError
 
