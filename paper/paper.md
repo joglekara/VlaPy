@@ -23,7 +23,7 @@ bibliography: paper.bib
 
 # Summary
 
-Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension, Eulerian Vlasov-Poisson-Fokker-Planck simulation code written in Python.  
+Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension (1D-1V), Eulerian Vlasov-Poisson-Fokker-Planck (VPFP) simulation code written in Python.  
 
 The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications (see refs. [@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
 
@@ -31,9 +31,9 @@ Our implementation is based on finite-difference and pseudo-spectral methods. At
 
 # Statement of Need
 
-There are many software libraries that solve the same equation set which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), but the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need in the open-source community.
+The 1D-1V VPFP equation set solved here has been applied in research of laser-plasma interactions in the context of inertial fusion [@Fahlen2009; @Banks2016], of plasma-based accelerators [@Thomas2016], of space physics [@Chen2019], and of fundamental plasma physics [@Pezzi2016; @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
 
-``VlaPy`` is intended to help students and researchers learn about and explore concepts in fundamental plasma and fluid physics and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
+``VlaPy`` is intended to help students learn fundamental concepts and help researchers discover novel physics and applications in plasma physics, fluid physics, computational physics, and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
 
 The details of the ``VlaPy`` implementation are provided in the following sections. 
 
@@ -51,7 +51,7 @@ $\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p$, $\tilde{x} = x / (v_{th} / \
 The normalized Vlasov equation is given by
 $$ \frac{\partial f}{\partial t} + v  \frac{\partial f}{\partial x} + E \frac{\partial f}{\partial v} = 0 $$.
 
-We use operator splitting to advance the time-step `@Cheng:1977`. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
+We use operator splitting to advance the time-step `@Cheng:1976`. Each one of those operators is then integrated pseudo-spectrally using the following methodology.
 
 We first Fourier transform the operator, as given by 
 $$ \mathcal{F}_x\left[ \frac{d f}{d t} = v \frac{d f}{d x} \right].$$
@@ -88,48 +88,81 @@ and the discretized version that is solved is
 $$  E(x_i)^{n+1} = \mathcal{F}_x^{-1}\left[\frac{\sum_j f(x_i,v_j)^n \Delta v}{- i k_x}\right] $$
 
 ### Integrated Code Testing
-Unit tests are provided for this operator to validate its performance and operation under the above assumptions.  These are simply unit tests against analytical solutions of integrals of periodic functions.
+Unit tests are provided for this operator to validate its performance and operation under the above assumptions.  
+These are simply unit tests against analytical solutions of integrals of periodic functions. They can be found in 
+`tests/test_fieldsolver.py`.
+
+Below, we provide an illustration of a manual validation of the Poisson equation solver. These are also provided in 
+`notebooks/test_poisson.ipynb`
+
+![](../notebooks/screenshots_for_example/poisson_solver.png)
 
 
 ## Fokker-Planck Equation
 
-We use a simplified version of the full Fokker-Planck operator [@Lenard1958]. This is given by
+We have implemented two simplified versions of the full Fokker-Planck operator [@Lenard1958, @Dougherty1964]. 
 
+The first of these implementations (LB) has the governing equation given by
 $$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( v f + v_0^2 \frac{\partial f}{\partial v}\right), $$
-where $v_0$ is the thermal velocity associated with the Maxwell-Boltzmann distribution that is a solution to this equation.
+where $v_0 = \int v^2 f(x,v) dv, $ is the thermal velocity of the distribution. 
+
+The second of these implementations (DG) has a governing equation given by
+$$\left(\frac{\delta f}{\delta t}\right)_{\text{coll}} = \nu \frac{\partial}{\partial v} \left ( (v-\underline{v}) f + v_{t}^2 \frac{\partial f}{\partial v}\right), $$
+where $\underline{v} = \int v f(x,v) dv,$ is the mean velocity of the distribution and $v_{t} = \int ((v-\bar{v})^2 f(x,v) dv, $ is the thermal velocity of the shifted distribution.
+
+The second implementation is an extension of the first, and extends momentum conservation for distributions that have a non-zero mean velocity. 
 
 We discretize this backward-in-time, centered-in-space. This procedure results in the time-step scheme given by
-$$ f^{n} = {\Delta t} \nu \left[\left(-\frac{v_0^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) v_{j+1}f^{n+1}_{j+1} + \left(1+2\frac{v_0^2}{\Delta v^2}\right) f^{n+1}_j + \left(-\frac{v_0^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) v_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+$$ f^{n} = \left[{\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} + \frac{1}{2\Delta v}\right) \bar{v}_{j+1}f^{n+1}_{j+1} + \left(1+2{\Delta t} \nu \frac{v_{0,t}^2}{\Delta v^2}\right) f^{n+1}_j + {\Delta t} \nu \left(-\frac{v_{0,t}^2}{\Delta v^2} - \frac{1}{2\Delta v}\right) \bar{v}_{j-1}f^{n+1}_{j-1}  \right]. $$ 
+where $\bar{v} = v$ or $\bar{v} = v - \underline{v}$ depending on the implementation. 
 
 This forms a tridiagonal system of equations that can be directly inverted.
 
 ### Integrated Code Testing
-Unit tests are provided for this operator. The unit tests ensure that
+Unit tests are provided for this operator. They can be found in `tests/test_lb.py` and `tests/test_dg.py`. 
+The unit tests ensure that
 
-1. The operator conserves number density.
+1. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
 
+2. The LB operator conserves number density, momentum, and energy when initialized with a zero mean velocity.
 
-2. The operator reverts to a solution with a temperature proportional to $v_0^2$.
+3. The DG operator conserves number density, momentum, and energy when initialized with a non-zero mean velocity.
 
+The `notebooks/test_fokker_planck.ipynb` notebook contains illustrations and examples for these tests. Below, we show results from some of the tests for illustrative purposes. 
 
-3. The operator does not impact a Maxwell-Boltzmann distribution already satisfying $v_{th} = v_0$.
+![](../notebooks/collision_tests_plots/Maxwell_Solution.png)
 
+![](../notebooks/collision_tests_plots/LB_conservation.png)
 
-4. The operator acts to evolve the distribution to a mean velocity of $0$ if initialized with an off-center drift velocity.
+![](../notebooks/collision_tests_plots/LB_no_conservation.png)
+
+![](../notebooks/collision_tests_plots/DG_conservation.png)
+
+We see from the above figures that the distribution relaxes to a Maxwellian. Depending on the implementation, certain characteristics of momentum conservation are enforced or avoided.
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
-One of the most fundamental plasma physics phenomenon is known as Landau Damping. An extensive review is provided in ref. [@Ryutov1999].  
+Landau Damping is one of the most fundamental plasma physics phenomenon. An extensive review is provided in ref. [@Ryutov1999].  
 
 Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in ref. [@Canosa1973].
 
 In the ``VlaPy`` simulation code, we have verified that the known damping rates for Landau Damping are reproduced, for a few different wave-numbers. This is shown in `notebooks/landau_damping.ipynb`. 
 
-We include validation against this phenomenon as an integrated test.
+We include validation against this phenomenon as an automated integrated test. The tests can be found in 
+`tests/test_landau_damping.py`
+
+Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of a $k=0.3$ electron plasma wave is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
+
+<img src="../notebooks/screenshots_for_example/ui.png" width="820">
+<img src="../notebooks/screenshots_for_example/damping.png" width="820">
+
+To run the entire testing suite, make sure `pytest` is installed, and call `pytest` from the root folder for the repository. Individual files can also be run by calling `pytest tests/<test_filename>.py`.
 
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Zaharia2018] for experiment management.
 
 We acknowledge valuable discussions with Pierre Navarro on the implementation of the Vlasov equation.
+
+We are grateful for the editors' and reviewers' thorough feedback that improved the software as well as manuscript.
 
 # References

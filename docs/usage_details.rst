@@ -15,36 +15,54 @@ For example, `run_vlapy.py` has the following code
 
 .. code-block:: python
 
-    manager.start_run(
-        nx=48,
-        nv=512,
-        nt=1000,
-        tmax=100,
-        nu=0.001,
-        w0=1.1598,
-        k0=0.3,
-        a0=1e-5,
-        diagnostics=landau_damping.LandauDamping(),
-        name="Landau Damping",
+    all_params_dict = {
+        "nx": 48,
+        "xmin": 0.0,
+        "xmax": 2.0 * np.pi / 0.3,
+        "nv": 512,
+        "vmax": 6.0,
+        "nt": 1000,
+        "tmax": 100,
+        "nu": 0.0,
+    }
+
+    pulse_dictionary = {
+        "first pulse": {
+            "start_time": 0,
+            "rise_time": 5,
+            "flat_time": 10,
+            "fall_time": 5,
+            "a0": 1e-6,
+            "k0": 0.3,
+        }
+    }
+
+    params_to_log = ["w0", "k0", "a0"]
+
+    pulse_dictionary["first pulse"]["w0"] = np.real(
+        z_function.get_roots_to_electrostatic_dispersion(
+            wp_e=1.0, vth_e=1.0, k0=pulse_dictionary["first pulse"]["k0"]
+        )
     )
 
-Through this interface, the user can specify the boundaries of the domain in space and time. The user can
-also specify initial conditions such as the settings of the wave-driver module, the collision frequency `nu`, and custom
+    mlflow_exp_name = "Landau Damping-test"
+
+    manager.start_run(
+        all_params=all_params_dict,
+        pulse_dictionary=pulse_dictionary,
+        diagnostics=landau_damping.LandauDamping(params_to_log),
+        name=mlflow_exp_name,
+    )
+
+Through this interface, the user can specify the initial conditions of the domain in space and time. The user can
+also specify the settings of the wave-driver module, the collision frequency `nu`, and custom
 diagnostic routines.
 
 
 Wave Driver
 ===============
-The wave driver module currently has a fixed form given by
-
-.. code-block:: python
-
-    def driver_function(x, t):
-        envelope = np.exp(-((t - 8) ** 8.0) / 4.0 ** 8.0)
-        return envelope * a0 * np.cos(k0 * x + w0 * t)
-
-This effectively mimics a flat-top pulse in time. The ``w0, a0,`` and ``k0`` quantities can be specified to generate waves
-of specified frequency, amplitude, and wave-number, respectively.
+The wave driver module uses a 5th order polynomial that is given in ref. [@Joglekar2018]. The implementation
+can be found in `vlapy/manager.py`.
 
 
 Simulation Management
@@ -74,6 +92,3 @@ For example, please refer to the Landau damping diagnostics in `diagnostics/land
 damping rate and oscillation frequency are calculated, and plots are made of the time-evolution of the electric field
 to be eventually stored by the run manager object in a location of its choosing.
 
-
-
-...this page is in development...

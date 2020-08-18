@@ -20,28 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from setuptools import setup, find_packages
+from mlflow.tracking import MlflowClient
 
-INSTALL_REQUIREMENTS = [
-    "numpy",
-    "mlflow",
-    "h5netcdf",
-    "xarray",
-    "scipy",
-    "matplotlib",
-    "tqdm",
-    "dask[complete]",
-]
 
-setup(
-    name="vlapy",
-    version="1.0",
-    packages=find_packages(),
-    url="",
-    license="MIT",
-    author="A. S. Joglekar, M. C. Levy",
-    author_email="archisj@gmail.com",
-    description="Pseudo-Spectral, Modular, Pythonic 1D-1V Vlasov-Fokker-Planck code",
-    install_requires=INSTALL_REQUIREMENTS,
-    include_package_data=True,
-)
+def get_mlflow_run(experiment_id, run_id):
+    return None
+
+
+def get_this_metric_of_this_run(metric_name, run_object):
+    client = MlflowClient()
+    run_id = run_object.info.run_id
+
+    run = client.get_run(run_id)
+    return run.data.metrics[metric_name]

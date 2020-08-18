@@ -62,16 +62,39 @@ def solve_for_field(charge_density, one_over_kx):
     )
 
 
-def get_total_electric_field(driver_field, f, dv, one_over_kx):
+def get_spectral_solver(dv, one_over_kx):
     """
-    Allows adding a driver field
+    This function gets the field solver
 
-    :param driver_field: an electric field (numpy array of shape (nx,))
-    :param f: distribution function. (numpy array of shape (nx, nv))
-    :param dv: velocity-axis spacing (float)
-    :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
+    :param dv:
+    :param one_over_kx:
     :return:
     """
-    return driver_field + solve_for_field(
-        charge_density=compute_charges(f, dv), one_over_kx=one_over_kx
-    )
+
+    def solve_total_electric_field(driver_field, f):
+        """
+        Allows adding a driver field
+
+        :param driver_field: an electric field (numpy array of shape (nx,))
+        :param f: distribution function. (numpy array of shape (nx, nv))
+        :param dv: velocity-axis spacing (float)
+        :param one_over_kx: one over real-space wavenumber axis (numpy array of shape (nx,))
+        :return:
+        """
+        return driver_field + solve_for_field(
+            charge_density=compute_charges(f, dv), one_over_kx=one_over_kx
+        )
+
+    return solve_total_electric_field
+
+
+def get_field_solver(stuff_for_time_loop, field_solver_implementation="spectral"):
+
+    if field_solver_implementation == "spectral":
+        field_solver = get_spectral_solver(
+            dv=stuff_for_time_loop["dv"], one_over_kx=stuff_for_time_loop["one_over_kx"]
+        )
+    else:
+        raise NotImplementedError
+
+    return field_solver

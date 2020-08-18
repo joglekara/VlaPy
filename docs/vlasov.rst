@@ -109,7 +109,5 @@ and the electrons can damp the electric field.
 In VlaPy, we verify that the damping rate is reproduced for a few different wave numbers.
 This is shown in `notebooks/landau_damping.ipynb.`
 
-...this page is in development...
-
 .. bibliography:: bibs/vlasov.bib
     :style: unsrtalpha

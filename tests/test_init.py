@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from vlapy.core import step
+from vlapy import initializers
 import numpy as np
 
 
@@ -29,7 +29,7 @@ def test_initial_density():
     nv = 1024
     vmax = 6.0
     dv = 2 * vmax / nv
-    f = step.initialize(nx, nv)
+    f = initializers.initialize_distribution(nx=nx, nv=nv, vmax=vmax)
 
     np.testing.assert_almost_equal(f[0,].sum() * dv, np.ones(nx), decimal=3)
 
@@ -40,7 +40,7 @@ def test_initial_temperature():
     vmax = 6.0
     dv = 2 * vmax / nv
     v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
-    f = step.initialize(nx, nv)
+    f = initializers.initialize_distribution(nx=nx, nv=nv, vmax=vmax)
 
     np.testing.assert_almost_equal(
         np.array(
