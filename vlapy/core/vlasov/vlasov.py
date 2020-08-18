@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from vlapy.core.vlasov.linearized_weno5 import get_edfdv_linearized_weno5
+
 import numpy as np
 
 
@@ -151,6 +153,8 @@ def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
         edfdv = get_edfdv_exponential(kv=stuff_for_time_loop["kv"])
     elif edfdv_implementation == "cd2":
         edfdv = get_edfdv_center_differenced(dv=stuff_for_time_loop["dv"])
+    elif edfdv_implementation == "lw5":
+        edfdv = get_edfdv_linearized_weno5(dv=stuff_for_time_loop["dv"])
     else:
         raise NotImplementedError
 

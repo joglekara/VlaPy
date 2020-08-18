@@ -30,7 +30,7 @@ from vlapy.diagnostics import landau_damping
 
 ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
 ALL_VDFDX_INTEGRATORS = ["exponential"]
-ALL_EDFDV_INTEGRATORS = ["exponential", "cd2"]
+ALL_EDFDV_INTEGRATORS = ["exponential", "cd2", "lw5"]
 
 
 def __run_integrated_landau_damping_test_and_return_damping_rate__(
