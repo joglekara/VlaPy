@@ -39,7 +39,7 @@ if __name__ == "__main__":
     )
 
     all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
-    all_params_dict["vlasov-poisson"]["edfdv"] = "cd2"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "lw5"
 
     tmax = 100
     all_params_dict["tmax"] = tmax

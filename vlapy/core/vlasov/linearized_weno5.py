@@ -30,37 +30,37 @@ def get_beta_plus_matrices(nv):
     def get_beta_plus_0_matrices():
         first_term = (
             np.diag(np.ones(nv), k=0)
-            + np.diag(-2.0 * np.ones(nv), k=-1)
-            + np.diag(np.ones(nv), k=-2)
+            + np.diag(-2.0 * np.ones(nv - 1), k=-1)
+            + np.diag(np.ones(nv - 2), k=-2)
         )
         second_term = (
             np.diag(3.0 * np.ones(nv), k=0)
-            + np.diag(-4.0 * np.ones(nv), k=-1)
-            + np.diag(np.ones(nv), k=-2)
+            + np.diag(-4.0 * np.ones(nv - 1), k=-1)
+            + np.diag(np.ones(nv - 2), k=-2)
         )
 
         return first_term, second_term
 
     def get_beta_plus_1_matrices():
         first_term = (
-            np.diag(np.ones(nv), k=1)
+            np.diag(np.ones(nv - 1), k=1)
             + np.diag(-2.0 * np.ones(nv), k=0)
-            + np.diag(np.ones(nv), k=-1)
+            + np.diag(np.ones(nv - 1), k=-1)
         )
-        second_term = np.diag(np.ones(nv), k=1) + np.diag(np.ones(nv), k=-1)
+        second_term = np.diag(np.ones(nv - 1), k=1) + np.diag(np.ones(nv - 1), k=-1)
 
         return first_term, second_term
 
     def get_beta_plus_2_matrices():
         first_term = (
             np.diag(np.ones(nv), k=0)
-            + np.diag(-2.0 * np.ones(nv), k=1)
-            + np.diag(np.ones(nv), k=2)
+            + np.diag(-2.0 * np.ones(nv - 1), k=1)
+            + np.diag(np.ones(nv - 2), k=2)
         )
         second_term = (
             np.diag(3.0 * np.ones(nv), k=0)
-            + np.diag(-4.0 * np.ones(nv), k=1)
-            + np.diag(np.ones(nv), k=2)
+            + np.diag(-4.0 * np.ones(nv - 1), k=1)
+            + np.diag(np.ones(nv - 2), k=2)
         )
 
         return first_term, second_term
@@ -75,14 +75,16 @@ def get_beta_plus_matrices(nv):
 def get_beta_minus_matrices(nv):
     def get_beta_minus_0_matrices():
         first_term = (
-            np.diag(np.ones(nv), k=1)
-            + np.diag(-2.0 * np.ones(nv), k=2)
-            + np.diag(np.ones(nv), k=3)
+            np.diag(np.ones(nv - 1), k=1)
+            + np.diag(-2.0 * np.ones(nv - 2), k=2)
+            + np.diag(np.ones(nv - 3), k=3)
+            + np.diag(np.zeros(nv), k=0)
         )
         second_term = (
-            np.diag(3.0 * np.ones(nv), k=1)
-            + np.diag(-4.0 * np.ones(nv), k=2)
-            + np.diag(np.ones(nv), k=3)
+            np.diag(3.0 * np.ones(nv - 1), k=1)
+            + np.diag(-4.0 * np.ones(nv - 2), k=2)
+            + np.diag(np.ones(nv - 3), k=3)
+            + np.diag(np.zeros(nv), k=0)
         )
 
         return first_term, second_term
@@ -90,23 +92,23 @@ def get_beta_minus_matrices(nv):
     def get_beta_minus_1_matrices():
         first_term = (
             np.diag(np.ones(nv), k=0)
-            + np.diag(-2.0 * np.ones(nv), k=1)
-            + np.diag(np.ones(nv), k=2)
+            + np.diag(-2.0 * np.ones(nv - 1), k=1)
+            + np.diag(np.ones(nv - 2), k=2)
         )
-        second_term = np.diag(np.ones(nv), k=0) + np.diag(np.ones(nv), k=2)
+        second_term = np.diag(np.ones(nv), k=0) + np.diag(np.ones(nv - 2), k=2)
 
         return first_term, second_term
 
     def get_beta_minus_2_matrices():
         first_term = (
-            np.diag(np.ones(nv), k=-1)
+            np.diag(np.ones(nv - 1), k=-1)
             + np.diag(-2.0 * np.ones(nv), k=0)
-            + np.diag(np.ones(nv), k=1)
+            + np.diag(np.ones(nv - 1), k=1)
         )
         second_term = (
-            np.diag(np.ones(nv), k=-1)
+            np.diag(np.ones(nv - 1), k=-1)
             + np.diag(-4.0 * np.ones(nv), k=0)
-            + np.diag(3.0 * np.ones(nv), k=1)
+            + np.diag(3.0 * np.ones(nv - 1), k=1)
         )
 
         return first_term, second_term
@@ -121,44 +123,45 @@ def get_beta_minus_matrices(nv):
 def get_overall_stencils(nv):
     def get_first_term_plus_matrix():
         return (
-            np.diag(2.0 / 6.0 * np.ones(nv), k=-2)
-            + np.diag(-7.0 / 6.0 * np.ones(nv), k=-1)
+            np.diag(2.0 / 6.0 * np.ones(nv - 2), k=-2)
+            + np.diag(-7.0 / 6.0 * np.ones(nv - 1), k=-1)
             + np.diag(11.0 / 6.0 * np.ones(nv), k=0)
         )
 
     def get_second_term_plus_matrix():
         return (
-            np.diag(-1.0 / 6.0 * np.ones(nv), k=-1)
+            np.diag(-1.0 / 6.0 * np.ones(nv - 1), k=-1)
             + np.diag(5.0 / 6.0 * np.ones(nv), k=0)
-            + np.diag(2.0 / 6.0 * np.ones(nv), k=1)
+            + np.diag(2.0 / 6.0 * np.ones(nv - 1), k=1)
         )
 
     def get_third_term_plus_matrix():
         return (
             np.diag(2.0 / 6.0 * np.ones(nv), k=0)
-            + np.diag(5.0 / 6.0 * np.ones(nv), k=1)
-            + np.diag(-1.0 / 6.0 * np.ones(nv), k=2)
+            + np.diag(5.0 / 6.0 * np.ones(nv - 1), k=1)
+            + np.diag(-1.0 / 6.0 * np.ones(nv - 2), k=2)
         )
 
     def get_first_term_minus_matrix():
         return (
-            np.diag(-1.0 / 6.0 * np.ones(nv), k=-1)
+            np.diag(-1.0 / 6.0 * np.ones(nv - 1), k=-1)
             + np.diag(-5.0 / 6.0 * np.ones(nv), k=0)
-            + np.diag(2.0 / 6.0 * np.ones(nv), k=-1)
+            + np.diag(2.0 / 6.0 * np.ones(nv - 1), k=-1)
         )
 
     def get_second_term_minus_matrix():
         return (
             np.diag(2.0 / 6.0 * np.ones(nv), k=0)
-            + np.diag(5.0 / 6.0 * np.ones(nv), k=1)
-            + np.diag(-1.0 / 6.0 * np.ones(nv), k=2)
+            + np.diag(5.0 / 6.0 * np.ones(nv - 1), k=1)
+            + np.diag(-1.0 / 6.0 * np.ones(nv - 2), k=2)
         )
 
     def get_third_term_minus_matrix():
         return (
-            np.diag(11.0 / 6.0 * np.ones(nv), k=1)
-            + np.diag(-7.0 / 6.0 * np.ones(nv), k=2)
-            + np.diag(2.0 / 6.0 * np.ones(nv), k=3)
+            np.diag(11.0 / 6.0 * np.ones(nv - 1), k=1)
+            + np.diag(-7.0 / 6.0 * np.ones(nv - 2), k=2)
+            + np.diag(2.0 / 6.0 * np.ones(nv - 3), k=3)
+            + np.diag(np.zeros(nv), k=0)
         )
 
     return (
@@ -240,19 +243,27 @@ def get_edfdv_linearized_weno5(nv, dv):
 
     def update_edfdv_lw5(f, e, dt):
         beta = _beta_(f)
-        alpha = [gamma / (EPSILON + beta_i) ** 2.0 for beta_i in beta]
-        weights = [get_weights(alpha=alpha_i) for alpha_i in alpha]
+        alpha_plus = [
+            gamma_i / (EPSILON + beta_i) ** 2.0
+            for gamma_i, beta_i in zip(gamma, beta[:3])
+        ]
+        alpha_minus = [
+            gamma_i / (EPSILON + beta_i) ** 2.0
+            for gamma_i, beta_i in zip(gamma, beta[3:])
+        ]
+        weights_plus = [get_weights(alpha=alpha_i) for alpha_i in alpha_plus]
+        weights_minus = [get_weights(alpha=alpha_i) for alpha_i in alpha_minus]
 
         f_plus = (
-            weights[0] * (first_term_plus_matrix * f)
-            + weights[1] * (second_term_plus_matrix * f)
-            + weights[2] * (third_term_plus_matrix * f)
+            weights_plus[0] * np.dot(first_term_plus_matrix[None,], f[:, None, :])
+            + weights_plus[1] * np.dot(second_term_plus_matrix[None,], f[:, None, :])
+            + weights_plus[2] * np.dot(third_term_plus_matrix[None,], f[:, None, :])
         )
 
         f_minus = (
-            weights[3] * (first_term_minus_matrix * f)
-            + weights[4] * (second_term_minus_matrix * f)
-            + weights[5] * (third_term_minus_matrix * f)
+            weights_minus[0] * np.dot(first_term_minus_matrix[None,], f[:, None, :])
+            + weights_minus[1] * np.dot(second_term_minus_matrix[None,], f[:, None, :])
+            + weights_minus[2] * np.dot(third_term_minus_matrix[None,], f[:, None, :])
         )
 
         e_plus = np.maximum(e, 0)

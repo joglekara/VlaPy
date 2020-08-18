@@ -154,7 +154,9 @@ def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
     elif edfdv_implementation == "cd2":
         edfdv = get_edfdv_center_differenced(dv=stuff_for_time_loop["dv"])
     elif edfdv_implementation == "lw5":
-        edfdv = get_edfdv_linearized_weno5(dv=stuff_for_time_loop["dv"])
+        edfdv = get_edfdv_linearized_weno5(
+            dv=stuff_for_time_loop["dv"], nv=stuff_for_time_loop["nv"]
+        )
     else:
         raise NotImplementedError
 

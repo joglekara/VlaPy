@@ -22,7 +22,8 @@
 
 import numpy as np
 
-from vlapy.core import field, vlasov, collisions, vlasov_poisson
+from vlapy.core import field, collisions, vlasov_poisson
+from vlapy.core.vlasov import vlasov
 
 
 def get_vlasov_poisson_step(all_params, stuff_for_time_loop):
