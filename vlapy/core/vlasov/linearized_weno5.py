@@ -26,44 +26,39 @@ EPSILON = np.float64(1e-6)
 gamma = np.array([0.1, 0.6, 0.3])
 
 
+def get_triple_thing(coeffs, start_indices, stop_indices, f):
+    return np.sum(
+        f[None, :, start_indices:stop_indices] * coeffs[:, None, None], axis=0
+    )
+
+
 def get_beta_plus_matrices(nv):
-    def get_beta_plus_0_matrices():
-        first_term = (
-            np.diag(np.ones(nv), k=0)
-            + np.diag(-2.0 * np.ones(nv - 1), k=-1)
-            + np.diag(np.ones(nv - 2), k=-2)
-        )
-        second_term = (
-            np.diag(3.0 * np.ones(nv), k=0)
-            + np.diag(-4.0 * np.ones(nv - 1), k=-1)
-            + np.diag(np.ones(nv - 2), k=-2)
-        )
+    # first index is beta plus/minus
+    # 2nd - beta plus 0/1/2
+    # 3rd - beta plus 0 1st term/2nd term
+    # 4th - beta plus 0 1st term 1st/2nd/3rd coefficient
+    beta_coeffs = np.zeros((2, 3, 2, 3))
 
-        return first_term, second_term
+    # first index - beta plus/minus
+    # 2nd - beta plus, subscript 0/1/2
+    # 3rd - beta plus, 0, 1st term/2nd term
+    # 4th - beta plus, 0, 1st term, 1st/2nd/3rd coefficient
+    # 5th - beta plus, 0, 1st term, 1st coefficient, start index
+    beta_inds = np.zeros_like((2, 3, 2, 3, 2))
 
-    def get_beta_plus_1_matrices():
-        first_term = (
-            np.diag(np.ones(nv - 1), k=1)
-            + np.diag(-2.0 * np.ones(nv), k=0)
-            + np.diag(np.ones(nv - 1), k=-1)
-        )
-        second_term = np.diag(np.ones(nv - 1), k=1) + np.diag(np.ones(nv - 1), k=-1)
+    beta_coeffs[:, :, 0, :] = np.array([1.0, -2.0, 1.0])[None, None, None, :]
+    beta_coeffs[0, 0, 1, :] = np.array([1.0, -4.0, 3.0])
+    beta_coeffs[0, 1, 1, :] = np.array([1.0, 0.0, -1])
+    beta_coeffs[0, 2, 1, :] = np.array([3.0, -4.0, 1])
+    beta_coeffs[1, 0, 1, :] = beta_coeffs[0, 2, 1, :]
+    beta_coeffs[1, 1, 1, :] = beta_coeffs[0, 1, 1, :]
+    beta_coeffs[1, 2, 1, :] = beta_coeffs[0, 0, 1, :]
 
-        return first_term, second_term
-
-    def get_beta_plus_2_matrices():
-        first_term = (
-            np.diag(np.ones(nv), k=0)
-            + np.diag(-2.0 * np.ones(nv - 1), k=1)
-            + np.diag(np.ones(nv - 2), k=2)
-        )
-        second_term = (
-            np.diag(3.0 * np.ones(nv), k=0)
-            + np.diag(-4.0 * np.ones(nv - 1), k=1)
-            + np.diag(np.ones(nv - 2), k=2)
-        )
-
-        return first_term, second_term
+    ###
+    beta_inds[0, :] = np.array([0, 1, 2])
+    beta_inds[1, :] = np.array([0, 1, 2])
+    beta_inds[0, 1, 0, :] = np.array([0, 1, 2])
+    ###
 
     return (
         get_beta_plus_0_matrices(),
