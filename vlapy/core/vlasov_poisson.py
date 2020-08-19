@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 
-def get_full_leapfrog_step(vdfdx, edfdv, field_solve, x, dt, driver_function):
+def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
     def full_leapfrog_ps_step(e, f, t):
         """
         Takes a step forward in time for f and e
@@ -56,7 +56,7 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, x, dt, driver_function):
     return full_leapfrog_ps_step
 
 
-def get_full_pefrl_step(vdfdx, edfdv, field_solve, x, kx, v, kv, dt, driver_function):
+def get_full_pefrl_step(vdfdx, edfdv, field_solve, dt, driver_function):
     def full_pefrl_ps_step(e, f, t):
         """
         Takes a step forward in time for f and e using the
@@ -214,7 +214,6 @@ def get_time_integrator(
             vdfdx=vdfdx,
             edfdv=edfdv,
             field_solve=field_solver,
-            x=stuff_for_time_loop["x"],
             dt=stuff_for_time_loop["dt"],
             driver_function=stuff_for_time_loop["driver_function"],
         )
@@ -223,10 +222,6 @@ def get_time_integrator(
             vdfdx=vdfdx,
             edfdv=edfdv,
             field_solve=field_solver,
-            x=stuff_for_time_loop["x"],
-            kx=stuff_for_time_loop["kx"],
-            v=stuff_for_time_loop["v"],
-            kv=stuff_for_time_loop["kv"],
             dt=stuff_for_time_loop["dt"],
             driver_function=stuff_for_time_loop["driver_function"],
         )

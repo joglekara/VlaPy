@@ -195,12 +195,12 @@ def make_default_params_dictionary():
     :return:
     """
     all_params_dict = {
-        "nx": 64,
+        "nx": 32,
         "xmin": 0.0,
-        "nv": 1024,
+        "nv": 512,
         "vmax": 6.4,
-        "nt": 1000,
-        "tmax": 100,
+        "nt": 500,
+        "tmax": 80,
         "fokker-planck": {"type": "lb", "solver": "batched_tridiagonal",},
         "vlasov-poisson": {
             "time": "leapfrog",

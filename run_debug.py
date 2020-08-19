@@ -38,12 +38,15 @@ if __name__ == "__main__":
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
+    all_params_dict["vlasov-poisson"]["vdfdx"] = "sl"
     all_params_dict["vlasov-poisson"]["time"] = "h-sixth"
     all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
 
     tmax = 100
     all_params_dict["tmax"] = tmax
-    all_params_dict["nt"] = tmax
+    all_params_dict["nt"] = 8 * tmax
     # all_params_dict["fokker-planck"]["type"] = "dg"
 
     pulse_dictionary = {

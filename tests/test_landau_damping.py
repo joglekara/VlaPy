@@ -20,17 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from itertools import product
-
 import numpy as np
+import pytest
 
 from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from vlapy.diagnostics import landau_damping
 
 ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl", "h-sixth"]
-ALL_VDFDX_INTEGRATORS = ["exponential"]
-ALL_EDFDV_INTEGRATORS = ["exponential", "cd2"]
+ALL_VDFDX_INTEGRATORS = ["exponential", "sl"]
+ALL_EDFDV_INTEGRATORS = ["exponential", "cd2", "sl"]
+
+ALL_VDFDX_INTEGRATORS_FOR_FAST_TESTING = ["exponential", "sl"]
+ALL_EDFDV_INTEGRATORS_FOR_FAST_TESTING = ["exponential", "cd2", "sl"]
 
 
 def __run_integrated_landau_damping_test_and_return_damping_rate__(
@@ -93,26 +95,28 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
     )
 
 
-def test_full_landau_damping():
+# @pytest.mark.parametrize("vdfdx_integrator", ALL_VDFDX_INTEGRATORS)
+# @pytest.mark.parametrize("edfdv_integrator", ALL_EDFDV_INTEGRATORS)
+@pytest.mark.parametrize("vdfdx_integrator", ALL_VDFDX_INTEGRATORS_FOR_FAST_TESTING)
+@pytest.mark.parametrize("edfdv_integrator", ALL_EDFDV_INTEGRATORS_FOR_FAST_TESTING)
+@pytest.mark.parametrize("time_integrator", ALL_TIME_INTEGRATORS)
+def test_landau_damping(vdfdx_integrator, edfdv_integrator, time_integrator):
     """
-    Tests Landau Damping for a random wavenumber
+    Tests Landau Damping for a random wavenumber for a given combination of integrators
 
     :return:
     """
-    rand_k0 = np.random.uniform(0.25, 0.4, 1)[0]
+    rand_k0 = 0.3  # np.random.uniform(0.25, 0.4, 1)[0]
 
-    for vdfdx_integrator, edfdv_integrator, time_integrator in product(
-        ALL_VDFDX_INTEGRATORS, ALL_EDFDV_INTEGRATORS, ALL_TIME_INTEGRATORS
-    ):
-        (
-            measured_rate,
-            actual_rate,
-        ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
-            k0=rand_k0,
-            log_nu_over_nu_ld=None,
-            time_integrator=time_integrator,
-            vdfdx_integrator=vdfdx_integrator,
-            edfdv_integrator=edfdv_integrator,
-        )
+    (
+        measured_rate,
+        actual_rate,
+    ) = __run_integrated_landau_damping_test_and_return_damping_rate__(
+        k0=rand_k0,
+        log_nu_over_nu_ld=None,
+        time_integrator=time_integrator,
+        vdfdx_integrator=vdfdx_integrator,
+        edfdv_integrator=edfdv_integrator,
+    )
 
-        np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)
+    np.testing.assert_almost_equal(measured_rate, actual_rate, decimal=4)

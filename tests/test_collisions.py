@@ -20,20 +20,146 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from itertools import product
 from copy import deepcopy
+import pytest
 
 from tests import helpers
 from vlapy.core import step
 import numpy as np
 
 
-# ALL_SOLVERS = ["naive", "batched_tridiagonal"]
-ALL_SOLVERS = ["batched_tridiagonal"]
+ALL_SOLVERS = ["naive", "batched_tridiagonal"]
+ALL_SOLVERS_FOR_FAST_TESTING = ["batched_tridiagonal"]
 ALL_OPERATORS = ["lb", "dg"]
 
 TOLERANCE = 4
 T_END = 16
+
+
+@pytest.mark.parametrize("solver", ALL_SOLVERS_FOR_FAST_TESTING)
+# @pytest.mark.parametrize("solver", ALL_SOLVERS)
+@pytest.mark.parametrize("collision_operator", ALL_OPERATORS)
+def test_maxwellian_solution(collision_operator, solver):
+    __test_maxwellian_solution__(collision_operator, solver)
+
+
+def __test_maxwellian_solution__(collision_operator, solver):
+    """
+    tests if df/dt = 0 if f = maxwellian
+
+    :return:
+    """
+
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
+    )
+
+    np.testing.assert_almost_equal(f, f_out, decimal=4)
+
+
+@pytest.mark.parametrize("solver", ALL_SOLVERS_FOR_FAST_TESTING)
+# @pytest.mark.parametrize("solver", ALL_SOLVERS)
+@pytest.mark.parametrize("collision_operator", ALL_OPERATORS)
+def test_energy_conservation(collision_operator, solver):
+    __test_energy_conservation__(collision_operator, solver)
+
+
+def __test_energy_conservation__(collision_operator, solver):
+    """
+    tests if the 2nd moment of f is conserved
+
+    :return:
+    """
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
+    )
+
+    temp_in = np.trapz(f * v[None, :] ** 2.0, dx=dv, axis=1)
+    temp_out = np.trapz(f_out * v[None, :] ** 2.0, dx=dv, axis=1)
+    np.testing.assert_almost_equal(temp_out, temp_in, decimal=4)
+
+
+@pytest.mark.parametrize("solver", ALL_SOLVERS_FOR_FAST_TESTING)
+# @pytest.mark.parametrize("solver", ALL_SOLVERS)
+@pytest.mark.parametrize("collision_operator", ALL_OPERATORS)
+def test_density_conservation(collision_operator, solver):
+    __test_density_conservation__(collision_operator, solver)
+
+
+def __test_density_conservation__(collision_operator, solver):
+    """
+    tests if the 0th moment of f is conserved
+
+    :return:
+    """
+
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
+    )
+
+    temp_in = np.trapz(f, dx=dv, axis=1)
+    temp_out = np.trapz(f_out, dx=dv, axis=1)
+    np.testing.assert_almost_equal(temp_out, temp_in, decimal=TOLERANCE)
+
+
+@pytest.mark.parametrize("solver", ALL_SOLVERS_FOR_FAST_TESTING)
+# @pytest.mark.parametrize("solver", ALL_SOLVERS)
+@pytest.mark.parametrize("collision_operator", ALL_OPERATORS)
+def test_momentum_conservation_if_initialized_at_zero(collision_operator, solver):
+    __test_momentum_conservation_if_initialized_at_zero__(
+        collision_operator=collision_operator, solver=solver
+    )
+
+
+def __test_momentum_conservation_if_initialized_at_zero__(collision_operator, solver):
+    """
+    tests if the 1st moment of f is conserved if initialized at 0
+
+    :return:
+    """
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
+    )
+
+    temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
+    temp_out = np.trapz(f_out * v[None, :], dx=dv, axis=1)
+
+    np.testing.assert_almost_equal(actual=temp_in, desired=temp_out, decimal=TOLERANCE)
+
+
+@pytest.mark.parametrize("solver", ALL_SOLVERS_FOR_FAST_TESTING)
+# @pytest.mark.parametrize("solver", ALL_SOLVERS)
+@pytest.mark.parametrize("collision_operator", ALL_OPERATORS)
+def test_momentum_conservation(collision_operator, solver):
+    __test_momentum_conservation__(collision_operator=collision_operator, solver=solver)
+
+
+def __test_momentum_conservation__(collision_operator, solver):
+    """
+    Tests if the 1st moment of f is conserved or not
+
+    This moment is not conserved and is brought to 0 by the following operators:
+    1 - "lb"
+
+    This moment is conserved by the following operators:
+    1 - "dg"
+
+
+    :return:
+    """
+    f, f_out, v, dv = __run_collision_operator_test_loop__(
+        vshift=1.5, collision_operator=collision_operator, solver=solver, t_end=T_END,
+    )
+
+    temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
+    temp_out = np.trapz(f_out * v[None, :], dx=dv, axis=1)
+
+    if collision_operator == "lb":
+        np.testing.assert_array_less(x=temp_out, y=temp_in)
+    elif collision_operator == "dg":
+        np.testing.assert_almost_equal(
+            actual=temp_in, desired=temp_out, decimal=TOLERANCE
+        )
 
 
 def __initialize_for_collisions__(vshift):
@@ -82,121 +208,3 @@ def __run_collision_operator_test_loop__(
         f_out = fp_step(f_out)
 
     return f, f_out, v, dv
-
-
-def test_maxwellian_solution():
-    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
-        __test_maxwellian_solution__(collision_operator, solver)
-
-
-def __test_maxwellian_solution__(collision_operator, solver):
-    """
-    tests if df/dt = 0 if f = maxwellian
-
-    :return:
-    """
-
-    f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
-    )
-
-    np.testing.assert_almost_equal(f, f_out, decimal=4)
-
-
-def test_energy_conservation():
-    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
-        __test_energy_conservation__(collision_operator, solver)
-
-
-def __test_energy_conservation__(collision_operator, solver):
-    """
-    tests if the 2nd moment of f is conserved
-
-    :return:
-    """
-    f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
-    )
-
-    temp_in = np.trapz(f * v[None, :] ** 2.0, dx=dv, axis=1)
-    temp_out = np.trapz(f_out * v[None, :] ** 2.0, dx=dv, axis=1)
-    np.testing.assert_almost_equal(temp_out, temp_in, decimal=4)
-
-
-def test_density_conservation():
-    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
-        __test_density_conservation__(collision_operator, solver)
-
-
-def __test_density_conservation__(collision_operator, solver):
-    """
-    tests if the 0th moment of f is conserved
-
-    :return:
-    """
-
-    f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.5, t_end=T_END, collision_operator=collision_operator, solver=solver
-    )
-
-    temp_in = np.trapz(f, dx=dv, axis=1)
-    temp_out = np.trapz(f_out, dx=dv, axis=1)
-    np.testing.assert_almost_equal(temp_out, temp_in, decimal=TOLERANCE)
-
-
-def test_momentum_conservation_if_initialized_at_zero():
-    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
-        __test_momentum_conservation_if_initialized_at_zero__(
-            collision_operator=collision_operator, solver=solver
-        )
-
-
-def __test_momentum_conservation_if_initialized_at_zero__(collision_operator, solver):
-    """
-    tests if the 1st moment of f is conserved if initialized at 0
-
-    :return:
-    """
-    f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=0.0, t_end=T_END, collision_operator=collision_operator, solver=solver
-    )
-
-    temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
-    temp_out = np.trapz(f_out * v[None, :], dx=dv, axis=1)
-
-    np.testing.assert_almost_equal(actual=temp_in, desired=temp_out, decimal=TOLERANCE)
-
-
-def test_momentum_conservation():
-    for collision_operator, solver in product(ALL_OPERATORS, ALL_SOLVERS):
-        __test_momentum_conservation__(
-            collision_operator=collision_operator, solver=solver
-        )
-
-
-def __test_momentum_conservation__(collision_operator, solver):
-    """
-    Tests if the 1st moment of f is conserved or not
-
-    This moment is not conserved and is brought to 0 by the following operators:
-    1 - "lb"
-
-    This moment is conserved by the following operators:
-    1 - "dg"
-
-
-    :return:
-    """
-    f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=1.5, collision_operator=collision_operator, solver=solver, t_end=T_END,
-    )
-
-    temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)
-    temp_out = np.trapz(f_out * v[None, :], dx=dv, axis=1)
-
-    if collision_operator == "lb":
-        np.testing.assert_array_less(x=temp_out, y=temp_in)
-    elif collision_operator == "dg":
-        np.testing.assert_almost_equal(
-            actual=temp_in, desired=temp_out, decimal=TOLERANCE
-        )
