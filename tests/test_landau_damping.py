@@ -28,7 +28,7 @@ from vlapy import manager, initializers
 from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from vlapy.diagnostics import landau_damping
 
-ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
+ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl", "h-sixth"]
 ALL_VDFDX_INTEGRATORS = ["exponential"]
 ALL_EDFDV_INTEGRATORS = ["exponential", "cd2"]
 

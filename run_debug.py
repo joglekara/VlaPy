@@ -27,8 +27,8 @@ from vlapy.infrastructure import mlflow_helpers, print_to_screen
 from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
-    k0 = np.random.uniform(0.3, 0.4, 1)[0]
-    log_nu_over_nu_ld = -3
+    k0 = 0.3  # np.random.uniform(0.3, 0.4, 1)[0]
+    log_nu_over_nu_ld = None
 
     all_params_dict = initializers.make_default_params_dictionary()
     all_params_dict = initializers.specify_epw_params_to_dict(
@@ -38,12 +38,12 @@ if __name__ == "__main__":
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
 
-    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
-    all_params_dict["vlasov-poisson"]["edfdv"] = "cd2"
+    all_params_dict["vlasov-poisson"]["time"] = "h-sixth"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
 
     tmax = 100
     all_params_dict["tmax"] = tmax
-    all_params_dict["nt"] = 8 * tmax
+    all_params_dict["nt"] = tmax
     # all_params_dict["fokker-planck"]["type"] = "dg"
 
     pulse_dictionary = {
