@@ -41,6 +41,8 @@ if __name__ == "__main__":
     all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
     all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
     all_params_dict["vlasov-poisson"]["vdfdx"] = "sl"
+    all_params_dict["vlasov-poisson"]["time"] = "h-sixth"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
 
     tmax = 100
     all_params_dict["tmax"] = tmax
