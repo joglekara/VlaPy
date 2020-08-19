@@ -199,8 +199,8 @@ def make_default_params_dictionary():
         "xmin": 0.0,
         "nv": 512,
         "vmax": 6.4,
-        "nt": 1000,
-        "tmax": 100,
+        "nt": 500,
+        "tmax": 80,
         "fokker-planck": {"type": "lb", "solver": "batched_tridiagonal",},
         "vlasov-poisson": {
             "time": "leapfrog",
@@ -208,7 +208,7 @@ def make_default_params_dictionary():
             "edfdv": "exponential",
             "poisson": "spectral",
         },
-        "backend": {"core": "numpy", "max_doubles_per_file": int(1e8),},
+        "backend": {"core": "numpy", "max_doubles_per_file": int(2e7),},
         "a0": 1e-7,
     }
 

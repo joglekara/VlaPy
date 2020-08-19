@@ -31,8 +31,8 @@ ALL_TIME_INTEGRATORS = ["leapfrog", "pefrl"]
 ALL_VDFDX_INTEGRATORS = ["exponential", "sl"]
 ALL_EDFDV_INTEGRATORS = ["exponential", "cd2", "sl"]
 
-ALL_VDFDX_INTEGRATORS_FOR_FAST_TESTING = ["exponential"]
-ALL_EDFDV_INTEGRATORS_FOR_FAST_TESTING = ["exponential", "cd2"]
+ALL_VDFDX_INTEGRATORS_FOR_FAST_TESTING = ["exponential", "sl"]
+ALL_EDFDV_INTEGRATORS_FOR_FAST_TESTING = ["exponential", "cd2", "sl"]
 
 
 def __run_integrated_landau_damping_test_and_return_damping_rate__(
