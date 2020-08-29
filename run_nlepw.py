@@ -68,7 +68,7 @@ if __name__ == "__main__":
     mlflow_exp_name = "nlepw"
 
     uris = {
-        "tracking": "http://18.216.221.42:80",
+        "tracking": "local",
     }
 
     print_to_screen.print_startup_message(
