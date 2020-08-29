@@ -45,7 +45,8 @@ def __plot_series__(series_dir, storage_manager):
         this_plt.set_ylabel(metric, fontsize=12)
         this_plt.set_title(metric + " vs Time", fontsize=14)
         this_fig.savefig(
-            os.path.join(series_dir, metric + ".png"), bbox_inches="tight",
+            os.path.join(series_dir, metric + ".png"),
+            bbox_inches="tight",
         )
         plt.close(this_fig)
 
@@ -61,7 +62,8 @@ def __plot_fields__(fields_dir, storage_manager):
         this_plt.set_title(metric + " vs Time and Space", fontsize=14)
         this_fig.colorbar(cb)
         this_fig.savefig(
-            os.path.join(fields_dir, metric + ".png"), bbox_inches="tight",
+            os.path.join(fields_dir, metric + ".png"),
+            bbox_inches="tight",
         )
         plt.close(this_fig)
 
@@ -78,7 +80,8 @@ def __plot_distribution__(dist_dir, storage_manager):
     this_plt.set_title("Most Recent Distribution Function", fontsize=14)
     this_fig.colorbar(cb)
     this_fig.savefig(
-        os.path.join(dist_dir, "fxv.png"), bbox_inches="tight",
+        os.path.join(dist_dir, "fxv.png"),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -91,7 +94,8 @@ def plot_e_vs_t(plots_dir, t, e, title):
     this_plt.set_title(title, fontsize=14)
     this_plt.grid()
     this_fig.savefig(
-        os.path.join(plots_dir, "E_vs_time.png"), bbox_inches="tight",
+        os.path.join(plots_dir, "E_vs_time.png"),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -106,7 +110,8 @@ def plot_e_vs_w(plots_dir, w, e, title):
     this_plt.set_xlim(-5, 5)
     this_plt.set_ylim(0.001 * np.amax(e), 1.5 * np.amax(e))
     this_fig.savefig(
-        os.path.join(plots_dir, "E_vs_frequency.png"), bbox_inches="tight",
+        os.path.join(plots_dir, "E_vs_frequency.png"),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -122,7 +127,8 @@ def plot_dw_vs_t(plots_dir, t, ek1_shift, title):
     this_plt.set_title(title, fontsize=14)
     this_plt.grid()
     this_fig.savefig(
-        os.path.join(plots_dir, "nl_frequency_shift_vs_time.png"), bbox_inches="tight",
+        os.path.join(plots_dir, "nl_frequency_shift_vs_time.png"),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -138,7 +144,8 @@ def plot_fhat0(plots_dir, f, v, title, filename):
     this_plt.set_ylabel(r"$\hat{f}^{0}$", fontsize=12)
     this_plt.set_title(title, fontsize=14)
     this_fig.savefig(
-        os.path.join(plots_dir, filename), bbox_inches="tight",
+        os.path.join(plots_dir, filename),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
@@ -186,7 +193,8 @@ def __plot_f_k1(self, fk1_kv_t, time, kv, title):
         fontsize=14,
     )
     this_fig.savefig(
-        os.path.join(self.plots_dir, "fk1.png"), bbox_inches="tight",
+        os.path.join(self.plots_dir, "fk1.png"),
+        bbox_inches="tight",
     )
     plt.close(this_fig)
 
