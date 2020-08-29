@@ -28,12 +28,12 @@ from vlapy.diagnostics import low_level_helpers as llh
 from vlapy.diagnostics import base
 
 
-class LandauDamping(base.BaseDiagnostic):
+class NLEPW(base.BaseDiagnostic):
     def __init__(self, vph, wepw):
         super().__init__()
         self.rules_to_store_f = {
             "time": "first-last",
-            "space": ["k0", "k1"],
+            "space": ["k" + str(ik) for ik in range(0, 2)],
         }
 
         self.vph = vph
@@ -49,55 +49,63 @@ class LandauDamping(base.BaseDiagnostic):
         super().post_custom_diagnostics(storage_manager=storage_manager)
 
     def get_metrics(self, storage_manager):
-        e_amp, e_phase = llh.get_e_ss(efield_arr=storage_manager.fields_dataset["e"])
-        metrics = {
-            "damping_rate": llh.get_damping_rate(
-                efield_arr=storage_manager.fields_dataset["e"]
-            ),
-            "E_ss_amp": e_amp,
-            "E_ss_phase": e_phase / np.pi,
-        }
+        metrics = {}
+
+        density_k = (
+            2.0
+            / storage_manager.fields_dataset["n"].coords["space"].data.size
+            * np.abs(
+                fft.fft(
+                    storage_manager.fields_dataset["n"].data,
+                    axis=1,
+                    workers=-1,
+                )
+            )
+        )
+
+        for ik in range(1, len(self.rules_to_store_f["space"])):
+            density_ik = density_k[:, ik]
+            metrics["sum_n_" + str(ik)] = np.sum(density_ik) / density_ik.size
+
         return metrics
 
     def make_plots(self, storage_manager):
         super().make_plots(storage_manager=storage_manager)
-
-        wax = llh.get_w_ax(storage_manager.fields_dataset["e"])
         tax = storage_manager.fields_dataset["e"].coords["time"].data
-        ek_rec = llh.get_nth_mode(storage_manager.fields_dataset["e"], 1)
-
-        ek_mag = np.array([np.abs(ek_rec[it, 1]) for it in range(tax.size)])
-        ekw_mag = np.abs(fft.fft(np.array([ek_rec[it, 1] for it in range(tax.size)])))
-
-        ek1_shift = llh.get_nlfs(storage_manager.fields_dataset["e"], self.wepw)
-
-        base.plot_e_vs_t(
-            plots_dir=self.plots_dir,
-            t=tax,
-            e=ek_mag,
-            title="Electric Field Amplitude vs Time",
+        xax = storage_manager.fields_dataset["e"].coords["space"].data
+        ek = np.abs(
+            2.0
+            / xax.size
+            * fft.fft(storage_manager.fields_dataset["e"].data, axis=1, workers=-1)
         )
-        base.plot_e_vs_w(
-            plots_dir=self.plots_dir,
-            w=wax,
-            e=ekw_mag,
-            title="Electric Field Amplitude vs Frequency",
-        )
-        base.plot_dw_vs_t(
-            plots_dir=self.plots_dir,
-            t=tax,
-            ek1_shift=ek1_shift,
-            title="Non-linear Frequency Shift vs Time",
-        )
+
+        ek_mag = [
+            np.squeeze(ek[:, ik])
+            for ik in range(1, len(self.rules_to_store_f["space"]))
+        ]
+
+        for log in [True, False]:
+            base.plot_e_vs_t(
+                plots_dir=self.plots_dir,
+                t=tax,
+                e=ek_mag,
+                title="Electric Field Modes vs Time",
+                log=log,
+            )
 
         self.make_f_plots(storage_manager=storage_manager)
 
     def make_f_plots(self, storage_manager):
+        current_time = storage_manager.fields_dataset["e"].coords["time"].data[-1]
+
         iv_to_plot = (
-            storage_manager.dist_dataset["distribution_function"]
-            .coords["velocity"]
-            .data
-            > 0
+            np.abs(
+                storage_manager.dist_dataset["distribution_function"]
+                .coords["velocity"]
+                .data
+                - self.vph
+            )
+            < 1.5
         )
 
         v_to_plot = (
@@ -106,20 +114,31 @@ class LandauDamping(base.BaseDiagnostic):
             .data[iv_to_plot]
         )
 
+        base.plot_f_vs_x_and_v(
+            plots_dir=self.plots_dir,
+            f=storage_manager.current_f[:, iv_to_plot],
+            x=storage_manager.fields_dataset["e"].coords["space"].data,
+            v=v_to_plot,
+            title="f(x,v) @ t = "
+            + str(np.round(current_time, 2))
+            + r" $\omega_p^{-1}$",
+            filename="f(x,v).png",
+        )
+
         for ik in range(
             storage_manager.dist_dataset["distribution_function"]
             .coords["fourier_mode"]
             .data.size
         ):
             f_to_plot = np.abs(
-                storage_manager.dist_dataset["distribution_function"].data[
-                    :, ik, iv_to_plot
+                storage_manager.dist_dataset["distribution_function"].loc[
+                    {"fourier_mode": ik, "velocity": v_to_plot}
                 ]
             )
 
             base.plot_f_vs_v(
                 plots_dir=self.plots_dir,
-                f=np.abs(f_to_plot),
+                f=f_to_plot,
                 v=v_to_plot,
                 ylabel=r"$\hat{f}$",
                 title=str(ik) + "-Mode of Distribution Function",

@@ -14,7 +14,7 @@ Please adhere to the guidelines from the Contributor Covenant listed in the [Cod
 ## Quick Usage
 To install dependencies, run ``python3 setup.py install`` from the base directory of the repository.
 
-After this step, ``python3 run_vlapy.py`` can be executed to run a simulation of Landau damping with collisions.
+After this step, ``python3 run_nlepw.py`` can be executed to run a simulation of a Non-Linear Electron Plasma Wave with collisions.
 
 This will create a temporary directory for the simulation files. Once completed, MLFlow will move the simulation folder into a centralized datastore. This datastore can be accessed through a web-browser based UI provided by leveraging MLFlow.
 
@@ -24,7 +24,7 @@ To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then nav
 
 Clicking into that run will show you
 
-![MLFlow damping](notebooks/screenshots_for_example/damping.png)
+![MLFlow damping](notebooks/screenshots_for_example/nlepw_screenshot.png)
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 
