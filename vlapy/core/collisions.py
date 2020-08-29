@@ -37,7 +37,7 @@ def get_philharmonic_matrix_maker(vax, nv, nx, nu, dt, dv):
         :return leftside: matrix for the linear operator
         """
 
-        v0t_sq = np.trapz(f_xv * vax[None,] ** 2.0, dx=dv, axis=1)
+        v0t_sq = np.trapz(f_xv * vax[None,] ** 2.0, dx=dv, axis=1,)
 
         a = (
             nu
@@ -73,8 +73,8 @@ def get_dougherty_matrix_maker(vax, nv, nx, nu, dt, dv):
         :return leftside: matrix for the linear operator
         """
 
-        vbar = np.trapz(f_xv * vax[None,], dx=dv, axis=1)
-        v0t_sq = np.trapz(f_xv * (vax[None,] - vbar[:, None]) ** 2.0, dx=dv, axis=1)
+        vbar = np.trapz(f_xv * vax[None,], dx=dv, axis=1,)
+        v0t_sq = np.trapz(f_xv * (vax[None,] - vbar[:, None]) ** 2.0, dx=dv, axis=1,)
 
         a = (
             nu
@@ -112,11 +112,11 @@ def get_naive_solver(nx):
         """
         for ix in range(nx):
             leftside = (
-                np.diag(np.squeeze(a[ix,]), -1)
-                + np.diag(np.squeeze(b[ix,]), 0)
-                + np.diag(np.squeeze(c[ix,]), 1)
+                np.diag(np.squeeze(a[ix,]), -1,)
+                + np.diag(np.squeeze(b[ix,]), 0,)
+                + np.diag(np.squeeze(c[ix,]), 1,)
             )
-            f[ix,] = np.linalg.solve(leftside, f[ix,])
+            f[ix,] = np.linalg.solve(leftside, f[ix,],)
 
         return f
 

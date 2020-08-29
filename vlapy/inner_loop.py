@@ -47,7 +47,9 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
         store_f = np.zeros(
             (nt_in_loop,) + stuff_for_time_loop["f"].shape, dtype=np.complex64
         )
-        store_f[0,] = stuff_for_time_loop["f"]
+        store_f[
+            0,
+        ] = stuff_for_time_loop["f"]
 
     # If we're saving the first M spatial-modes then that array is created
     elif isinstance(store_f_rules["space"], list) and store_f_rules["space"][0] == "k0":
@@ -56,7 +58,9 @@ def get_arrays_for_time_loop(stuff_for_time_loop, nt_in_loop, store_f_rules):
             dtype=np.complex64,
         )
 
-        store_f[0,] = np.fft.fft(stuff_for_time_loop["f"], axis=0)[: len(store_f_rules)]
+        store_f[0,] = np.fft.fft(
+            stuff_for_time_loop["f"], axis=0
+        )[: len(store_f_rules)]
 
     else:
         raise NotImplementedError
@@ -145,7 +149,10 @@ def get_numpy_inner_loop_stepper(
 
 
 def get_inner_loop(
-    all_params, stuff_for_time_loop, steps_in_loop, rules_to_store_f,
+    all_params,
+    stuff_for_time_loop,
+    steps_in_loop,
+    rules_to_store_f,
 ):
     """
     This is the function that gets the correct inner loop calculation routines given
