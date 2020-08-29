@@ -23,6 +23,7 @@
 import numpy as np
 from scipy import fft
 
+
 def compute_charges(f, dv):
     """
     Computes a simple moment of the distribution function along
