@@ -148,7 +148,10 @@ def __test_momentum_conservation__(collision_operator, solver):
     :return:
     """
     f, f_out, v, dv = __run_collision_operator_test_loop__(
-        vshift=1.5, collision_operator=collision_operator, solver=solver, t_end=T_END,
+        vshift=1.5,
+        collision_operator=collision_operator,
+        solver=solver,
+        t_end=T_END,
     )
 
     temp_in = np.trapz(f * v[None, :], dx=dv, axis=1)

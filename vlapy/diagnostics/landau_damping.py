@@ -118,7 +118,8 @@ class LandauDamping(base.BaseDiagnostic):
             .data
         )
         f_to_plot = storage_manager.dist_dataset["distribution_function"].data[
-            :, 0,
+            :,
+            0,
         ]
 
         base.plot_fhat0(
@@ -130,7 +131,8 @@ class LandauDamping(base.BaseDiagnostic):
         )
 
         f_to_plot = storage_manager.dist_dataset["distribution_function"].data[
-            :, 1,
+            :,
+            1,
         ]
         base.plot_fhat0(
             plots_dir=self.plots_dir,

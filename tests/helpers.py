@@ -26,7 +26,9 @@ import numpy as np
 def __initialize_f__(nx, v, v0, vshift):
     dv = v[2] - v[1]
     f = np.zeros((nx, v.size))
-    f[:,] = np.exp(-((v - vshift) ** 2.0) / 2.0 / v0)
+    f[
+        :,
+    ] = np.exp(-((v - vshift) ** 2.0) / 2.0 / v0)
     f = f / (np.trapz(f, dx=dv, axis=1)[:, None])
 
     return f

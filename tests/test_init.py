@@ -31,7 +31,14 @@ def test_initial_density():
     dv = 2 * vmax / nv
     f = initializers.initialize_distribution(nx=nx, nv=nv, vmax=vmax)
 
-    np.testing.assert_almost_equal(f[0,].sum() * dv, np.ones(nx), decimal=3)
+    np.testing.assert_almost_equal(
+        f[
+            0,
+        ].sum()
+        * dv,
+        np.ones(nx),
+        decimal=3,
+    )
 
 
 def test_initial_temperature():

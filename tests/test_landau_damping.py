@@ -83,7 +83,8 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(
-            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
+            vph=all_params_dict["v_ph"],
+            wepw=all_params_dict["w_epw"],
         ),
         uris=uris,
         name=mlflow_exp_name,
