@@ -25,11 +25,6 @@ To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then nav
 Clicking into that run will show you
 
 ![MLFlow damping](notebooks/screenshots_for_example/damping.png)
-
-and
-
-![MLFlow params_metrics](notebooks/screenshots_for_example/params_metrics.png)
-
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 
