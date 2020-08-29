@@ -26,6 +26,8 @@ import time
 
 import mlflow
 import numpy as np
+from scipy import fft
+
 from matplotlib import pyplot as plt
 
 
@@ -86,15 +88,37 @@ def __plot_distribution__(dist_dir, storage_manager):
     plt.close(this_fig)
 
 
-def plot_e_vs_t(plots_dir, t, e, title):
+def plot_e_vs_t(plots_dir, t, e, title, log=True):
     this_fig, this_plt = __get_figure_and_plot__()
-    this_plt.plot(t, e)
+
+    if log:
+        make_mpl_plot = this_plt.semilogy
+    else:
+        make_mpl_plot = this_plt.plot
+
+    if isinstance(e, list):
+        for ik, ek in enumerate(e):
+            make_mpl_plot(t, ek, label="k=" + str(ik + 1))
+    elif isinstance(e, np.ndarray):
+        make_mpl_plot(t, e)
+    else:
+        raise NotImplementedError
+
     this_plt.set_xlabel(r"Time ($\omega_p^{-1}$)", fontsize=12)
     this_plt.set_ylabel(r"$\hat{E}_{k=1}$", fontsize=12)
     this_plt.set_title(title, fontsize=14)
     this_plt.grid()
+    this_plt.legend()
+    if log:
+        this_plt.set_ylim(
+            1e-9,
+        )
+        filename = os.path.join(plots_dir, "log_E_vs_time.png")
+    else:
+        filename = os.path.join(plots_dir, "E_vs_time.png")
+
     this_fig.savefig(
-        os.path.join(plots_dir, "E_vs_time.png"),
+        filename,
         bbox_inches="tight",
     )
     plt.close(this_fig)
@@ -102,7 +126,7 @@ def plot_e_vs_t(plots_dir, t, e, title):
 
 def plot_e_vs_w(plots_dir, w, e, title):
     this_fig, this_plt = __get_figure_and_plot__()
-    this_plt.semilogy(np.fft.fftshift(w), np.fft.fftshift(e), "-x")
+    this_plt.semilogy(fft.fftshift(w), fft.fftshift(e), "-x")
     this_plt.set_xlabel(r"Frequency ($\omega_p$)", fontsize=12)
     this_plt.set_ylabel(r"$\hat{\hat{E}}_{k=1}$", fontsize=12)
     this_plt.set_title(title, fontsize=14)
@@ -133,16 +157,32 @@ def plot_dw_vs_t(plots_dir, t, ek1_shift, title):
     plt.close(this_fig)
 
 
-def plot_fhat0(plots_dir, f, v, title, filename):
+def plot_f_vs_v(plots_dir, f, v, title, ylabel, filename):
     this_fig, this_plt = __get_figure_and_plot__()
 
     this_plt.plot(v, f[0], label="initial")
     this_plt.plot(v, f[-1], label="final")
     this_plt.legend()
     this_plt.grid()
-    this_plt.set_xlabel(r"$(v - v_{ph}) / v_{th}$", fontsize=12)
-    this_plt.set_ylabel(r"$\hat{f}^{0}$", fontsize=12)
+    this_plt.set_xlabel(r"$v / v_{th}$", fontsize=12)
+    this_plt.set_ylabel(ylabel, fontsize=12)
     this_plt.set_title(title, fontsize=14)
+    this_fig.savefig(
+        os.path.join(plots_dir, filename),
+        bbox_inches="tight",
+    )
+    plt.close(this_fig)
+
+
+def plot_f_vs_x_and_v(plots_dir, f, x, v, title, filename):
+    this_fig, this_plt = __get_figure_and_plot__()
+
+    cb = this_plt.contourf(x, v, f.T, 32, cmap="gist_ncar")
+    this_plt.grid()
+    this_plt.set_xlabel(r"$x / \lambda_{D}$", fontsize=12)
+    this_plt.set_ylabel(r"$v / v_{th}$", fontsize=12)
+    this_plt.set_title(title, fontsize=14)
+    this_fig.colorbar(cb)
     this_fig.savefig(
         os.path.join(plots_dir, filename),
         bbox_inches="tight",
@@ -152,8 +192,8 @@ def plot_fhat0(plots_dir, f, v, title, filename):
 
 def __plot_f_k1(self, fk1_kv_t, time, kv, title):
 
-    kv = np.fft.fftshift(kv)
-    fk1_kv_t = np.fft.fftshift(fk1_kv_t, axes=-1)
+    kv = fft.fftshift(kv)
+    fk1_kv_t = fft.fftshift(fk1_kv_t, axes=-1)
 
     max_fk1_kv = np.amax(fk1_kv_t)
     largest_wavenumber_index_vs_time = [
@@ -245,11 +285,19 @@ class BaseDiagnostic:
 
     def leave(self, storage_manager):
         storage_manager.unload_data_over_all_timesteps()
-        mlflow.log_metrics(
-            metrics={"time_for_batch": time.time() - self.timer}, step=self.stepper
-        )
-        self.timer = time.time()
+        # mlflow.log_metrics(
+        #     metrics={"time_for_logging": time.time() - self.timer}, step=self.stepper
+        # )
+        # self.timer = time.time()
         self.stepper += 1
 
     def load_all_data(self, storage_manager):
         storage_manager.load_data_over_all_timesteps()
+
+    def pre_custom_diagnostics(self, storage_manager):
+        self.make_dirs(storage_manager)
+        self.load_all_data(storage_manager=storage_manager)
+        self.log_series_metrics(storage_manager=storage_manager)
+
+    def post_custom_diagnostics(self, storage_manager):
+        self.leave(storage_manager=storage_manager)

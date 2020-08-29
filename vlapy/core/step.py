@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import numpy as np
+from scipy import fft
 
 from vlapy.core import field, vlasov, collisions, vlasov_poisson
 
@@ -112,7 +113,7 @@ def get_f_update(store_f_rule):
     elif store_f_rule["space"][0] == "k0":
 
         def get_f_to_store(f):
-            return np.fft.fft(f, axis=0)[
+            return fft.fft(f, axis=0)[
                 : len(store_f_rule),
             ]
 
