@@ -20,6 +20,11 @@ This will create a temporary directory for the simulation files. Once completed,
 
 To start the MLFlow UI server, type ``mlflow ui`` into the terminal and then navigate to localhost:5000 in your web browser. The page will look like the following
 
+![MLFlow UI](notebooks/screenshots_for_example/ui.png)
+
+Clicking into that run will show you
+
+![MLFlow damping](notebooks/screenshots_for_example/damping.png)
 ## Overview
 VlaPy is a 1-spatial-dimension, 1-velocity-dimension, Vlasov-Poisson-Fokker-Planck code written in Python. 
 
@@ -43,13 +48,13 @@ The details of the ``VlaPy`` implementation are provided in the following sectio
 The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components.
 
 ### Vlasov - Spatial Advection
-The spatial advection operator is pushed pseudospectrally. The system is periodic in x. 
+The spatial advection operator is pushed using an exponential integrator. The system is periodic in x. 
 
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
 
 ### Vlasov - Velocity Advection
-The velocity advection operator is pushed pseudospectrally. The system is periodic in v.
+The velocity advection operator is pushed using an exponential integrator. The system is periodic in v.
 
 This operator is tested in the fully integrated tests to reproduce solutions of the 
 1D-1V Vlasov-Poisson system, namely, Landau damping.
