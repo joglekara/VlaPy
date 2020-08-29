@@ -116,7 +116,9 @@ def get_driver_function(x, pulse_dictionary):
 def make_driver_array(function, x_axis, time_axis):
     driver_array = np.zeros(time_axis.shape + x_axis.shape)
     for i in range(time_axis.size):
-        driver_array[i,] = function(x_axis, time_axis[i])
+        driver_array[
+            i,
+        ] = function(x_axis, time_axis[i])
 
     return driver_array
 

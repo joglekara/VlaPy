@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import numpy as np
-from scipy import interpolate
+from scipy import interpolate, fft
 
 
 def __get_k__(ax):
@@ -31,7 +31,7 @@ def __get_k__(ax):
     :param ax: axis to transform
     :return:
     """
-    return np.fft.fftfreq(ax.size, d=ax[1] - ax[0])
+    return fft.fftfreq(ax.size, d=ax[1] - ax[0])
 
 
 def get_vdfdx_sl(x, v):
@@ -100,9 +100,7 @@ def get_vdfdx_exponential(kx, v):
         """
 
         return np.real(
-            np.fft.ifft(
-                np.exp(-1j * kx[:, None] * dt * v) * np.fft.fft(f, axis=0), axis=0
-            )
+            fft.ifft(np.exp(-1j * kx[:, None] * dt * v) * fft.fft(f, axis=0), axis=0)
         )
 
     return step_vdfdx_exponential
@@ -130,9 +128,7 @@ def get_edfdv_exponential(kv):
         """
 
         return np.real(
-            np.fft.ifft(
-                np.exp(-1j * kv * dt * e[:, None]) * np.fft.fft(f, axis=1), axis=1
-            )
+            fft.ifft(np.exp(-1j * kv * dt * e[:, None]) * fft.fft(f, axis=1), axis=1)
         )
 
     return step_edfdv_exponential

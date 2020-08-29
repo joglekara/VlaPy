@@ -44,7 +44,9 @@ def initialize_distribution(nx, nv, vmax=6.0):
     vax = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
 
     for ix in range(nx):
-        f[ix,] = np.exp(-(vax ** 2.0) / 2.0)
+        f[
+            ix,
+        ] = np.exp(-(vax ** 2.0) / 2.0)
 
     # normalize
     f = f / np.trapz(f, dx=dv, axis=1)[:, None]
@@ -133,7 +135,8 @@ def get_everything_ready_for_time_loop(
     """
     # Log desired parameters
     log_initial_conditions(
-        all_params=all_params, pulse_dictionary=pulse_dictionary,
+        all_params=all_params,
+        pulse_dictionary=pulse_dictionary,
     )
 
     # Initialize machinery
@@ -201,14 +204,20 @@ def make_default_params_dictionary():
         "vmax": 6.4,
         "nt": 500,
         "tmax": 80,
-        "fokker-planck": {"type": "lb", "solver": "batched_tridiagonal",},
+        "fokker-planck": {
+            "type": "lb",
+            "solver": "batched_tridiagonal",
+        },
         "vlasov-poisson": {
             "time": "leapfrog",
             "vdfdx": "exponential",
             "edfdv": "exponential",
             "poisson": "spectral",
         },
-        "backend": {"core": "numpy", "max_doubles_per_file": int(1e7),},
+        "backend": {
+            "core": "numpy",
+            "max_doubles_per_file": int(1e7),
+        },
         "a0": 1e-7,
     }
 

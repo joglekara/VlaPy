@@ -119,14 +119,20 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, dt, driver_function):
 
         # x4
         f = vdfdx(f, dt4)
-        e = field_solve(driver_function(t + dt1 + dt2 + dt3 + dt4), f=f,)
+        e = field_solve(
+            driver_function(t + dt1 + dt2 + dt3 + dt4),
+            f=f,
+        )
 
         # v4
         f = edfdv(f, e, vdt4)
 
         # x5
         f = vdfdx(f, dt5)
-        e = field_solve(driver_function(t + dt1 + dt2 + dt3 + dt4 + dt5), f=f,)
+        e = field_solve(
+            driver_function(t + dt1 + dt2 + dt3 + dt4 + dt5),
+            f=f,
+        )
 
         return e, f
 

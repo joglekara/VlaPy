@@ -20,66 +20,68 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-from datetime import datetime
-import pprint
-
 import numpy as np
 
-from vlapy import manager
-from diagnostics import landau_damping, z_function
+from vlapy import manager, initializers
+from vlapy.infrastructure import mlflow_helpers, print_to_screen
+from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
+    k0 = np.random.uniform(0.3, 0.4, 1)[0]
+    log_nu_over_nu_ld = -2
 
-    all_params_dict = {
-        "nx": 128,
-        "xmin": 0.0,
-        "xmax": 2.0 * np.pi / 0.3,
-        "nv": 2048,
-        "vmax": 6.0,
-        "nt": 4000,
-        "tmax": 500,
-        "nu": 0.0,
-    }
+    all_params_dict = initializers.make_default_params_dictionary()
+    all_params_dict = initializers.specify_epw_params_to_dict(
+        k0=k0, all_params_dict=all_params_dict
+    )
+    all_params_dict = initializers.specify_collisions_to_dict(
+        log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
+    )
+
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
+    all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
+
+    tmax = 100
+    all_params_dict["tmax"] = tmax
+    all_params_dict["nt"] = 8 * tmax
+    all_params_dict["fokker-planck"]["type"] = "dg"
+    all_params_dict["fokker-planck"]["solver"] = "batched_tridiagonal"
 
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 5,
+            "rise_time": 10,
             "flat_time": 20,
-            "fall_time": 5,
-            "a0": 1e-3,
-            "k0": 0.3,
+            "fall_time": 10,
+            "w0": all_params_dict["w_epw"],
+            "a0": 1e-7,
+            "k0": k0,
         }
     }
 
-    params_to_log = ["w0", "k0", "a0"]
+    mlflow_exp_name = "vlapy-test"
 
-    pulse_dictionary["first pulse"]["w0"] = np.real(
-        z_function.get_roots_to_electrostatic_dispersion(
-            wp_e=1.0, vth_e=1.0, k0=pulse_dictionary["first pulse"]["k0"]
-        )
+    uris = {
+        "tracking": "local",
+    }
+
+    print_to_screen.print_startup_message(
+        mlflow_exp_name, all_params_dict, pulse_dictionary
     )
 
-    mlflow_exp_name = "NLEPW-test"
-
-    print("Starting VlaPy at " + datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-    print("MLFlow experiment name: " + mlflow_exp_name)
-    print("mlruns folder located at " + os.getcwd())
-    print("Run parameters: ")
-    pprint.pprint(all_params_dict)
-    print("Driver parameters: ")
-    pprint.pprint(pulse_dictionary)
-    print()
-    print(
-        "run `mlflow ui` at the command line, and go "
-        "to `http://localhost:5000` in your browser to "
-        "view the results"
-    )
-
-    manager.start_run(
+    that_run = manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=landau_damping.LandauDamping(params_to_log),
+        diagnostics=landau_damping.LandauDamping(
+            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
+        ),
+        uris=uris,
         name=mlflow_exp_name,
+    )
+
+    print(
+        "observed damping rate: "
+        + str(mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run)),
+        "\nactual damping rate: " + str(all_params_dict["nu_ld"]),
     )

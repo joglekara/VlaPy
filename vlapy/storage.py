@@ -41,14 +41,22 @@ def load_over_all_timesteps(individual_path, overall_path):
     :return:
     """
     arr = xr.open_mfdataset(
-        individual_path, combine="by_coords", engine="h5netcdf", parallel=True,
+        individual_path,
+        combine="by_coords",
+        engine="h5netcdf",
+        parallel=True,
     )
 
     arr.to_netcdf(
-        overall_path, engine="h5netcdf", invalid_netcdf=True,
+        overall_path,
+        engine="h5netcdf",
+        invalid_netcdf=True,
     )
 
-    arr = xr.open_dataset(overall_path, engine="h5netcdf",)
+    arr = xr.open_dataset(
+        overall_path,
+        engine="h5netcdf",
+    )
 
     return arr
 
@@ -161,7 +169,8 @@ class StorageManager:
         ) = get_batched_data_from_sim_config(sim_config)
 
         self.write_series_batch(
-            time_actually_stored=time_actually_stored, dict_of_stored_series=series,
+            time_actually_stored=time_actually_stored,
+            dict_of_stored_series=series,
         )
         self.write_field_batch(
             time_actually_stored=time_actually_stored,
@@ -267,7 +276,10 @@ class StorageManager:
         dataarray_dict = {}
 
         for name, array in dict_of_stored_data.items():
-            dataarray_dict[name] = xr.DataArray(data=array, coords=coords,)
+            dataarray_dict[name] = xr.DataArray(
+                data=array,
+                coords=coords,
+            )
 
         ds = xr.Dataset(data_vars=dataarray_dict)
 
