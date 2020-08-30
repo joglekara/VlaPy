@@ -221,7 +221,11 @@ def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
     elif vdfdx_implementation == "sl":
         vdfdx = get_vdfdx_sl(x=stuff_for_time_loop["x"], v=stuff_for_time_loop["v"])
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "v df/dx: <"
+            + vdfdx_implementation
+            + "> has not yet been implemented in NumPy/SciPy"
+        )
 
     return vdfdx
 
@@ -242,6 +246,10 @@ def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
     elif edfdv_implementation == "sl":
         edfdv = get_edfdv_sl(v=stuff_for_time_loop["v"], x=stuff_for_time_loop["x"])
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "e df/dv: <"
+            + edfdv_implementation
+            + "> has not yet been implemented in NumPy/SciPy"
+        )
 
     return edfdv

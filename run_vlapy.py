@@ -28,7 +28,7 @@ from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
     k0 = np.random.uniform(0.3, 0.4, 1)[0]
-    log_nu_over_nu_ld = -2
+    log_nu_over_nu_ld = None
 
     all_params_dict = initializers.make_default_params_dictionary()
     all_params_dict = initializers.specify_epw_params_to_dict(
@@ -42,25 +42,27 @@ if __name__ == "__main__":
     all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
     all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
 
-    tmax = 100
-    all_params_dict["tmax"] = tmax
-    all_params_dict["nt"] = 8 * tmax
-    all_params_dict["fokker-planck"]["type"] = "dg"
-    all_params_dict["fokker-planck"]["solver"] = "batched_tridiagonal"
+    all_params_dict["backend"]["core"] = "numpy"
+    all_params_dict["backend"]["max_GB_for_device"] = 1
+
+    all_params_dict["fokker-planck"]["type"] = "lb"
+    all_params_dict["fokker-planck"]["type"] = "batched_tridiagonal"
+
 
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 10,
-            "flat_time": 20,
-            "fall_time": 10,
+            "t_L": 6,
+            "t_wL": 2.5,
+            "t_R": 20,
+            "t_wR": 2.5,
             "w0": all_params_dict["w_epw"],
             "a0": 1e-7,
             "k0": k0,
         }
     }
 
-    mlflow_exp_name = "vlapy-test"
+    mlflow_exp_name = "landau-damping"
 
     uris = {
         "tracking": "local",
@@ -74,14 +76,14 @@ if __name__ == "__main__":
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
         diagnostics=landau_damping.LandauDamping(
-            vph=all_params_dict["v_ph"], wepw=all_params_dict["w_epw"],
+            vph=all_params_dict["v_ph"],
+            wepw=all_params_dict["w_epw"],
         ),
         uris=uris,
         name=mlflow_exp_name,
     )
 
     print(
-        "observed damping rate: "
-        + str(mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run)),
-        "\nactual damping rate: " + str(all_params_dict["nu_ld"]),
+        mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run),
+        all_params_dict["nu_ld"],
     )
