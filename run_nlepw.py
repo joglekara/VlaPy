@@ -37,35 +37,37 @@ if __name__ == "__main__":
     all_params_dict = initializers.specify_collisions_to_dict(
         log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
     )
-    all_params_dict["a0"] = 1e-2
 
     all_params_dict["nx"] = 256
     all_params_dict["nv"] = 2048
-    all_params_dict["backend"]["max_doubles_per_file"] = int(1e8)
+    all_params_dict["tmax"] = 1000
+    all_params_dict["nt"] = all_params_dict["tmax"] * 4
 
-    all_params_dict["vlasov-poisson"]["time"] = "h-sixth"
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
     all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
     all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
 
-    tmax = 1000
-    all_params_dict["tmax"] = tmax
-    all_params_dict["nt"] = 2 * tmax
-    all_params_dict["fokker-planck"]["type"] = "dg"
+    all_params_dict["backend"]["core"] = "numpy"
+    all_params_dict["backend"]["max_GB_for_device"] = 0.25
+
+    all_params_dict["fokker-planck"]["type"] = "lb"
     all_params_dict["fokker-planck"]["solver"] = "batched_tridiagonal"
+
 
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 15,
-            "flat_time": 40,
-            "fall_time": 15,
+            "t_L": 6,
+            "t_wL": 2.5,
+            "t_R": 25,
+            "t_wR": 2.5,
             "w0": all_params_dict["w_epw"],
-            "a0": all_params_dict["a0"],
+            "a0": 4e-2,
             "k0": k0,
         }
     }
 
-    mlflow_exp_name = "nlepw"
+    mlflow_exp_name = "non-linear electron plasma wave"
 
     uris = {
         "tracking": "local",
@@ -86,8 +88,3 @@ if __name__ == "__main__":
         name=mlflow_exp_name,
     )
 
-    print(
-        "observed damping rate: "
-        + str(mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run)),
-        "\nactual damping rate: " + str(all_params_dict["nu_ld"]),
-    )

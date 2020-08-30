@@ -240,6 +240,8 @@ def get_time_integrator(
             driver_function=stuff_for_time_loop["driver_function"],
         )
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "df/dt : <" + time_integrator_name + "> has not yet been implemented"
+        )
 
     return vp_step
