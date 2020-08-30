@@ -25,7 +25,7 @@ import tempfile
 
 import numpy as np
 
-from vlapy import storage, inner_loop
+from vlapy import storage, outer_loop
 from tests import helpers
 
 
@@ -36,6 +36,17 @@ def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
     stuff_for_time_loop = {
         "f": helpers.__initialize_f__(nx=xax.size, v=vax, v0=1.0, vshift=0.0),
         "e": np.ones(xax.size),
+        "v": vax,
+        "x": xax,
+        "nx": xax.size,
+        "nv": vax.size,
+        "nu": 0.0,
+        "kv": vax,
+        "kx": xax,
+        "one_over_kx": xax,
+        "dt": 0.1,
+        "dv": 0.1,
+        "pulse_dictionary": {}
     }
 
     st = storage.StorageManager(
@@ -49,10 +60,11 @@ def __initialize_base_storage_stuff__(td, xax, vax, rules_to_store_f=None):
         num_steps_in_one_loop=2,
     )
 
-    sim_config = inner_loop.get_arrays_for_time_loop(
+    sim_config = outer_loop.get_arrays_for_inner_loop(
         stuff_for_time_loop=stuff_for_time_loop,
         nt_in_loop=2,
         store_f_rules=rules_to_store_f,
+        this_np=np,
     )
 
     st.batch_update(sim_config=sim_config)

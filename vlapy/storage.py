@@ -236,7 +236,9 @@ class StorageManager:
             f_coords[1] = (
                 "fourier_mode",
                 np.linspace(
-                    0, len(self.rules_to_store_f) - 1, len(self.rules_to_store_f)
+                    0,
+                    len(self.rules_to_store_f["space"]) - 1,
+                    len(self.rules_to_store_f["space"]),
                 ),
             )
         else:

@@ -24,7 +24,6 @@ import mlflow
 import numpy as np
 
 from vlapy.diagnostics import z_function
-from vlapy.core import field_driver
 
 
 def initialize_distribution(nx, nv, vmax=6.0):
@@ -114,89 +113,13 @@ def log_initial_conditions(all_params, pulse_dictionary):
     mlflow.log_params(params_to_log_dict)
 
 
-def get_everything_ready_for_time_loop(
-    diagnostics, all_params, pulse_dictionary, overall_num_steps
-):
-    """
-    In order to keep the main time loop clean, this function handles all the
-    necessary initialization and array creation for the main simulation time loop.
-
-    Initialized here:
-    spatial grid
-    velocity grid
-    distribution function
-    time grid
-    driver array
-
-    :param diagnostics:
-    :param all_params:
-    :param pulse_dictionary:
-    :return:
-    """
-    # Log desired parameters
-    log_initial_conditions(
-        all_params=all_params,
-        pulse_dictionary=pulse_dictionary,
-    )
-
-    # Initialize machinery
-    # Distribution function
-    f = initialize_distribution(
-        nx=all_params["nx"], nv=all_params["nv"], vmax=all_params["vmax"]
-    )
-
-    # Spatial Grid
-    dx, x, kx, one_over_kx = initialize_spatial_quantities(
-        xmin=all_params["xmin"], xmax=all_params["xmax"], nx=all_params["nx"]
-    )
-
-    # Velocity grid
-    dv, v, kv = initialize_velocity_quantities(
-        vmax=all_params["vmax"], nv=all_params["nv"]
-    )
-
-    t_dummy = np.linspace(0, all_params["tmax"], all_params["nt"])
-    dt = t_dummy[1] - t_dummy[0]
-    t = dt * np.arange(overall_num_steps)
-
-    # Field Driver
-    driver_function = field_driver.get_driver_function(
-        x=x, pulse_dictionary=pulse_dictionary
-    )
-    driver_array = field_driver.get_driver_array_using_function(
-        x, t, pulse_dictionary=pulse_dictionary
-    )
-
-    everything_for_time_loop = {
-        "e": np.zeros(x.size),
-        "f": f,
-        "nx": all_params["nx"],
-        "kx": kx,
-        "x": x,
-        "one_over_kx": one_over_kx,
-        "v": v,
-        "kv": kv,
-        "nv": all_params["nv"],
-        "dv": dv,
-        "driver": driver_array,
-        "driver_function": driver_function,
-        "dt": dt,
-        "nu": all_params["nu"],
-        "t": t,
-        "rules_to_store_f": diagnostics.rules_to_store_f,
-        "vlasov-poisson": all_params["vlasov-poisson"],
-        "fokker-planck": all_params["fokker-planck"],
-    }
-
-    return everything_for_time_loop
-
-
 def make_default_params_dictionary():
     """
     Return a dictionary of default parameters
 
     :return:
     """
+
     all_params_dict = {
         "nx": 32,
         "xmin": 0.0,
@@ -215,10 +138,10 @@ def make_default_params_dictionary():
             "poisson": "spectral",
         },
         "backend": {
-            "core": "numpy",
-            "max_doubles_per_file": int(1e7),
+            "core": "jax",
+            "max_GB_for_device": int(1),
         },
-        "a0": 1e-7,
+        "a0": 4e-7,
     }
 
     return all_params_dict
