@@ -177,7 +177,7 @@ def get_naive_solver(nx):
         :param a: (2D float array (nx, nv-1)) the sub-diagonal of the matrix for each x cell
         :param b: (2D float array (nx, nv)) the diagonal of the matrix
         :param c: (2D float array (nx, nv-1)) the super-diagonal of the matrix
-        :param f: the RHS of the `Af_p = f` system.
+        :param f: (2D float array (nx, nv)) the RHS of the `Af_p = f` system.
         :return: the solution, `x`, of the `Af_p = b` system
         """
         for ix in range(nx):
@@ -220,6 +220,14 @@ def get_naive_solver(nx):
 
 
 def get_batched_tridiag_solver(nv):
+    """
+    This function returns the broadcasting-based solver for the collision operator.
+    The broadcasting is done over the x-axis because the collision operator is independent along the
+    x-direction
+
+    :param nv: (int) number of v cells
+    :return: new function with above arguments initialized as static variables
+    """
     def _batched_tridiag_solver_(a, b, c, f):
         """
         Arrayed/Sliced algorithm for tridiagonal solve.
@@ -227,11 +235,11 @@ def get_batched_tridiag_solver(nv):
         About 50x faster than looping through a numpy linalg call
         for a 256x2048 solve
 
-        :param a:
-        :param b:
-        :param c:
-        :param f:
-        :param nv:
+        :param a: (2D float array (nx, nv-1)) the sub-diagonal of the matrix for each x cell
+        :param b: (2D float array (nx, nv)) the diagonal of the matrix
+        :param c: (2D float array (nx, nv-1)) the super-diagonal of the matrix
+        :param f: (2D float array (nx, nv)) the RHS of the `Af_p = f` system.
+        :return: the solution, `x`, of the `Af_p = b` system
         :return:
         """
 
@@ -257,6 +265,14 @@ def get_batched_tridiag_solver(nv):
 
 
 def get_matrix_solver(nx, nv, solver_name="batched_tridiagonal"):
+    """
+    This method gets the right solver based on the choice in the input parameters
+
+    :param nx: (int) the number of x cells
+    :param nv: (int) the number of v cells
+    :param solver_name: (string) The name of the solver
+    :return: function with above arguments initialized as static variables
+    """
 
     if solver_name == "naive":
         matrix_solver = get_naive_solver(nx)
@@ -269,6 +285,18 @@ def get_matrix_solver(nx, nv, solver_name="batched_tridiagonal"):
 
 
 def get_batched_array_maker(vax, nv, nx, nu, dt, dv, operator="lb"):
+    """
+    This method gets the right operator based on the name from the input parameters
+
+    :param vax: (1D float array) - 1D array representing the centers of the velocity grid
+    :param nv: (int) the size of the velocity grid
+    :param nx: (int) the size of the spatial grid
+    :param nu: (float) the collision frequency
+    :param dt: (float) the timestep
+    :param dv: (float) the velocity grid spacing
+    :param operator: (string) the name of the operator to be used
+    :return: function with above arguments initialized as static variables
+    """
 
     if operator == "lb":
         get_matrix_maker = get_philharmonic_matrix_maker

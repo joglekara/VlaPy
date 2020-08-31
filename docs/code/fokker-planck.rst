@@ -1,5 +1,5 @@
 Fokker-Planck Solver
 --------------------------------
 
-.. automodule:: vlapy.core.lenard_bernstein
+.. automodule:: vlapy.core.collisions
    :members:
