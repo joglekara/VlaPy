@@ -28,10 +28,18 @@ from vlapy.core import field, vlasov, collisions, vlasov_poisson
 
 def get_vlasov_poisson_step(all_params, stuff_for_time_loop):
     """
-    This is the highest level function for getting a jitted Vlasov-Poisson.
+    This is the highest level function for getting a Vlasov-Poisson timestep method
 
-    :param static_args:
-    :return:
+    It reads the chosen inputs where the different solvers to be used for the simulation are specified
+    and returns the appropriately constructed Vlasov-Poisson stepper based on the choice of
+    time-integrator
+    vdfdx-integrator
+    edfdv-integrator
+    Poisson-solver
+
+    :param all_params: dictionary containing input parameters for the simulation
+    :param stuff_for_time_loop: dictionary containing derivced parameters for the simulation
+    :return: function for taking a Vlasov-Poisson timestep
     """
 
     vdfdx = vlasov.get_vdfdx(
@@ -60,6 +68,14 @@ def get_vlasov_poisson_step(all_params, stuff_for_time_loop):
 
 
 def get_collision_step(stuff_for_time_loop, all_params):
+    """
+    This returns the function to be used for performing a collision step based on the input parameters and
+    derived parameters
+
+    :param stuff_for_time_loop: dictionary containing derivced parameters for the simulation
+    :param all_params: dictionary containing input parameters for the simulation
+    :return: function for taking a Fokker-Planck timestep
+    """
 
     if all_params["nu"] == 0.0:
 
@@ -102,7 +118,8 @@ def get_f_update(store_f_rule):
     This function returns the function used in the stepper for storing f in a batch
     It performs the necessary transformations if we're just storing Fourier modes.
 
-    :param store_f_rule:
+    :param store_f_rule: (dictionary) the rules to store the distribution function as
+     dictated by the diagnostics routine for the simulation
     :return:
     """
     if store_f_rule["space"] == "all":
@@ -124,7 +141,25 @@ def get_f_update(store_f_rule):
 
 
 def get_fields_update(dv, v):
+    """
+    This returns a function that updates the moment-based quantities that are stored at every time-step in the
+    simulation
+
+    :param dv: (float) the grid-spacing in v
+    :param v: (1D float array) the velocity-grid
+    :return: function with the above values initialized as static variables
+    """
     def update_fields(temp_storage_fields, e, de, f, i):
+        """
+        This function updates the temporary storage dictionary with a number of moments of the distribution function
+
+        :param temp_storage_fields: (dictionary) for storage
+        :param e: (1D float array (nx,)) the electric field from the simulation
+        :param de: (1D float array (nx,)) the driver for this timestep
+        :param f: (2D float array (nx,nv)) Distribution function
+        :param i: (int) Loop index for storage
+        :return:
+        """
         temp_storage_fields["e"][i] = e
         temp_storage_fields["driver"][i] = de
         temp_storage_fields["n"][i] = np.trapz(f, dx=dv, axis=1)
@@ -140,7 +175,26 @@ def get_fields_update(dv, v):
 
 
 def get_series_update(dv):
+    """
+    This returns a function that updates the series-based quantities that are stored at every time-step in the
+    simulation. These are quantities that are integrated in (x, v) to produce a single number per timestep
+
+    e.g. The total number of particles in the box.
+
+    :param dv: (float) the grid-spacing in v
+    :return: a function with the above values initialized as static variables
+    """
     def update_series(temp_storage, e, de, f, i):
+        """
+        This function updates the temporary storage dictionary with a number of moments of the distribution function
+
+        :param temp_storage: (dictionary) for storage
+        :param e: (1D float array (nx,)) the electric field from the simulation
+        :param de: (1D float array (nx,)) the driver for this timestep
+        :param f: (2D float array (nx,nv)) Distribution function
+        :param i: (int) Loop index for storage
+        :return: (dictionary) updated dictionary for this timestep
+        """
         temp_storage_series = temp_storage["series"]
         # Density
         temp_storage_series["mean_n"][i] = np.mean(
@@ -173,6 +227,17 @@ def get_series_update(dv):
 
 
 def get_storage_step(stuff_for_time_loop):
+    """
+    This function returns the function that is used in the inner loop as part of a time step
+
+    Each time-step consists of the following:
+    Vlasov-Poisson Step
+    Fokker-Planck Step
+    Storage Step
+
+    :param stuff_for_time_loop: (dictionary) derived parameters for the simulation
+    :return: function with the above variables initialized as static variables
+    """
     dv = stuff_for_time_loop["dv"]
     v = stuff_for_time_loop["v"]
 
@@ -184,6 +249,21 @@ def get_storage_step(stuff_for_time_loop):
     update_series = get_series_update(dv=dv)
 
     def storage_step(temp_storage, e, de, f, i):
+        """
+        This is the full storage step.
+
+        The distribution function is stored for extraction according to the choice in the diagnostics
+        The e and f for the current timestep are stored in a temporary buffer
+        The fields for the current tiemstep are stored for extraction
+        The series for the current tiemstep are stored for extraction
+
+        :param temp_storage: (dictionary) for storage
+        :param e: (1D float array (nx,)) the electric field from the simulation
+        :param de: (1D float array (nx,)) the driver for this timestep
+        :param f: (2D float array (nx,nv)) Distribution function
+        :param i: (int) Loop index for storage
+        :return: (dictionary) updated dictionary for this timestep
+        """
         temp_storage["stored_f"][i] = store_f_function(f)
 
         temp_storage["e"] = e
