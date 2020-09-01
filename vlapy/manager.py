@@ -106,8 +106,8 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             sim_config, do_inner_loop = outer_loop.get_sim_config_and_inner_loop_step(
                 all_params=all_params,
                 stuff_for_time_loop=stuff_for_time_loop,
-                steps_in_loop=steps_in_loop,
-                rules_to_store_f=diagnostics.rules_to_store_f,
+                nt_in_loop=steps_in_loop,
+                store_f_rules=diagnostics.rules_to_store_f,
             )
 
             mlflow.log_metrics(metrics={"compile_time": time() - t0}, step=0)
