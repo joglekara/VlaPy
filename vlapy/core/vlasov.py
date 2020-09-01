@@ -39,16 +39,6 @@ def _get_padded_grid_(ax):
     return ax_pad
 
 
-def __get_k__(ax):
-    """
-    get axis of transformed quantity
-
-    :param ax: axis to transform
-    :return:
-    """
-    return fft.fftfreq(ax.size, d=ax[1] - ax[0])
-
-
 def get_vdfdx_sl(x, v):
     """
     Get the v df/dx Semi-Lagrangian stepper
