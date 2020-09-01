@@ -24,17 +24,34 @@ import numpy as np
 
 
 def get_philharmonic_matrix_maker(vax, nv, nx, nu, dt, dv):
+    """
+    This function returns the function for preparing the matrix representing the Lenard-Bernstein [1] collision operator.
+
+    It uses the arguments to create static arrays for the linear operato.
+
+    [1] : Lenard, A., & Bernstein, I. B. (1958). Plasma oscillations with diffusion in velocity space.
+        Physical Review, 112(5), 1456–1459. https://doi.org/10.1103/PhysRev.112.1456
+
+    :param vax: (1D float array) - 1D array representing the centers of the velocity grid
+    :param nv: (int) the size of the velocity grid
+    :param nx: (int) the size of the spatial grid
+    :param nu: (float) the collision frequency
+    :param dt: (float) the timestep
+    :param dv: (float) the velocity grid spacing
+    :return: new function with above arguments initialized as static variables
+    """
+
     def make_philharmonic_arrays_for_matrix(f_xv):
         """
-        These are for use with the vectorized collision operator
+        This function creates the arrays representing the Lenard-Bernstein [1] collision operator. When
+        center-differenced to second order in velocity space, this operator can be represented by a tridiagonal matrix.
+        The result of this function is used in a tridiagonal matrix solver.
 
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param nv: size of velocity axis (int)
-        :param nu: collision frequency (float)
-        :param dt: timestep (float)
-        :param dv: velocity-axis spacing (float)
-        :param v0: thermal temperature (float)
-        :return leftside: matrix for the linear operator
+        [1] : Lenard, A., & Bernstein, I. B. (1958). Plasma oscillations with diffusion in velocity space.
+        Physical Review, 112(5), 1456–1459. https://doi.org/10.1103/PhysRev.112.1456
+
+        :param f_xv: The distribution function used to calculate the quantities in the linear operator.
+        :return: a, b, c -- The subdiagonal, diagonal, and super-diagonal, respectively representing the LB operator.
         """
 
         v0t_sq = np.trapz(
@@ -67,18 +84,34 @@ def get_philharmonic_matrix_maker(vax, nv, nx, nu, dt, dv):
 
 
 def get_dougherty_matrix_maker(vax, nv, nx, nu, dt, dv):
+    """
+    This function returns the function for preparing the matrix representing the Dougherty [1] collision operator.
+
+    It uses the arguments to create static arrays for the linear operato.
+
+    [1] : Dougherty, J. P. (1964). Model Fokker-Planck Equation for a Plasma and Its Solution.
+    Physics of Fluids, 7(11), 1788. https://doi.org/10.1063/1.2746779
+
+    :param vax: (1D float array) - 1D array representing the centers of the velocity grid
+    :param nv: (int) the size of the velocity grid
+    :param nx: (int) the size of the spatial grid
+    :param nu: (float) the collision frequency
+    :param dt: (float) the timestep
+    :param dv: (float) the velocity grid spacing
+    :return: new function with above arguments initialized as static variables
+    """
+
     def make_dougherty_arrays_for_matrix(f_xv):
         """
-        This matrix is composed of the linear operator that must be inverted with respect
-        to the right side, which'll be the distribution function
+            This function creates the arrays representing the Dougherty [1] collision operator. When
+            center-differenced to second order in velocity space, this operator can be represented by a tridiagonal matrix.
+            The result of this function is used in a tridiagonal matrix solver.
 
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param nv: size of velocity axis (int)
-        :param nu: collision frequency (float)
-        :param dt: timestep (float)
-        :param dv: velocity-axis spacing (float)
-        :param v0: thermal temperature (float)
-        :return leftside: matrix for the linear operator
+            [1] : Dougherty, J. P. (1964). Model Fokker-Planck Equation for a Plasma and Its Solution.
+        Physics of Fluids, 7(11), 1788. https://doi.org/10.1063/1.2746779
+
+            :param f_xv: The distribution function used to calculate the quantities in the linear operator.
+            :return: a, b, c -- The subdiagonal, diagonal, and super-diagonal, respectively representing the LB operator.
         """
 
         vbar = np.trapz(
@@ -128,13 +161,24 @@ def get_dougherty_matrix_maker(vax, nv, nx, nu, dt, dv):
 
 
 def get_naive_solver(nx):
+    """
+    This function returns the naive solver for the collision operator. Specifically, this is simply a for loop
+    over the all the x-indices where each f(v) is solved for.
+
+    :param nx: (int) number of x cells
+    :return: new function with above arguments initialized as static variables
+    """
+
     def _solver_(a, b, c, f):
         """
-        returns the solution using numpy's solver
+        For each value in x, this solves an `Af_p = b` problem where `A` is formed using the arguments
+         `a,b,c`. The solution, `f_p`, is obtained using numpy's matrix solver.
 
-        :param leftside:
-        :param f:
-        :return:
+        :param a: (2D float array (nx, nv-1)) the sub-diagonal of the matrix for each x cell
+        :param b: (2D float array (nx, nv)) the diagonal of the matrix
+        :param c: (2D float array (nx, nv-1)) the super-diagonal of the matrix
+        :param f: (2D float array (nx, nv)) the RHS of the `Af_p = f` system.
+        :return: the solution, `x`, of the `Af_p = b` system
         """
         for ix in range(nx):
             leftside = (
@@ -176,6 +220,15 @@ def get_naive_solver(nx):
 
 
 def get_batched_tridiag_solver(nv):
+    """
+    This function returns the broadcasting-based solver for the collision operator.
+    The broadcasting is done over the x-axis because the collision operator is independent along the
+    x-direction
+
+    :param nv: (int) number of v cells
+    :return: new function with above arguments initialized as static variables
+    """
+
     def _batched_tridiag_solver_(a, b, c, f):
         """
         Arrayed/Sliced algorithm for tridiagonal solve.
@@ -183,11 +236,11 @@ def get_batched_tridiag_solver(nv):
         About 50x faster than looping through a numpy linalg call
         for a 256x2048 solve
 
-        :param a:
-        :param b:
-        :param c:
-        :param f:
-        :param nv:
+        :param a: (2D float array (nx, nv-1)) the sub-diagonal of the matrix for each x cell
+        :param b: (2D float array (nx, nv)) the diagonal of the matrix
+        :param c: (2D float array (nx, nv-1)) the super-diagonal of the matrix
+        :param f: (2D float array (nx, nv)) the RHS of the `Af_p = f` system.
+        :return: the solution, `x`, of the `Af_p = b` system
         :return:
         """
 
@@ -213,6 +266,14 @@ def get_batched_tridiag_solver(nv):
 
 
 def get_matrix_solver(nx, nv, solver_name="batched_tridiagonal"):
+    """
+    This method gets the right solver based on the choice in the input parameters
+
+    :param nx: (int) the number of x cells
+    :param nv: (int) the number of v cells
+    :param solver_name: (string) The name of the solver
+    :return: function with above arguments initialized as static variables
+    """
 
     if solver_name == "naive":
         matrix_solver = get_naive_solver(nx)
@@ -229,6 +290,18 @@ def get_matrix_solver(nx, nv, solver_name="batched_tridiagonal"):
 
 
 def get_batched_array_maker(vax, nv, nx, nu, dt, dv, operator="lb"):
+    """
+    This method gets the right operator based on the name from the input parameters
+
+    :param vax: (1D float array) - 1D array representing the centers of the velocity grid
+    :param nv: (int) the size of the velocity grid
+    :param nx: (int) the size of the spatial grid
+    :param nu: (float) the collision frequency
+    :param dt: (float) the timestep
+    :param dv: (float) the velocity grid spacing
+    :param operator: (string) the name of the operator to be used
+    :return: function with above arguments initialized as static variables
+    """
 
     if operator == "lb":
         get_matrix_maker = get_philharmonic_matrix_maker

@@ -23,6 +23,7 @@
 from setuptools import setup, find_packages
 
 INSTALL_REQUIREMENTS = [
+    "wheel",
     "numpy",
     "mlflow",
     "h5netcdf",

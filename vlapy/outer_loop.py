@@ -31,32 +31,34 @@ from vlapy.core import step
 def get_sim_config_and_inner_loop_step(
     all_params,
     stuff_for_time_loop,
-    steps_in_loop,
-    rules_to_store_f,
+    nt_in_loop,
+    store_f_rules,
 ):
     """
     This is the function that gets the correct inner loop calculation routines given
-    the backend
+    the backend, and the dictionary used for storing quantities in the inner loop.
 
-    :param all_params:
-    :param stuff_for_time_loop:
-    :param steps_in_loop:
-    :param rules_to_store_f:
-    :param type:
-    :return:
+    :param all_params: (dictionary)
+    :param stuff_for_time_loop: (dictionary) derived parameters for the simulation
+    :param nt_in_loop: (int) number of steps in the inner loop
+    :param store_f_rules: (dictionary) containing the rules for storing f in the inner loop
+    :return: (dictionary, function) the dictionary with all the information and storage required by the inner loop
+    and the function for all the steps in the inner loop / a single step of the outer loop
     """
 
     if all_params["backend"]["core"] == "numpy":
         import numpy as np_for_time_loop
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "The backend <"
+            + all_params["backend"]["core"]
+            + "> has not yet been implemented"
+        )
 
-    do_inner_loop = get_inner_loop_stepper(
-        all_params, stuff_for_time_loop, steps_in_loop
-    )
+    do_inner_loop = get_inner_loop_stepper(all_params, stuff_for_time_loop, nt_in_loop)
 
     sim_config = get_arrays_for_inner_loop(
-        stuff_for_time_loop, steps_in_loop, rules_to_store_f, this_np=np_for_time_loop
+        stuff_for_time_loop, nt_in_loop, store_f_rules, this_np=np_for_time_loop
     )
 
     return sim_config, do_inner_loop
@@ -76,10 +78,11 @@ def get_everything_ready_for_outer_loop(
     time grid
     driver array
 
-    :param diagnostics:
-    :param all_params:
-    :param pulse_dictionary:
-    :return:
+    :param diagnostics: (vlapy.Diagnostics) Object describing the diagnostics and analysis used for this simulation
+    :param all_params: (dictionary) contains the input parameters for the simulation
+    :param pulse_dictionary: (dictionary) contains the parameters describing the ponderomotive force driver for
+    the simulation
+    :return: (dictionary) contains the derived parameters for the simulation
     """
 
     import numpy as np
@@ -145,15 +148,13 @@ def get_everything_ready_for_outer_loop(
 
 def get_arrays_for_inner_loop(stuff_for_time_loop, nt_in_loop, store_f_rules, this_np):
     """
-    This function converts the previously created NumPy arrays to NumPy arrays.
+    This function converts and consolidates the derived parameters for the simulation
+    into a dictionary that contains everything necessary for the inner loop
 
-    It also creates the temporary storage for e and f that is used for the
-    low-level time-loop
-
-    :param stuff_for_time_loop:
-    :param nt_in_loop:
-    :param store_f_rules:
-    :return:
+    :param stuff_for_time_loop: (dictionary) derived parameters for the simulation
+    :param nt_in_loop: (int) number of steps in the inner loop
+    :param store_f_rules: (dictionary) containing the rules for storing f in the inner loop
+    :return: (dictionary) the dictionary with all the information and storage required by the inner loop
     """
     import numpy as np
 
@@ -214,8 +215,14 @@ def get_arrays_for_inner_loop(stuff_for_time_loop, nt_in_loop, store_f_rules, th
     }
 
 
-def post_inner_loop_update(temp_storage, t0, this_np):
-    temp_storage["time_for_batch"] = time() - t0
+def post_inner_loop_update(temp_storage, this_np):
+    """
+    This function updates the storage at the end of a step of the outer-loop, i.e., after all steps in the inner loop.
+
+    :param temp_storage: (dictionary) the dictionary with all the information and storage required by the inner loop
+    :param this_np: (NumPy) the numpy that is used to calculate the cumulative sum
+    :return:
+    """
 
     # Energy from driver
     temp_storage["series"]["mean_cum_de2"] = temp_storage[
@@ -256,16 +263,19 @@ def get_inner_loop_stepper(all_params, stuff_for_time_loop, steps_in_loop):
         import numpy as np
 
         def inner_loop(time_array, driver_array, temp_storage):
-            t0 = time()
             temp_storage["time_batch"] = time_array
             temp_storage["driver_array_batch"] = driver_array
             for it in tqdm(range(steps_in_loop)):
                 temp_storage, _ = one_step(temp_storage, it)
-            post_inner_loop_update(temp_storage, t0, np)
+            post_inner_loop_update(temp_storage, np)
 
             return temp_storage
 
         return inner_loop
 
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "The backend: <"
+            + all_params["backend"]["core"]
+            + "> has not yet been implemented"
+        )

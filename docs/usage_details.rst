@@ -15,42 +15,54 @@ For example, `run_vlapy.py` has the following code
 
 .. code-block:: python
 
-    all_params_dict = {
-        "nx": 48,
-        "xmin": 0.0,
-        "xmax": 2.0 * np.pi / 0.3,
-        "nv": 512,
-        "vmax": 6.0,
-        "nt": 1000,
-        "tmax": 100,
-        "nu": 0.0,
-    }
+    k0 = np.random.uniform(0.3, 0.4, 1)[0]
+    log_nu_over_nu_ld = None
+
+    all_params_dict = initializers.make_default_params_dictionary()
+    all_params_dict = initializers.specify_epw_params_to_dict(
+        k0=k0, all_params_dict=all_params_dict
+    )
+    all_params_dict = initializers.specify_collisions_to_dict(
+        log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
+    )
+
+    all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+    all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
+    all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
+
+    all_params_dict["fokker-planck"]["type"] = "lb"
 
     pulse_dictionary = {
         "first pulse": {
             "start_time": 0,
-            "rise_time": 5,
-            "flat_time": 10,
-            "fall_time": 5,
-            "a0": 1e-6,
-            "k0": 0.3,
+            "t_L": 6,
+            "t_wL": 2.5,
+            "t_R": 20,
+            "t_wR": 2.5,
+            "w0": all_params_dict["w_epw"],
+            "a0": 1e-7,
+            "k0": k0,
         }
     }
 
-    params_to_log = ["w0", "k0", "a0"]
+    mlflow_exp_name = "landau-damping"
 
-    pulse_dictionary["first pulse"]["w0"] = np.real(
-        z_function.get_roots_to_electrostatic_dispersion(
-            wp_e=1.0, vth_e=1.0, k0=pulse_dictionary["first pulse"]["k0"]
-        )
+    uris = {
+        "tracking": "local",
+    }
+
+    print_to_screen.print_startup_message(
+        mlflow_exp_name, all_params_dict, pulse_dictionary
     )
 
-    mlflow_exp_name = "Landau Damping-test"
-
-    manager.start_run(
+    that_run = manager.start_run(
         all_params=all_params_dict,
         pulse_dictionary=pulse_dictionary,
-        diagnostics=landau_damping.LandauDamping(params_to_log),
+        diagnostics=landau_damping.LandauDamping(
+            vph=all_params_dict["v_ph"],
+            wepw=all_params_dict["w_epw"],
+        ),
+        uris=uris,
         name=mlflow_exp_name,
     )
 

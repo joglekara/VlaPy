@@ -16,7 +16,7 @@ component as an Ordinary Differential Equation (ODE).
 Time Integration
 ******************
 Because the Vlasov equation models chaotic nonlinear dynamics, it is important to conserve the Hamiltonian in order to
-be able to retrieve accurate solutions over long time-scales. VlaPy contains 2 implementations of symplectic integrators
+be able to retrieve accurate solutions over long time-scales. VlaPy contains 3 implementations of symplectic integrators
 for the Spatial and Velocity Advection operators.
 
 The first method is a simple `Verlet`, or Leapfrog, scheme given by
@@ -29,7 +29,9 @@ The first method is a simple `Verlet`, or Leapfrog, scheme given by
 This is a second order method i.e. the truncation error scales as :math:`\mathcal{O}(\Delta t^2)`
 
 The fourth order implementation is based on the `Position-Extended Forest-Ruth-Like` (PEFRL) :cite:`Omelyan2002`
-algorithm. Details on this implementation will be added soon.
+algorithm.
+
+The sixth order implementation is based on work in :cite:`Casas2017`
 
 Spatial Advection
 ******************
@@ -60,6 +62,7 @@ function
 This method is inspired by conversation and notes from Pierre Navaro (https://github.com/pnavaro). It is chosen for
 it's simplicity as well as accuracy.
 
+We have also implemented and tested the Backward Semi-Lagrangian Operator :cite:`Cheng1976`.
 
 Velocity Advection
 *******************
@@ -95,6 +98,8 @@ function
 This method is inspired by conversation and notes from Pierre Navaro (https://github.com/pnavaro). It is chosen for
 it's simplicity as well as accuracy.
 
+We have also implemented and tested the Backward Semi-Lagrangian Operator :cite:`Cheng1976` and a 2nd-order
+centered-difference Operator.
 
 Tests
 ******

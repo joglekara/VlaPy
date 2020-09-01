@@ -39,12 +39,12 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     Domain configuration is also performed here.
     All file storage is initialized here.
 
-    :param all_params:
-    :param pulse_dictionary:
-    :param diagnostics:
-    :param name:
-    :param mlflow_path:
-    :return:
+    :param all_params: (dictionary) contains the input parameters of the simulation
+    :param pulse_dictionary: (dictionary) contains the parameters for the ponderomotive force driver
+    :param diagnostics: (vlapy.Diagnostics) contains the diagnostics routine for this particular simulation
+    :param uris: (string) the location of the mlflow server
+    :param name: (string) the name of the MLFlow experiment
+    :return: (Mlflow.Run) returns the completed Run object
     """
     t0 = time()
 
@@ -106,8 +106,8 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             sim_config, do_inner_loop = outer_loop.get_sim_config_and_inner_loop_step(
                 all_params=all_params,
                 stuff_for_time_loop=stuff_for_time_loop,
-                steps_in_loop=steps_in_loop,
-                rules_to_store_f=diagnostics.rules_to_store_f,
+                nt_in_loop=steps_in_loop,
+                store_f_rules=diagnostics.rules_to_store_f,
             )
 
             mlflow.log_metrics(metrics={"compile_time": time() - t0}, step=0)
