@@ -55,9 +55,7 @@ def get_sim_config_and_inner_loop_step(
             + "> has not yet been implemented"
         )
 
-    do_inner_loop = get_inner_loop_stepper(
-        all_params, stuff_for_time_loop, nt_in_loop
-    )
+    do_inner_loop = get_inner_loop_stepper(all_params, stuff_for_time_loop, nt_in_loop)
 
     sim_config = get_arrays_for_inner_loop(
         stuff_for_time_loop, nt_in_loop, store_f_rules, this_np=np_for_time_loop
