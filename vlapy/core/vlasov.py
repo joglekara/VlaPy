@@ -24,6 +24,21 @@ import numpy as np
 from scipy import interpolate, fft
 
 
+def _get_padded_grid_(ax):
+    """
+    This function returns a padded axis with periodic boundaries in place
+
+    :param ax: (float array) the axis to pad
+    :return: (float array) the padded axis
+    """
+    ax_pad = np.zeros(ax.size + 2)
+    ax_pad[1:-1] = ax
+    ax_pad[0] = ax[0] - (ax[2] - ax[1])
+    ax_pad[-1] = ax[-1] + (ax[2] - ax[1])
+
+    return ax_pad
+
+
 def __get_k__(ax):
     """
     get axis of transformed quantity
@@ -36,34 +51,32 @@ def __get_k__(ax):
 
 def get_vdfdx_sl(x, v):
     """
-    Get the vdfdx Semi-Lagrangian stepper
+    Get the v df/dx Semi-Lagrangian stepper
 
-    :param x:
-    :param v:
-    :return:
+    :param x: (float array (nx, )) the spatial grid
+    :param v: (float array (nv, )) the velocity grid
+    :return: a function with the above inputs used to initialize useful static variables
     """
-    x_pad = np.zeros(x.size + 2)
 
     xm, vm = np.meshgrid(x, v, indexing="ij")
     xm = xm.flatten()
     vm = vm.flatten()
 
+    x_pad = _get_padded_grid_(x)
     f_pad = np.zeros((x.size + 2, v.size))
 
     def update_spatial_adv_sl(f, dt):
         """
-        evolution of df/dt = v df/dx
+        evolution of df/dt = v df/dx using the Backward Semi-Lagrangian method popularized by
+        [1] and widely used since.
 
-        :param f: distribution function. (numpy array of shape (nx, nv))
-        :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param dt: timestep (single float value)
-        :return:
+        [1] - Cheng, C. ., & Knorr, G. (1976). The integration of the vlasov equation in configuration space.
+        Journal of Computational Physics, 22(3), 330–351. https://doi.org/10.1016/0021-9991(76)90053-X
+
+        :param f: (float array (nx, nv)) distribution function
+        :param dt: (float) timestep
+        :return: (float array (nx, nv)) updated distribution function
         """
-
-        x_pad[1:-1] = x
-        x_pad[0] = x[0] - (x[2] - x[1])
-        x_pad[-1] = x[-1] + (x[2] - x[1])
 
         f_pad[1:-1, :] = f
         f_pad[0, :] = f[-1, :]
@@ -79,24 +92,25 @@ def get_vdfdx_sl(x, v):
 
 def get_vdfdx_exponential(kx, v):
     """
-    This function creates the exponential vdfdx stepper
+    This function creates the exponential v df/dx stepper
 
     It uses kx and v as metadata that should stay constant throughout the simulation
 
-    :param kx:
-    :param v:
-    :return:
+    :param kx: (float array (nx, )) the real-space wavenumber
+    :param v: (float array  (nv, )) the velocity grid
+    :return: a function with the above values initialized as static variables
     """
 
     def step_vdfdx_exponential(f, dt):
         """
-        evolution of df/dt = v df/dx
+        evolution of df/dt = v df/dx using the exponential integrator described in
+        [1]
 
-        :param f: distribution function. (numpy array of shape (nx, nv))
-        :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param dt: timestep (single float value)
-        :return:
+        [1] - https://juliavlasov.github.io/ -- Dr. Pierre Navarro
+
+        :param f: (float array (nx, nv)) distribution function
+        :param dt: (float) timestep
+        :return: (float array (nx, nv)) updated distribution function
         """
 
         return np.real(
@@ -108,23 +122,25 @@ def get_vdfdx_exponential(kx, v):
 
 def get_edfdv_exponential(kv):
     """
-    This function creates the exponential edfdv stepper
+    This function creates the exponential v df/dx stepper
 
     It uses kv as metadata that should stay constant throughout the simulation
 
-    :param kv:
-    :return:
+    :param kv: (float array (nv, )) the velocity-space wavenumber
+    :return: a function with the above values initialized as static variables
     """
 
     def step_edfdv_exponential(f, e, dt):
         """
-        evolution of df/dt = e df/dv
+        evolution of df/dt = e df/dv using the exponential integrator described in
+        [1].
 
-        :param f: distribution function. (numpy array of shape (nx, nv))
-        :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-        :param e: electric field (numpy array of shape (nx,))
-        :param dt: timestep (single float value)
-        :return:
+        [1] - https://juliavlasov.github.io/ -- Dr. Pierre Navarro
+
+        :param f: (float array (nx, nv)) distribution function
+        :param e: (float array (nx, )) the electric field in real space
+        :param dt: (float) timestep
+        :return: (float array (nx, nv)) updated distribution function
         """
 
         return np.real(
@@ -136,12 +152,12 @@ def get_edfdv_exponential(kv):
 
 def get_edfdv_center_differenced(dv):
     """
-    This function creates the center differenced edfdv stepper
+    This function creates the center differenced e df/dv stepper
 
     It uses dv as metadata that should stay constant throughout the simulation
 
-    :param dv:
-    :return:
+    :param dv: (float) the velocity grid spacing
+    :return: a function with the above values initialized as static variables
     """
 
     def step_edfdv_center_difference(f, e, dt):
@@ -149,10 +165,10 @@ def get_edfdv_center_differenced(dv):
         This method calculates the f + dt * e * df/dv using naive
         2nd-order center differencing
 
-        :param f:
-        :param e:
-        :param dt:
-        :return:
+        :param f: (float array (nx, nv)) distribution function
+        :param e: (float array (nx, )) the electric field in real space
+        :param dt: (float) timestep
+        :return: (float array (nx, nv)) updated distribution function
         """
         return f - e[:, None] * np.gradient(f, dv, axis=1, edge_order=2) * dt
 
@@ -161,33 +177,32 @@ def get_edfdv_center_differenced(dv):
 
 def get_edfdv_sl(x, v):
     """
-    Get the vdfdx Semi-Lagrangian stepper
+    Get the e df/dv Semi-Lagrangian stepper
 
-    :param x:
-    :param v:
-    :return:
+    :param x: (float array (nx, )) the spatial grid
+    :param v: (float array (nv, )) the velocity grid
+    :return: a function with the above inputs used to initialize useful static variables
     """
-    v_pad = np.zeros(v.size + 2)
+
     xm, vm = np.meshgrid(x, v, indexing="ij")
     xm = xm.flatten()
     vm = vm.flatten()
 
+    v_pad = _get_padded_grid_(v)
     f_pad = np.zeros((x.size, v.size + 2))
 
     def update_velocity_adv_sl(f, e, dt):
         """
-        evolution of df/dt = e df/dv
+        evolution of df/dt = e df/dv according to the Backward Semi-Lagrangian technique popularized by [1]
+
+        [1] - Cheng, C. ., & Knorr, G. (1976). The integration of the vlasov equation in configuration space.
+        Journal of Computational Physics, 22(3), 330–351. https://doi.org/10.1016/0021-9991(76)90053-X
 
         :param f: distribution function. (numpy array of shape (nx, nv))
-        :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
         :param e: electric field (numpy array of shape (nx,))
         :param dt: timestep (single float value)
         :return:
         """
-
-        v_pad[1:-1] = v
-        v_pad[0] = v[0] - (v[2] - v[1])
-        v_pad[-1] = v[-1] + (v[2] - v[1])
 
         f_pad[:, 1:-1] = f
         f_pad[:, 0] = f[:, -1]
@@ -210,8 +225,8 @@ def get_vdfdx(stuff_for_time_loop, vdfdx_implementation="exponential"):
     This function enables VlaPy to choose the implementation of the vdfdx stepper
     to use in the lower level sections of the simulation
 
-    :param stuff_for_time_loop:
-    :param vdfdx_implementation:
+    :param stuff_for_time_loop: (dictionary) contains the derived parameters for the simulation
+    :param vdfdx_implementation: (string) the chosen v df/dx implementation for for this simulation
     :return:
     """
     if vdfdx_implementation == "exponential":
@@ -231,8 +246,8 @@ def get_edfdv(stuff_for_time_loop, edfdv_implementation="exponential"):
     This function enables VlaPy to choose the implementation of the edfdv stepper
     to use in the lower level sections of the simulation
 
-    :param stuff_for_time_loop:
-    :param edfdv_implementation:
+    :param stuff_for_time_loop: (dictionary) contains the derived parameters for the simulation
+    :param vdfdx_implementation: (string) the chosen v df/dx implementation for for this simulation
     :return:
     """
     if edfdv_implementation == "exponential":

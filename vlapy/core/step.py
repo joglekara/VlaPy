@@ -149,6 +149,7 @@ def get_fields_update(dv, v):
     :param v: (1D float array) the velocity-grid
     :return: function with the above values initialized as static variables
     """
+
     def update_fields(temp_storage_fields, e, de, f, i):
         """
         This function updates the temporary storage dictionary with a number of moments of the distribution function
@@ -184,6 +185,7 @@ def get_series_update(dv):
     :param dv: (float) the grid-spacing in v
     :return: a function with the above values initialized as static variables
     """
+
     def update_series(temp_storage, e, de, f, i):
         """
         This function updates the temporary storage dictionary with a number of moments of the distribution function

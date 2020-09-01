@@ -22,6 +22,7 @@
 
 from mlflow.tracking import MlflowClient
 
+
 def get_this_metric_of_this_run(metric_name, run_object):
     client = MlflowClient()
     run_id = run_object.info.run_id

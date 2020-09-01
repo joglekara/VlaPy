@@ -228,6 +228,7 @@ def get_batched_tridiag_solver(nv):
     :param nv: (int) number of v cells
     :return: new function with above arguments initialized as static variables
     """
+
     def _batched_tridiag_solver_(a, b, c, f):
         """
         Arrayed/Sliced algorithm for tridiagonal solve.

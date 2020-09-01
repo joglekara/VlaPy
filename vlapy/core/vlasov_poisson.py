@@ -22,6 +22,17 @@
 
 
 def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
+    """
+    This function returns the leapfrog step pieced together with the provided components
+
+    :param vdfdx: (function) the chosen v df/dx integrator
+    :param edfdv: (function) the chosen e df/dv integrator
+    :param field_solve: (function) the chosen field solver
+    :param dt: (float) the time-step
+    :param driver_function: (function) the function providing the driver
+    :return: (function) above inputs initialized as static variables
+    """
+
     def full_leapfrog_ps_step(e, f, t):
         """
         Takes a step forward in time for f and e
@@ -34,17 +45,10 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
 
         3 - spatial advection for 0.5 dt
 
-        :param f: distribution function. (numpy array of shape (nx, nv))
-        :param x: real-space axis (numpy array of shape (nx,))
-        :param kx: real-space wavenumber axis (numpy array of shape (nx,))
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-        :param dv: velocity-axis spacing (single float value)
-        :param t: current time (single float value)
-        :param dt: timestep (single float value)
-        :param e: electric field (numpy array of shape (nx,))
-        :param driver_function: function that returns an electric field (numpy array of shape (nx,))
-        :return:
+        :param e: (float array (nx, )) electric field
+        :param f: (float array (nx, nv)) distribution function
+        :param t: (float) current time
+        :return: (float array (nx, nv)) updated distribution function
         """
         f = edfdv(f=f, e=e, dt=0.5 * dt)
         f = vdfdx(f=f, dt=dt)
@@ -57,30 +61,41 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
 
 
 def get_full_pefrl_step(vdfdx, edfdv, field_solve, dt, driver_function):
+    """
+    This function returns the Performance-Extended Forest-Ruth-Like
+    step [1-2] pieced together with the provided components
+
+    [1] - Omelyan, I. P., Mryglod, I. M., & Folk, R. (2002). Optimized Forest–Ruth- and Suzuki-like
+    algorithms for integration of motion in many-body systems.
+    Computer Physics Communications, 146(2), 188–202. https://doi.org/10.1016/S0010-4655(02)00451-4
+
+    [2] - http://physics.ucsc.edu/~peter/242/leapfrog.pdf
+
+    :param vdfdx: (function) the chosen v df/dx integrator
+    :param edfdv: (function) the chosen e df/dv integrator
+    :param field_solve: (function) the chosen field solver
+    :param dt: (float) the time-step
+    :param driver_function: (function) the function providing the driver
+    :return: (function) above inputs initialized as static variables
+    """
+
     def full_pefrl_ps_step(e, f, t):
         """
         Takes a step forward in time for f and e using the
-        Performance-Extended Forest-Ruth-Like algorithm
+        Performance-Extended Forest-Ruth-Like algorithm [1-2]
 
         This is a 4th order symplectic integrator.
-        http://physics.ucsc.edu/~peter/242/leapfrog.pdf
 
-        :param f: distribution function. (numpy array of shape (nx, nv))
+        [1] - Omelyan, I. P., Mryglod, I. M., & Folk, R. (2002). Optimized Forest–Ruth- and Suzuki-like
+        algorithms for integration of motion in many-body systems.
+        Computer Physics Communications, 146(2), 188–202. https://doi.org/10.1016/S0010-4655(02)00451-4
 
-        :param x: real-space axis (numpy array of shape (nx,))
-        :param kx: real-space wavenumber axis (numpy array of shape (nx,))
+        [2] - http://physics.ucsc.edu/~peter/242/leapfrog.pdf
 
-        :param v: velocity axis (numpy array of shape (nv,))
-        :param kv: velocity-space wavenumber axis (numpy array of shape (nv,))
-        :param dv: velocity-axis spacing (single float value)
-
-        :param t: current time (single float value)
-        :param dt: timestep (single float value)
-
-        :param e: electric field (numpy array of shape (nv,))
-
-        :param driver_function:
-        :return:
+        :param e: (float array (nx, )) electric field
+        :param f: (float array (nx, nv)) distribution function
+        :param t: (float) current time
+        :return: (float array (nx, nv)) updated distribution function
         """
         xsi = 0.1786178958448091
         lambd = -0.2123418310626054
@@ -141,17 +156,19 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, dt, driver_function):
 
 def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
     """
-    This is the 6th order integrator for 1D Vlasov-Poisson systems given in
-    Casas, F., Crouseilles, N., Faou, E., & Mehrenberger, M. (2017). High-order Hamiltonian splitting for
-    the Vlasov–Poisson equations.
+    This function returns the 6th order step [1] pieced together with the provided components
+
+
+    [1] - Casas, F., Crouseilles, N., Faou, E., & Mehrenberger, M. (2017). High-order Hamiltonian splitting
+    for the Vlasov–Poisson equations.
     Numerische Mathematik, 135(3), 769–801. https://doi.org/10.1007/s00211-016-0816-z
 
-    :param vdfdx:
-    :param edfdv:
-    :param field_solve:
-    :param dt:
-    :param driver_function:
-    :return:
+    :param vdfdx: (function) the chosen v df/dx integrator
+    :param edfdv: (function) the chosen e df/dv integrator
+    :param field_solve: (function) the chosen field solver
+    :param dt: (float) the time-step
+    :param driver_function: (function) the function providing the driver
+    :return: (function) above inputs initialized as static variables
     """
 
     a1 = 0.168735950563437422448196
@@ -169,12 +186,15 @@ def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
 
     def sixth_order_step(e, f, t):
         """
-        The actual 6th order stepper for the time splitting
+        This is the 6th order integrator for 1D Vlasov-Poisson systems given in
+        Casas, F., Crouseilles, N., Faou, E., & Mehrenberger, M. (2017). High-order Hamiltonian splitting for
+        the Vlasov–Poisson equations.
+        Numerische Mathematik, 135(3), 769–801. https://doi.org/10.1007/s00211-016-0816-z
 
-        :param e:
-        :param f:
-        :param t:
-        :return:
+        :param e: (float array (nx, )) electric field
+        :param f: (float array (nx, nv)) distribution function
+        :param t: (float) current time
+        :return: (float array (nx, nv)) updated distribution function
         """
         D1 = b1 + 2.0 * c1 * dt ** 2.0
         D2 = b2 + 2.0 * c2 * dt ** 2.0 + 4.0 * d2 * dt ** 4.0
@@ -215,6 +235,19 @@ def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
 def get_time_integrator(
     time_integrator_name, vdfdx, edfdv, field_solver, stuff_for_time_loop
 ):
+    """
+    This function returns the full time-integrator pieced together with the provided
+    components of the integrator
+
+    :param time_integrator_name: (string) name of the time-integrator chosen in the input parameters
+    :param vdfdx: (function) the chosen v df/dx integrator
+    :param edfdv: (function) the chosen e df/dv integrator
+    :param field_solve: (function) the chosen field solver
+    :param stuff_for_time_loop: (dictionary) derived parameters for simulation
+    :return: (function) function that updates the distribution function with the
+    above inputs initialized as static variables
+    """
+
     if time_integrator_name == "leapfrog":
         vp_step = get_full_leapfrog_step(
             vdfdx=vdfdx,
