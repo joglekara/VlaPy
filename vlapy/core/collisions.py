@@ -280,7 +280,11 @@ def get_matrix_solver(nx, nv, solver_name="batched_tridiagonal"):
     elif solver_name == "batched_tridiagonal":
         matrix_solver = get_batched_tridiag_solver(nv)
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Matrix Solver: <"
+            + solver_name
+            + "> has not yet been implemented in NumPy/SciPy"
+        )
 
     return matrix_solver
 
@@ -304,6 +308,10 @@ def get_batched_array_maker(vax, nv, nx, nu, dt, dv, operator="lb"):
     elif operator == "dg":
         get_matrix_maker = get_dougherty_matrix_maker
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Collision Operator: <"
+            + operator
+            + "> has not yet been implemented in NumPy/SciPy"
+        )
 
     return get_matrix_maker(vax, nv, nx, nu, dt, dv)
