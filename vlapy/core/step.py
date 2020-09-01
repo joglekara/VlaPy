@@ -284,9 +284,9 @@ def get_storage_step(stuff_for_time_loop):
 def get_timestep(all_params, stuff_for_time_loop):
     """
     Gets the full VFP + logging timestep
-
-    :param all_params:
-    :return:
+    :param all_params: (dictionary) contains input parameters for simulation
+    :param stuff_for_time_loop: (dictionary) contains derived parameters for simulation
+    :return: a function with the above values initialized as static variables
     """
 
     vp_step = get_vlasov_poisson_step(
@@ -299,12 +299,18 @@ def get_timestep(all_params, stuff_for_time_loop):
 
     def timestep(temp_storage, i):
         """
-        This is just a wrapper around a Vlasov-Poisson + Fokker-Planck timestep
+        This function performs one single timestep
 
-        :param val:
-        :param i:
-        :return:
+        It does the
+        1 - the VP step
+        2 - the FP step
+        3 - the storage step
+
+        :param temp_storage: (dictionary) contains input distribution function and other stored quantities
+        :param i: (int) iteration of the time-step
+        :return: (dictionary) contains updated distribution function and other stored quantities
         """
+
         e = temp_storage["e"]
         f = temp_storage["f"]
         t = temp_storage["time_batch"][i]
