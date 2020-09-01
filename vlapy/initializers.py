@@ -32,10 +32,10 @@ def initialize_distribution(nx, nv, vmax=6.0):
 
     TODO: temperature and density pertubations
 
-    :param nx: size of grid in x (single int)
-    :param nv: size of grid in v (single int)
-    :param vmax: maximum absolute value of v (single float)
-    :return:
+    :param nx: (int) size of grid in x
+    :param nv: (int) size of grid in v
+    :param vmax: (float) maximum absolute value of v
+    :return: (float array (nx, nv)) distribution function initialized as a Maxwell-Boltzmann
     """
 
     f = np.zeros([nx, nv], dtype=np.float64)
@@ -57,9 +57,10 @@ def initialize_velocity_quantities(vmax, nv):
     """
     This function initializes the velocity grid and related quantities
 
-    :param vmax:
-    :param nv:
-    :return:
+    :param vmax: (float) the absolute value of the maximum velocity
+    :param nv: (int) the size of the grid in v
+    :return: (float, float array (nv, ), float array (nv, )) the grid spacing, the velocity grid,
+    and the corresponding velocity wave-number grid
     """
     dv = 2 * vmax / nv
     v = np.linspace(-vmax + dv / 2.0, vmax - dv / 2.0, nv)
@@ -72,10 +73,12 @@ def initialize_spatial_quantities(xmin, xmax, nx):
     """
     This function initializes the spatial grid and related quantities
 
-    :param xmin:
-    :param xmax:
-    :param nx:
-    :return:
+    :param xmin: (float) the minimum value of x represented by the simulation
+    :param xmax: (float) the maximum value of x represented by the simulation
+    :param nx: (int) the size of the x-grid
+    :return: (float, float array (nx, ), float array (nx, )) the grid spacing, the spatial grid,
+    and the corresponding spatial wave-number grid
+
     """
     dx = (xmax - xmin) / nx
     x = np.linspace(xmin + dx / 2.0, xmax - dx / 2.0, nx)
@@ -90,9 +93,8 @@ def log_initial_conditions(all_params, pulse_dictionary):
     """
     This function logs initial conditions to the mlflow server.
 
-    :param all_params:
-    :param pulse_dictionary:
-    :return:
+    :param all_params: (dictionary) contains the provided input parameters to the simulation
+    :param pulse_dictionary: (dictionary) contains the derived input parameters to the simulation
     """
     params_to_log_dict = {}
 
@@ -117,7 +119,7 @@ def make_default_params_dictionary():
     """
     Return a dictionary of default parameters
 
-    :return:
+    :return: (dictionary) Contains the default parameters for VlaPy
     """
 
     all_params_dict = {
@@ -151,9 +153,9 @@ def specify_collisions_to_dict(log_nu_over_nu_ld, all_params_dict):
     """
     This function adds the collision frequency to the parameters dictionary
 
-    :param log_nu_over_nu_ld:
-    :param all_params_dict:
-    :return:
+    :param log_nu_over_nu_ld: (float) log( nu_ee / nu_ld )
+    :param all_params_dict: (dictionary) contains the input parameters for the simulation
+    :return: (dictionary) parameters updated with the desired collision frequency
     """
     if log_nu_over_nu_ld is None:
         all_params_dict["nu"] = 0.0
@@ -171,9 +173,10 @@ def specify_epw_params_to_dict(k0, all_params_dict):
     particular k0. This stores the `w_epw` and `nu_ld` for that EPW in the
     `all_params_dict` as well as dictates the size of the box through `xmax`.
 
-    :param k0:
-    :param all_params_dict:
-    :return:
+    :param k0: (float) the desired EPW wavenumber
+    :param all_params_dict: (dictionary) contains the input parameters for the simulation
+    :return: (dictionary) parameters updated with the solution to the dispersion relation
+    for the desired wavenumber. This is typically used by the ponderomotive force driver.
     """
     solution_to_dispersion_relation = z_function.get_roots_to_electrostatic_dispersion(
         wp_e=1.0, vth_e=1.0, k0=k0
