@@ -29,16 +29,15 @@ import xarray as xr
 import numpy as np
 
 
-def load_over_all_timesteps(individual_path, overall_path):
+def combine_and_save_dataset(individual_path, overall_path):
     """
     This function
     1 - loads multiple dataarrays
     2 - concatenates them into one dataset
     3 - writes to file
 
-    :param individual_path:
-    :param overall_path:
-    :return:
+    :param individual_path: (string) path to the folder containing the data from each batch
+    :param overall_path: (string) path to the folder containing the combined data
     """
     arr = xr.open_mfdataset(
         individual_path,
@@ -53,6 +52,21 @@ def load_over_all_timesteps(individual_path, overall_path):
         invalid_netcdf=True,
     )
 
+    del arr
+
+
+def combine_save_and_open_dataset(individual_path, overall_path):
+    """
+    This function combines the datasets created per batch along the time axis.
+    Then it saves the newly combined dataset and deletes the reference to free up memory.
+
+    Then it lazy loads the newly combined dataset
+
+    :param individual_path: (string) path to the folder containing the data from each batch
+    :param overall_path: (string) path to the folder containing the combined data
+    :return: (xArray Dataset) lazy loaded xarray dataset
+    """
+    combine_and_save_dataset(individual_path, overall_path)
     arr = xr.open_dataset(
         overall_path,
         engine="h5netcdf",
@@ -62,6 +76,12 @@ def load_over_all_timesteps(individual_path, overall_path):
 
 
 def get_batched_data_from_sim_config(sim_config):
+    """
+    This function is a simple helper for grabbing all the data stored in the simulation history
+
+    :param sim_config:
+    :return:
+    """
     f = sim_config["stored_f"]
     current_f = sim_config["f"]
     time_batch = sim_config["time_batch"]
@@ -85,10 +105,14 @@ def get_paths(base_path):
         "series": os.path.join(base_path, "long_term", "series"),
         "fields": os.path.join(base_path, "long_term", "fields"),
         "distribution": os.path.join(base_path, "long_term", "distribution_function"),
+        "full_distribution": os.path.join(base_path, "long_term", "full_distribution"),
         "series-individual": os.path.join(base_path, "temp", "series"),
         "fields-individual": os.path.join(base_path, "temp", "fields"),
         "distribution-individual": os.path.join(
             base_path, "temp", "distribution_function"
+        ),
+        "full_distribution-individual": os.path.join(
+            base_path, "temp", "full_distribution_function"
         ),
     }
 
@@ -168,6 +192,8 @@ class StorageManager:
             self.current_f,
         ) = get_batched_data_from_sim_config(sim_config)
 
+        self.write_dist(time_actually_stored=time_actually_stored[-1:])
+
         self.write_series_batch(
             time_actually_stored=time_actually_stored,
             dict_of_stored_series=series,
@@ -182,9 +208,31 @@ class StorageManager:
         )
         self.stored += 1
 
+    def write_dist(self, time_actually_stored):
+        """
+        This writes the current distribution function to file
+
+        :param time_actually_stored:
+        :return:
+        """
+
+        df_coords = [
+            ("time", time_actually_stored),
+            ("space", self.xax),
+            ("velocity", self.vax),
+        ]
+        self.__write_batch__(
+            {"full_distribution": np.expand_dims(self.current_f, axis=0)},
+            coords=df_coords,
+            individual_file_name=os.path.join(
+                self.paths["full_distribution-individual"],
+                format(self.stored, "03") + ".nc",
+            ),
+        )
+
     def write_field_batch(self, time_actually_stored, dict_of_stored_fields):
         """
-        This writes a batch of 1D arrays to file
+        This writes a batch of 2D arrays to file
 
         :param time_actually_stored:
         :param dict_of_stored_fields:
@@ -306,17 +354,24 @@ class StorageManager:
         :return:
         """
 
-        self.series_dataset = load_over_all_timesteps(
+        combine_and_save_dataset(
+            individual_path=self.paths["full_distribution-individual"] + "/*.nc",
+            overall_path=os.path.join(
+                self.paths["full_distribution"], "all-full_distribution.nc"
+            ),
+        )
+
+        self.series_dataset = combine_save_and_open_dataset(
             individual_path=self.paths["series-individual"] + "/*.nc",
             overall_path=os.path.join(self.paths["series"], "all-series.nc"),
         )
 
-        self.fields_dataset = load_over_all_timesteps(
+        self.fields_dataset = combine_save_and_open_dataset(
             individual_path=self.paths["fields-individual"] + "/*.nc",
             overall_path=os.path.join(self.paths["fields"], "all-fields.nc"),
         )
 
-        self.dist_dataset = load_over_all_timesteps(
+        self.dist_dataset = combine_save_and_open_dataset(
             individual_path=self.paths["distribution-individual"] + "/*.nc",
             overall_path=os.path.join(
                 self.paths["distribution"], "all-distribution.nc"
