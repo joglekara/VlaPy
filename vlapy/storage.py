@@ -29,6 +29,34 @@ import xarray as xr
 import numpy as np
 
 
+def load_f_for_resume(resume_dir, resume_time):
+    """
+
+    :param resume_dir: (string) path to the folder that contains the distribution function to use to resume
+    :return: (2d float array (nx, nv)) distribution function to use for resume
+    """
+    overall_path = os.path.join(resume_dir, "all-full_distribution.nc")
+
+    arr = xr.open_dataset(
+        overall_path,
+        engine="h5netcdf",
+    )
+
+    time_where_f_is_stored = arr.coords["time"].data
+
+    time_gt_resume_time = np.where(time_where_f_is_stored > resume_time)
+    if len(time_gt_resume_time) > 0:
+        closest_tax = time_where_f_is_stored[time_gt_resume_time[0] - 1]
+    else:
+        raise LookupError(
+            "Specified time for resuming simulation is larger than any stored time-steps from the simulation"
+        )
+
+    f = arr["full_distribution"].loc[{"time": closest_tax}].data
+
+    return f
+
+
 def combine_and_save_dataset(individual_path, overall_path):
     """
     This function

@@ -29,3 +29,12 @@ def get_this_metric_of_this_run(metric_name, run_object):
 
     run = client.get_run(run_id)
     return run.data.metrics[metric_name]
+
+
+
+def download_run_artifacts_for_resume(path, experiment_name, run_id):
+
+
+
+
+    pass

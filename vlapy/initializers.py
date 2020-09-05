@@ -123,13 +123,14 @@ def make_default_params_dictionary():
     """
 
     all_params_dict = {
-        "nx": 32,
+        "nx": 64,
         "xmin": 0.0,
         "nv": 512,
         "vmax": 6.4,
         "nt": 500,
         "tmax": 80,
         "fokker-planck": {
+            "bool": False,
             "type": "lb",
             "solver": "batched_tridiagonal",
         },
@@ -140,10 +141,16 @@ def make_default_params_dictionary():
             "poisson": "spectral",
         },
         "backend": {
-            "core": "jax",
+            "core": "numpy",
             "max_GB_for_device": int(1),
         },
-        "a0": 4e-7,
+        "a0": 1e-7,
+        "resume": {
+            "bool": False,
+            "experiment_name": "None",
+            "run_id": "None",
+            "t0": 0.0,
+        },
     }
 
     return all_params_dict

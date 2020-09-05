@@ -21,11 +21,12 @@
 # SOFTWARE.
 
 
-from time import time
+import os
 from tqdm import tqdm
 
-from vlapy import initializers, field_driver
+from vlapy import initializers, field_driver, storage
 from vlapy.core import step
+from vlapy.infrastructure import mlflow_helpers
 
 
 def get_sim_config_and_inner_loop_step(
@@ -279,3 +280,21 @@ def get_inner_loop_stepper(all_params, stuff_for_time_loop, steps_in_loop):
             + all_params["backend"]["core"]
             + "> has not yet been implemented"
         )
+
+
+def resume_from_step(temp_dir, experiment_name, run_id, sim_config, resume_time):
+    # create resume directory
+    resume_dir = os.path.join(temp_dir, "initial_conditions")
+    os.makedirs(resume_dir)
+
+    # get artifacts - run mlflow command
+    mlflow_helpers.download_run_artifacts_for_resume(
+        resume_dir, experiment_name=experiment_name, run_id=run_id
+    )
+
+    # load f
+    sim_config["f"], it_start = storage.load_f_for_resume(
+        resume_dir=resume_dir, resume_time=resume_time
+    )
+
+    return sim_config, it_start
