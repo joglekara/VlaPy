@@ -198,7 +198,7 @@ def __run_collision_operator_test_loop__(
     }
 
     all_params = {
-        "fokker-planck": {"type": collision_operator, "solver": solver},
+        "fokker-planck": {"bool": True, "type": collision_operator, "solver": solver},
         "nu": nu,
     }
 
