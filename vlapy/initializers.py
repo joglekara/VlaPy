@@ -127,7 +127,7 @@ def make_default_params_dictionary():
         "xmin": 0.0,
         "nv": 512,
         "vmax": 6.4,
-        "nt": 500,
+        "nt": 1600,
         "tmax": 80,
         "fokker-planck": {
             "bool": False,

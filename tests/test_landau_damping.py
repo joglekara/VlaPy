@@ -68,7 +68,7 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
         pulse_dictionary = {
             "first pulse": {
                 "start_time": 0,
-                "t_L": 6,
+                "t_L": 10,
                 "t_wL": 2.5,
                 "t_R": 20,
                 "t_wR": 2.5,

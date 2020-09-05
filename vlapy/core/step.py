@@ -77,12 +77,12 @@ def get_collision_step(stuff_for_time_loop, all_params):
     :return: function for taking a Fokker-Planck timestep
     """
 
-    if all_params["nu"] == 0.0:
+    if not all_params["fokker-planck"]["bool"]:
 
         def take_collision_step(f):
             return f
 
-    elif all_params["nu"] > 0.0:
+    elif all_params["fokker-planck"]["bool"]:
 
         solver = collisions.get_matrix_solver(
             nx=stuff_for_time_loop["nx"],
