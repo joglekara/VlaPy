@@ -77,7 +77,7 @@ def get_damping_rate(efield_arr):
     """
     tax = efield_arr.coords["time"].data
 
-    t_ind = int(3*tax.size/4)
+    t_ind = int(3 * tax.size / 4)
 
     ek = np.fft.fft(efield_arr.data, axis=1)
     ek_mag = np.array([np.abs(ek[it, 1]) for it in range(tax.size)])[t_ind:]

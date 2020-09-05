@@ -82,7 +82,7 @@ class LandauDamping(base.BaseDiagnostic):
             t=tax,
             e=ek_mag,
             title="Electric Field Amplitude vs Time",
-            log=False
+            log=False,
         )
         base.plot_e_vs_w(
             plots_dir=self.plots_dir,
