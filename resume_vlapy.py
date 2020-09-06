@@ -53,8 +53,8 @@ if __name__ == "__main__":
     all_params_dict["fokker-planck"]["bool"] = False
 
     all_params_dict["resume"]["bool"] = True
-    all_params_dict["resume"]["run_id"] = "0dcc4f66baaf4b62bac521a3413c4402"
-    all_params_dict["resume"]["t0"] = 100
+    all_params_dict["resume"]["run_id"] = "0be7138383c3416d8f9e7145b345a284"
+    all_params_dict["resume"]["t0"] = 80
 
     pulse_dictionary = {
         "first pulse": {

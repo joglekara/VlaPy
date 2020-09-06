@@ -282,14 +282,14 @@ def get_inner_loop_stepper(all_params, stuff_for_time_loop, steps_in_loop):
         )
 
 
-def resume_from_step(temp_dir, run_id, sim_config, resume_time, all_params):
+def resume_from_step(storage_manager, run_id, sim_config, resume_time, all_params):
     # create resume directory
     # resume_dir = os.path.join(temp_dir, "initial_conditions")
     # os.makedirs(resume_dir)
 
     # get artifacts - run mlflow command
     old_params = mlflow_helpers.download_run_artifacts_for_resume(
-        temp_dir, run_id=run_id
+        storage_manager.paths["long_term"], run_id=run_id
     )
 
     if all_params.items() == old_params.items():
@@ -299,7 +299,8 @@ def resume_from_step(temp_dir, run_id, sim_config, resume_time, all_params):
 
     # load f
     sim_config["f"], it_start = storage.load_f_for_resume(
-        resume_dir=temp_dir, resume_time=resume_time
+        f_path=storage_manager.paths["full_distribution"],
+        resume_time=resume_time,
     )
 
     return sim_config, it_start
