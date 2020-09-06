@@ -282,19 +282,24 @@ def get_inner_loop_stepper(all_params, stuff_for_time_loop, steps_in_loop):
         )
 
 
-def resume_from_step(temp_dir, experiment_name, run_id, sim_config, resume_time):
+def resume_from_step(temp_dir, run_id, sim_config, resume_time, all_params):
     # create resume directory
-    resume_dir = os.path.join(temp_dir, "initial_conditions")
-    os.makedirs(resume_dir)
+    # resume_dir = os.path.join(temp_dir, "initial_conditions")
+    # os.makedirs(resume_dir)
 
     # get artifacts - run mlflow command
-    mlflow_helpers.download_run_artifacts_for_resume(
-        resume_dir, experiment_name=experiment_name, run_id=run_id
+    old_params = mlflow_helpers.download_run_artifacts_for_resume(
+        temp_dir, run_id=run_id
     )
+
+    if all_params.items() == old_params.items():
+        print(
+            "The input parameters exactly match the parameters from the previous simulations"
+        )
 
     # load f
     sim_config["f"], it_start = storage.load_f_for_resume(
-        resume_dir=resume_dir, resume_time=resume_time
+        resume_dir=temp_dir, resume_time=resume_time
     )
 
     return sim_config, it_start

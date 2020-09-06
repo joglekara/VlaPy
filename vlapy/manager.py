@@ -96,11 +96,11 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
             # TODO: Could support resume here
             if all_params["resume"]["bool"]:
                 sim_config, it_start = outer_loop.resume_from_step(
-                    temp_dir=temp_path,
-                    experiment_name=all_params["resume"]["experiment_name"],
+                    temp_dir=storage_manager.paths["long_term"],
                     run_id=all_params["resume"]["run_id"],
                     sim_config=sim_config,
                     resume_time=all_params["resume"]["t0"],
+                    all_params=all_params
                 )
             else:
                 it_start = 0

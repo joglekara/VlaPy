@@ -35,7 +35,9 @@ def load_f_for_resume(resume_dir, resume_time):
     :param resume_dir: (string) path to the folder that contains the distribution function to use to resume
     :return: (2d float array (nx, nv)) distribution function to use for resume
     """
-    overall_path = os.path.join(resume_dir, "all-full_distribution.nc")
+    overall_path = os.path.join(
+        resume_dir, "full_distribution", "all-full_distribution.nc"
+    )
 
     arr = xr.open_dataset(
         overall_path,
@@ -44,9 +46,14 @@ def load_f_for_resume(resume_dir, resume_time):
 
     time_where_f_is_stored = arr.coords["time"].data
 
-    time_gt_resume_time = np.where(time_where_f_is_stored > resume_time)
-    if len(time_gt_resume_time) > 0:
-        closest_tax = time_where_f_is_stored[time_gt_resume_time[0] - 1]
+    time_gt_resume_time = np.argmax(time_where_f_is_stored > resume_time)
+    if time_gt_resume_time > 0:
+        it_start = (
+            time_gt_resume_time - 1 + 1
+        )  # -1 to get the last stored index, +1 because it_start = 0 isn't stored
+        closest_tax = time_where_f_is_stored[it_start-1]
+
+        print("Starting simulation from t = " + str(closest_tax))
     else:
         raise LookupError(
             "Specified time for resuming simulation is larger than any stored time-steps from the simulation"
@@ -54,7 +61,7 @@ def load_f_for_resume(resume_dir, resume_time):
 
     f = arr["full_distribution"].loc[{"time": closest_tax}].data
 
-    return f
+    return f, it_start
 
 
 def combine_and_save_dataset(individual_path, overall_path):
@@ -373,7 +380,7 @@ class StorageManager:
         :param filename:
         :return:
         """
-        with open(os.path.join(self.paths["base"], filename + ".txt"), "w") as fi:
+        with open(os.path.join(self.paths["long_term"], filename + ".txt"), "w") as fi:
             json.dump(param_dict, fi)
 
     def load_data_over_all_timesteps(self):

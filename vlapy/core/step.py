@@ -313,12 +313,11 @@ def get_timestep(all_params, stuff_for_time_loop):
         :return: (dictionary) contains updated distribution function and other stored quantities
         """
 
-        e = temp_storage["e"]
         f = temp_storage["f"]
         t = temp_storage["time_batch"][i]
         de = temp_storage["driver_array_batch"][i]
 
-        e, f = vp_step(e=e, f=f, t=t)
+        e, f = vp_step(f=f, t=t)
         f = fp_step(f=f)
 
         temp_storage = storage_step(temp_storage=temp_storage, e=e, de=de, f=f, i=i)

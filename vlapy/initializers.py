@@ -147,7 +147,6 @@ def make_default_params_dictionary():
         "a0": 1e-7,
         "resume": {
             "bool": False,
-            "experiment_name": "None",
             "run_id": "None",
             "t0": 0.0,
         },

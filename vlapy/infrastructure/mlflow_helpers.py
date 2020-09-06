@@ -20,6 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
+import shutil
+import json
+
 from mlflow.tracking import MlflowClient
 
 
@@ -31,6 +35,27 @@ def get_this_metric_of_this_run(metric_name, run_object):
     return run.data.metrics[metric_name]
 
 
-def download_run_artifacts_for_resume(path, experiment_name, run_id):
+def download_run_artifacts_for_resume(path, run_id):
+    client = MlflowClient()
+    run = client.get_run(run_id=run_id)
+    artifact_uri = run.info.artifact_uri
 
-    pass
+    if "s3" in artifact_uri:
+        os.system("aws s3 sync " + artifact_uri + " " + path)
+    else:
+        copytree_alt(artifact_uri[7:], path)
+
+    with open(os.path.join(path, "all_parameters.txt"), "r") as fp:
+        old_params = json.load(fp)
+
+    return old_params
+
+
+def copytree_alt(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore, dirs_exist_ok=True)
+        else:
+            shutil.copy2(s, d)

@@ -33,7 +33,7 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
     :return: (function) above inputs initialized as static variables
     """
 
-    def full_leapfrog_ps_step(e, f, t):
+    def full_leapfrog_ps_step(f, t):
         """
         Takes a step forward in time for f and e
 
@@ -50,6 +50,7 @@ def get_full_leapfrog_step(vdfdx, edfdv, field_solve, dt, driver_function):
         :param t: (float) current time
         :return: (float array (nx, nv)) updated distribution function
         """
+        e = field_solve(driver_field=driver_function(t), f=f)
         f = edfdv(f=f, e=e, dt=0.5 * dt)
         f = vdfdx(f=f, dt=dt)
         e = field_solve(driver_field=driver_function(t + dt), f=f)
@@ -79,7 +80,7 @@ def get_full_pefrl_step(vdfdx, edfdv, field_solve, dt, driver_function):
     :return: (function) above inputs initialized as static variables
     """
 
-    def full_pefrl_ps_step(e, f, t):
+    def full_pefrl_ps_step(f, t):
         """
         Takes a step forward in time for f and e using the
         Performance-Extended Forest-Ruth-Like algorithm [1-2]
@@ -184,7 +185,7 @@ def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
     d3 = 3.048480261700038788680723e-5
     e3 = 4.985549387875068121593988e-7
 
-    def sixth_order_step(e, f, t):
+    def sixth_order_step(f, t):
         """
         This is the 6th order integrator for 1D Vlasov-Poisson systems given in
         Casas, F., Crouseilles, N., Faou, E., & Mehrenberger, M. (2017). High-order Hamiltonian splitting for
@@ -200,6 +201,7 @@ def get_6th_order_integrator(vdfdx, edfdv, field_solve, dt, driver_function):
         D2 = b2 + 2.0 * c2 * dt ** 2.0 + 4.0 * d2 * dt ** 4.0
         D3 = b3 + 2.0 * c3 * dt ** 2.0 + 4.0 * d3 * dt ** 4.0 - 8.0 * e3 * dt ** 6.0
 
+        e = field_solve(driver_field=driver_function(t), f=f)
         f = edfdv(f=f, e=e, dt=D1 * dt)
 
         f = vdfdx(f=f, dt=a1 * dt)
