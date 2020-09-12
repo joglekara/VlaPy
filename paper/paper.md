@@ -182,6 +182,83 @@ Below, we also illustrate a manual validation of this phenomenon through the ful
 
 To run the entire testing suite, make sure `pytest` is installed, and call `pytest` from the root folder for the repository. Individual files can also be run by calling `pytest tests/<test_filename>.py`.
 
+# Example Run Script For Landau Damping
+    import numpy as np
+    from vlapy import manager, initializers
+    from vlapy.infrastructure import mlflow_helpers, print_to_screen
+    from vlapy.diagnostics import landau_damping
+    
+    if __name__ == "__main__":
+        # Pick a random wavenumber
+        k0 = np.random.uniform(0.3, 0.4, 1)[0]
+        
+        # This is a collisionless simulation. Provide float value if collisions should be simulated
+        log_nu_over_nu_ld = None
+        
+        # This initializes the default parameters
+        all_params_dict = initializers.make_default_params_dictionary()
+        
+        # This calculates the roots to the EPW dispersion relation given the wavenumber
+        all_params_dict = initializers.specify_epw_params_to_dict(
+            k0=k0, all_params_dict=all_params_dict
+        )
+        
+        # This specifies the collision frequency given nu_ld
+        all_params_dict = initializers.specify_collisions_to_dict(
+            log_nu_over_nu_ld=log_nu_over_nu_ld, all_params_dict=all_params_dict
+        )
+    
+        # The solvers can be chosen here
+        all_params_dict["vlasov-poisson"]["time"] = "leapfrog"
+        all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
+        all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
+    
+        all_params_dict["fokker-planck"]["type"] = "lb"
+        all_params_dict["fokker-planck"]["type"] = "batched_tridiagonal"
+        
+        # The pulse shape can be chosen here
+        pulse_dictionary = {
+            "first pulse": {
+                "start_time": 0,
+                "t_L": 6,
+                "t_wL": 2.5,
+                "t_R": 20,
+                "t_wR": 2.5,
+                "w0": all_params_dict["w_epw"],
+                "a0": 1e-7,
+                "k0": k0,
+            }
+        }
+        
+        # Mlflow experiment name and location
+        mlflow_exp_name = "landau-damping"
+        
+        # Either an IP address for your MLflow server or "local" if no server specified
+        uris = {
+            "tracking": "local",
+        }
+        
+       
+        # Start!
+        that_run = manager.start_run(
+            all_params=all_params_dict,
+            pulse_dictionary=pulse_dictionary,
+            diagnostics=landau_damping.LandauDamping(
+                vph=all_params_dict["v_ph"],
+                wepw=all_params_dict["w_epw"],
+            ),
+            uris=uris,
+            name=mlflow_exp_name,
+        )
+        
+        # Assess if the simulation results match the actual damping rate
+        print(
+            mlflow_helpers.get_this_metric_of_this_run("damping_rate", that_run),
+            all_params_dict["nu_ld"],
+        )
+
+
+
 # Acknowledgements
 We use xarray [@Hoyer2017] for file storage and MLFlow [@Chen2020] for experiment management.
 

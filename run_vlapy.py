@@ -23,7 +23,7 @@
 import numpy as np
 
 from vlapy import manager, initializers
-from vlapy.infrastructure import mlflow_helpers, print_to_screen
+from vlapy.infrastructure import mlflow_helpers
 from vlapy.diagnostics import landau_damping
 
 if __name__ == "__main__":
@@ -42,12 +42,8 @@ if __name__ == "__main__":
     all_params_dict["vlasov-poisson"]["edfdv"] = "exponential"
     all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
 
-    all_params_dict["backend"]["core"] = "numpy"
-    all_params_dict["backend"]["max_GB_for_device"] = 1
-
     all_params_dict["fokker-planck"]["type"] = "lb"
     all_params_dict["fokker-planck"]["type"] = "batched_tridiagonal"
-
 
     pulse_dictionary = {
         "first pulse": {
@@ -67,10 +63,6 @@ if __name__ == "__main__":
     uris = {
         "tracking": "local",
     }
-
-    print_to_screen.print_startup_message(
-        mlflow_exp_name, all_params_dict, pulse_dictionary
-    )
 
     that_run = manager.start_run(
         all_params=all_params_dict,

@@ -29,6 +29,7 @@ import mlflow
 import numpy as np
 
 from vlapy import storage, outer_loop
+from vlapy.infrastructure import print_to_screen
 
 
 def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
@@ -46,8 +47,9 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     :param name: (string) the name of the MLFlow experiment
     :return: (Mlflow.Run) returns the completed Run object
     """
-    t0 = time()
 
+    t0 = time()
+    print_to_screen.print_startup_message(name, all_params, pulse_dictionary)
     if "local" not in uris["tracking"].casefold():
         mlflow.set_tracking_uri(uris["tracking"])
 
