@@ -31,7 +31,7 @@ Our implementation is based on finite-difference and pseudo-spectral methods. At
 
 # Statement of Need
 
-The 1D-1V VPFP equation set solved here has been applied in research of laser-plasma interactions in the context of inertial fusion [@Fahlen2009; @Banks2016], of plasma-based accelerators [@Thomas2016], of space physics [@Chen2019], and of fundamental plasma physics [@Pezzi2016; @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
+The 1D-1V VPFP equation set solved here has been applied in research on laser-plasma interactions in the context of inertial fusion [@Fahlen2009; @Banks2016], plasma-based accelerators [@Thomas2016], space physics [@Chen2019], and fundamental plasma physics [@Pezzi2016; @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
 
 ``VlaPy`` is intended to help students learn fundamental concepts and help researchers discover novel physics and applications in plasma physics, fluid physics, computational physics, and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
 
@@ -166,7 +166,7 @@ We see from the above figures that the distribution relaxes to a Maxwellian. Dep
 
 # Integrated Code Tests against Plasma Physics: Electron Plasma Waves and Landau Damping
 
-Landau Damping is one of the most fundamental plasma physics phenomenon. An extensive review is provided in [@Ryutov1999].  
+Landau Damping is one of the most fundamental phenomena in plasma physics. An extensive review is provided in [@Ryutov1999].  
 
 Plasmas can support electrostatic oscillations. The oscillation frequency is given by the electrostatic electron plasma wave (EPW) dispersion relation. When a wave of sufficiently small amplitude is driven at the resonant wave-number and frequency pairing, there is a resonant exchange of energy between the plasma and the electric field, and the electrons can damp the electric field. The damping rates, as well as the resonant frequencies, are given in [@Canosa1973].
 
