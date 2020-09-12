@@ -31,5 +31,5 @@ def print_startup_message(exp_name, all_params_dict, pulse_dictionary, uri):
     pprint.pprint(all_params_dict)
     print("Driver parameters: ")
     pprint.pprint(pulse_dictionary)
-    print("MLFlow server?")
+    print("MLFlow server: ")
     pprint.pprint(uri)

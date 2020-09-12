@@ -49,7 +49,7 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     """
 
     t0 = time()
-    print_to_screen.print_startup_message(name, all_params, pulse_dictionary)
+    print_to_screen.print_startup_message(name, all_params, pulse_dictionary, uris)
     if "local" not in uris["tracking"].casefold():
         mlflow.set_tracking_uri(uris["tracking"])
 
