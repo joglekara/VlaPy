@@ -7,7 +7,7 @@ jobs:
   build:
     # Run the steps with Docker
     docker:
-      - image: cimg/python:3.7
+      - image: cimg/python:3.8
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
