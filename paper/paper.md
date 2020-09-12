@@ -175,7 +175,7 @@ In the ``VlaPy`` simulation code, we have verified that the known damping rates 
 We include validation against this phenomenon as an automated integrated test. The tests can be found in 
 `tests/test_landau_damping.py`
 
-Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow. After running a properly initialized simulation, we show that the damping rate of an electron plasma wave with $k=0.3$ is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
+Below, we also illustrate a manual validation of this phenomenon through the fully integrated workflow of running a simulation on a local machine and sending the results to the MLFlow-driven logging mechanism. After running a properly initialized simulation, we show that the damping rate of an electron plasma wave with $k=0.3$ is reproduced accurately through the UI. This can also be computed manually (please see the testing code for details).
 
 ![](../notebooks/screenshots_for_example/ui.png)
 ![](../notebooks/screenshots_for_example/damping.png)
