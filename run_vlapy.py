@@ -43,7 +43,7 @@ if __name__ == "__main__":
     all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
 
     all_params_dict["fokker-planck"]["type"] = "lb"
-    all_params_dict["fokker-planck"]["type"] = "batched_tridiagonal"
+    all_params_dict["fokker-planck"]["solver"] = "batched_tridiagonal"
 
     pulse_dictionary = {
         "first pulse": {

@@ -214,7 +214,7 @@ To run the entire testing suite, make sure `pytest` is installed, and call `pyte
         all_params_dict["vlasov-poisson"]["vdfdx"] = "exponential"
     
         all_params_dict["fokker-planck"]["type"] = "lb"
-        all_params_dict["fokker-planck"]["type"] = "batched_tridiagonal"
+        all_params_dict["fokker-planck"]["solver"] = "batched_tridiagonal"
         
         # The pulse shape can be chosen here
         pulse_dictionary = {
