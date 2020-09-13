@@ -84,10 +84,6 @@ def __run_integrated_landau_damping_test_and_return_damping_rate__(
             "tracking": "local",
         }
 
-        print_to_screen.print_startup_message(
-            mlflow_exp_name, all_params_dict, pulse_dictionary
-        )
-
         that_run = manager.start_run(
             all_params=all_params_dict,
             pulse_dictionary=pulse_dictionary,

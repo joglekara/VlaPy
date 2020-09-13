@@ -24,11 +24,12 @@ import pprint
 from datetime import datetime
 
 
-def print_startup_message(exp_name, all_params_dict, pulse_dictionary):
+def print_startup_message(exp_name, all_params_dict, pulse_dictionary, uri):
     print("Starting VlaPy at " + datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
     print("MLFlow experiment name: " + exp_name)
     print("Run parameters: ")
     pprint.pprint(all_params_dict)
     print("Driver parameters: ")
     pprint.pprint(pulse_dictionary)
-    print()
+    print("MLFlow server: ")
+    pprint.pprint(uri)
