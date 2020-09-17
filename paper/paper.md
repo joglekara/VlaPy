@@ -260,7 +260,8 @@ To run the entire testing suite, make sure `pytest` is installed, and call `pyte
 
 
 # Acknowledgements
-We use xarray [@Hoyer2017] for file storage and MLFlow [@Chen2020] for experiment management.
+We use xarray [@Hoyer2017] for file storage and MLFlow [@Chen2020] for experiment management. We also acknowledge the 
+valuable work behind NumPy [@Harris2020] and SciPy [@2020SciPy-NMeth].
 
 We acknowledge valuable discussions with Pierre Navarro on the implementation of the Vlasov equation.
 
