@@ -23,15 +23,15 @@ bibliography: paper.bib
 
 # Summary
 
-Here we introduce ``VlaPy``: a 1-spatial-dimension, 1-velocity-dimension (1D-1V), Eulerian Vlasov-Poisson-Fokker-Planck (VPFP) simulation code written in Python.  
+Here we introduce ``VlaPy``: a one-spatial-dimension, one-velocity-dimension (1D-1V), Eulerian Vlasov-Poisson-Fokker-Planck (VPFP) simulation code written in Python.  
 
-The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications (see [@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
+The Vlasov-Poisson-Fokker-Planck system of equations is commonly used to study plasma and fluid physics in a broad set of topical environments, ranging from space physics, to laboratory-created plasmas for fusion applications ([@Betti2016; @Fasoli2016; @Ongena2016; @Chen2019]). More specifically, the Vlasov-Poisson system of equations is typically employed to model collisionless plasmas. The Fokker-Planck operator can be introduced into this system to represent the effect of collisions. The primary advantage of this scheme is that instead of relying on numerical diffusion to smooth small-scale structures that arise when modeling collisionless plasmas, the Fokker-Planck operator enables a physics-based smoothing mechanism. 
 
 Our implementation is based on finite-difference and pseudo-spectral methods. At the lowest level, ``VlaPy`` evolves a two-dimensional (2D) grid according to this set of coupled partial integro-differential equations over time. In ``VlaPy``, the simulation dynamics can be initialized through user-specified initial conditions or external forces.
 
 # Statement of Need
 
-The 1D-1V VPFP equation set solved here has been applied in research on laser-plasma interactions in the context of inertial fusion [@Fahlen2009; @Banks2016], plasma-based accelerators [@Thomas2016], space physics [@Chen2019], and fundamental plasma physics [@Pezzi2016; @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry (e.g., [@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
+The 1D-1V VPFP equation set solved here has been applied in research on laser-plasma interactions in the context of inertial fusion [@Fahlen2009; @Banks2016], plasma-based accelerators [@Thomas2016], space physics [@Chen2019], and fundamental plasma physics [@Pezzi2016; @Heninger2018].  While there are VPFP software libraries which are available in academic settings, research laboratories, and industry ([@Banks2017; @Joglekar2018]), the community has yet to benefit from a simple-to-read, open-source Python implementation. This lack of capability is currently echoed in conversations within the ``PlasmaPy`` [@plasmapy] community (``PlasmaPy`` is a collection of open-source plasma physics resources). Our aim with ``VlaPy`` is to take a step towards filling this need for a research and educational tool in the open-source community.
 
 ``VlaPy`` is intended to help students learn fundamental concepts and help researchers discover novel physics and applications in plasma physics, fluid physics, computational physics, and numerical methods.  It is also designed to provide a science-accessible introduction to industry and software engineering best-practices, including unit and integrated testing, and extensible and maintainable code. 
 
@@ -40,8 +40,8 @@ The details of the ``VlaPy`` implementation are provided in the following sectio
 
 # Equations
 
-The Vlasov-Poisson-Fokker-Planck system can be decomposed into 4 components. These components, represented using normalized units, are 
-$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / \lambda_D$, $\tilde{m} = m / m_e$, $\tilde{q} = q/e$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e v_{th} \omega_p$, $\tilde{f} = f / n_e v_{th}^{-3}$. 
+The Vlasov-Poisson-Fokker-Planck system can be decomposed into four components. These components, represented using normalized units, are 
+$\tilde{v} = v/v_{th}$, $\tilde{t} = t / \omega_p^{-1}$, $\tilde{x} = x / \lambda_D$, $\tilde{m} = m / m_e$, $\tilde{q} = q/e$, $\tilde{m} = m / m_e$, $\tilde{E} = e E / m_e v_{th} \omega_p$, $\tilde{f} = f / n_e v_{th}^{-3}$ 
 where $v_{th}$ is the thermal velocity, $\omega_p$ is the electron plasma frequency, $m_e$ is the electron mass, $\lambda_D$ is the Debye length, and $e$ is the elementary charge. 
 The Fourier transform operator is represented by $\mathcal{F}$ and the subscript to the operator indicates the dimension of the transform. In what follows, we have omitted the 
 tilde for brevity. 
@@ -95,7 +95,7 @@ $$ - \nabla E = - \rho_{net} = -(1 - \rho_e) $$
 
 This is justifed by the assumption that the relevant time-scales are short compared to the time-scale associated to ion motion.
 
-In 1 spatial dimension, this can be expressed as
+In one spatial dimension, this can be expressed as
 
 $$ \frac{\partial}{\partial x} E(x) = 1 - \int f(x,v) ~dv $$
 
