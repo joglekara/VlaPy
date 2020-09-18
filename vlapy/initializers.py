@@ -140,7 +140,7 @@ def make_default_params_dictionary():
             "poisson": "spectral",
         },
         "backend": {
-            "core": "jax",
+            "core": "numpy",
             "max_GB_for_device": int(1),
         },
         "a0": 4e-7,
