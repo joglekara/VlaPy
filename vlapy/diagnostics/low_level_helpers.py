@@ -33,7 +33,7 @@ def get_nth_mode(efield_arr, mode_number):
     :return:
     """
     ek = np.fft.fft(efield_arr.data, axis=1, norm="ortho")
-    ek_rec = np.zeros(efield_arr.shape, dtype=np.complex)
+    ek_rec = np.zeros(efield_arr.shape, dtype=np.complex128)
     ek_rec[:, mode_number] = ek[:, mode_number]
     ek_rec = 2 * np.fft.ifft(ek_rec, axis=1, norm="ortho")
 

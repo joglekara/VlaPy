@@ -53,9 +53,9 @@ def start_run(all_params, pulse_dictionary, diagnostics, uris, name="test"):
     if "local" not in uris["tracking"].casefold():
         mlflow.set_tracking_uri(uris["tracking"])
 
-    exp_id = mlflow.set_experiment(name)
+    exp = mlflow.set_experiment(name)
 
-    with mlflow.start_run(experiment_id=exp_id) as run:
+    with mlflow.start_run(experiment_id=exp.experiment_id) as run:
         with tempfile.TemporaryDirectory() as temp_path:
 
             if diagnostics.rules_to_store_f["space"] == "all":
